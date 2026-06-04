@@ -123,6 +123,74 @@
     .sync-dot.online { background: #22c55e; animation: pulse 2s infinite; }
     .sync-dot.offline { background: #f59e0b; }
     @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+    /* ===== 📱 모바일 최적화 ===== */
+    @media (max-width: 768px) {
+      /* 헤더 */
+      header h1 { font-size: 1.3rem !important; }
+      header .flex.items-center.space-x-3.mt-2 { margin-top: 4px; }
+      header button span { font-size: 0.75rem; }
+      header button { padding: 6px 10px !important; }
+
+      /* 레이싱 트랙 */
+      .race-track { height: 220px !important; }
+      .car { font-size: 1.6rem !important; }
+      .cloud { font-size: 1.2rem !important; }
+      .tree { font-size: 1rem !important; }
+
+      /* 순위표 */
+      #race-ranking { grid-template-columns: repeat(5, 1fr) !important; gap: 4px !important; }
+      #race-ranking > div { padding: 4px 2px !important; font-size: 0.65rem !important; }
+
+      /* 메인 여백 */
+      main { padding-left: 8px !important; padding-right: 8px !important; }
+      .rounded-3xl { border-radius: 16px !important; }
+
+      /* 카드 패딩 */
+      .p-6 { padding: 12px !important; }
+      .p-5 { padding: 10px !important; }
+
+      /* 성경 통독 지도 - 책 버튼 */
+      #ot-books, #nt-books { grid-template-columns: repeat(5, 1fr) !important; gap: 4px !important; }
+      #ot-books > div, #nt-books > div { padding: 4px 2px !important; }
+
+      /* 관리자 패널 */
+      #admin-panel .max-w-2xl { padding: 12px !important; }
+
+      /* 퀴즈 버튼 */
+      .quiz-block button { padding: 10px 8px !important; font-size: 0.8rem !important; }
+
+      /* 달란트 백화점 버튼 */
+      .space-y-2 button { min-height: 40px; }
+
+      /* 빵빠레 버튼 */
+      .font-black.text-xl { font-size: 1rem !important; padding: 12px !important; }
+
+      /* 주간 스탬프 */
+      #stamp-container { grid-template-columns: repeat(6, 1fr) !important; gap: 4px !important; }
+      #stamp-container > div { padding: 4px 2px !important; }
+
+      /* 가족 카드 */
+      .bounce-hover { transform: none !important; }
+      .w-16.h-16 { width: 52px !important; height: 52px !important; }
+
+      /* 기도제목 textarea */
+      #prayer-text { font-size: 16px !important; } /* iOS 줌 방지 */
+
+      /* PIN 패드 */
+      .pin-key { padding: 14px 0 !important; font-size: 1.4rem !important; }
+
+      /* 성경 범위 입력 */
+      #bible-range { font-size: 16px !important; } /* iOS 줌 방지 */
+    }
+
+    /* 터치 타겟 최소 크기 */
+    @media (max-width: 768px) {
+      button { min-height: 36px; }
+      input[type="text"], input[type="date"], textarea, select {
+        font-size: 16px !important; /* iOS auto-zoom 방지 */
+      }
+    }
   </style>
 </head>
 <body class="min-h-screen text-slate-800 pb-12">
@@ -140,12 +208,13 @@
           </div>
         </div>
       </div>
-      <div class="flex items-center space-x-3 mt-2 md:mt-0">
-        <button onclick="triggerFiveMinuteAlert()" class="bg-amber-500 hover:bg-amber-400 text-white font-bold py-2 px-4 rounded-full shadow-md flex items-center space-x-2 transition">
+      <div class="flex items-center space-x-2 mt-1 md:mt-0">
+        <button onclick="triggerFiveMinuteAlert()" class="bg-amber-500 hover:bg-amber-400 text-white font-bold py-2 px-3 rounded-full shadow-md flex items-center space-x-1 transition text-sm">
           <i class="fa-solid fa-bell animate-bounce"></i>
-          <span>🔔 5분전 방송!</span>
+          <span class="hidden sm:inline">🔔 5분전 방송!</span>
+          <span class="sm:hidden">🔔</span>
         </button>
-        <button onclick="openAdminLogin()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-full shadow-md flex items-center space-x-2 transition">
+        <button onclick="openAdminLogin()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 px-3 rounded-full shadow-md flex items-center space-x-1 transition text-sm">
           <i class="fa-solid fa-lock"></i>
           <span id="admin-btn-label">관리자</span>
         </button>
@@ -298,7 +367,7 @@
       </div>
 
       <!-- 레이싱 트랙 -->
-      <div class="race-track" style="height: 340px;">
+      <div class="race-track" style="height: clamp(200px, 40vw, 340px);">
         <!-- 구름 -->
         <div class="cloud" style="top:5%; animation-delay:0s;">☁️</div>
         <div class="cloud" style="top:12%; animation-delay:3s;">☁️</div>
@@ -494,7 +563,7 @@
           </div>
         </div>
 
-        <!-- 달란트 백화점 (전체 너비) -->
+        <!-- 달란트 백화점 -->
         <div class="grid grid-cols-1 gap-6">
 
           <!-- 달란트 백화점 -->

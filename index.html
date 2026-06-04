@@ -83,20 +83,24 @@
 
     /* 🏎️ 레이싱 트랙 */
     .race-track {
-      background: linear-gradient(180deg, #87CEEB 0%, #87CEEB 55%, #4CAF50 55%, #4CAF50 60%, #808080 60%, #808080 75%, #808080 75%, #4CAF50 75%, #4CAF50 100%);
+      background: linear-gradient(180deg,
+        #87CEEB 0%, #87CEEB 28%,
+        #4CAF50 28%, #4CAF50 33%,
+        #555 33%, #555 90%,
+        #4CAF50 90%, #4CAF50 100%);
       position: relative;
       border-radius: 16px;
       overflow: hidden;
     }
-    .road-line {
+    /* 레인 구분선 (4개 → 5레인) */
+    .road-lane-line {
       position: absolute;
-      top: 64%;
       left: 0; right: 0;
-      height: 3px;
-      background: repeating-linear-gradient(90deg, #fff 0px, #fff 30px, transparent 30px, transparent 60px);
-      animation: roadMove 0.8s linear infinite;
+      height: 2px;
+      background: repeating-linear-gradient(90deg, rgba(255,255,255,0.5) 0px, rgba(255,255,255,0.5) 20px, transparent 20px, transparent 40px);
+      animation: roadMove 1s linear infinite;
     }
-    @keyframes roadMove { from { background-position: 0 0; } to { background-position: -60px 0; } }
+    @keyframes roadMove { from { background-position: 0 0; } to { background-position: -40px 0; } }
 
     .car {
       position: absolute;
@@ -133,7 +137,7 @@
       header button { padding: 6px 10px !important; }
 
       /* 레이싱 트랙 */
-      .race-track { height: 220px !important; }
+      .race-track { height: 300px !important; }
       .car { font-size: 1.6rem !important; }
       .cloud { font-size: 1.2rem !important; }
       .tree { font-size: 1rem !important; }
@@ -184,6 +188,14 @@
       #bible-range { font-size: 16px !important; } /* iOS 줌 방지 */
     }
 
+    /* 멤버 색상 */
+    .member-dot-온유  { background:#3b82f6; }
+    .member-dot-기쁨  { background:#ec4899; }
+    .member-dot-주안  { background:#22c55e; }
+    .member-dot-하선  { background:#a855f7; }
+    .member-dot-창륜  { background:#f97316; }
+    .member-dot { width:7px; height:7px; border-radius:50%; display:inline-block; }
+
     /* 터치 타겟 최소 크기 */
     @media (max-width: 768px) {
       button { min-height: 36px; }
@@ -209,6 +221,12 @@
         </div>
       </div>
       <div class="flex items-center space-x-2 mt-1 md:mt-0">
+        <!-- 현재 로그인 사용자 -->
+        <button onclick="openLoginModal()" id="current-user-btn"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-3 rounded-full shadow-md flex items-center space-x-1 transition text-sm border border-white/30">
+          <span id="current-user-emoji">👤</span>
+          <span id="current-user-name" class="hidden sm:inline">로그인</span>
+        </button>
         <button onclick="triggerFiveMinuteAlert()" class="bg-amber-500 hover:bg-amber-400 text-white font-bold py-2 px-3 rounded-full shadow-md flex items-center space-x-1 transition text-sm">
           <i class="fa-solid fa-bell animate-bounce"></i>
           <span class="hidden sm:inline">🔔 5분전 방송!</span>
@@ -254,6 +272,27 @@
     </div>
   </div>
 
+  <!-- ===== 👤 개인 로그인 모달 ===== -->
+  <div id="login-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border-4 border-amber-300">
+      <div class="text-5xl mb-3">👋</div>
+      <h3 class="text-2xl title-font text-amber-800 mb-1">나는 누구?</h3>
+      <p class="text-xs text-gray-400 mb-6">이름을 탭하면 내 진도를 볼 수 있어요</p>
+      <div class="grid grid-cols-1 gap-3 mb-5" id="login-member-list"></div>
+      <button onclick="closeLoginModal()" class="text-xs text-gray-400 underline mt-2">닫기</button>
+    </div>
+  </div>
+
+  <!-- ===== 🔔 알림 시간 배너 (로그인 후 표시) ===== -->
+  <div id="notif-banner" class="hidden fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:w-80 bg-slate-800 text-white rounded-2xl p-4 z-40 shadow-2xl">
+    <p class="font-bold text-sm mb-2">🔔 성경 읽기 알림 받기</p>
+    <p class="text-xs text-slate-300 mb-3">매일 알림을 받아 성경 읽기를 잊지 마세요!</p>
+    <div class="flex gap-2">
+      <button onclick="requestNotifPermission()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-white font-bold py-1.5 px-3 rounded-xl text-xs">허용하기</button>
+      <button onclick="dismissNotifBanner()" class="bg-slate-600 text-slate-300 font-bold py-1.5 px-3 rounded-xl text-xs">나중에</button>
+    </div>
+  </div>
+
   <!-- ===== 🛠️ 관리자 패널 (전체 오버레이) ===== -->
   <div id="admin-panel" class="hidden fixed inset-0 bg-slate-900/95 z-40 overflow-y-auto">
     <div class="max-w-2xl mx-auto px-4 py-6">
@@ -271,22 +310,50 @@
       <!-- 달란트 & 레벨 조정 -->
       <div class="bg-slate-800 rounded-2xl p-5 mb-4">
         <h3 class="text-amber-400 font-black mb-4 text-lg">💰 달란트 · 레벨 · 키 조정</h3>
-        <div class="grid grid-cols-2 gap-3 mb-3">
-          <select id="admin-target" class="bg-slate-700 text-white border border-slate-600 rounded-xl p-3 text-sm">
-            <option value="온유">👦 온유 (10살)</option>
-            <option value="기쁨">👧 기쁨 (8살)</option>
-            <option value="주안">👶 주안 (4살)</option>
-            <option value="하선">👩 하선 (엄마)</option>
-            <option value="창륜">👨 창륜 (아빠)</option>
-          </select>
-          <select id="admin-action" class="bg-slate-700 text-white border border-slate-600 rounded-xl p-3 text-sm">
-            <option value="talent-up">💰 달란트 +300</option>
-            <option value="talent-down">💸 달란트 -300</option>
-            <option value="height-up">🦒 키 +0.5cm</option>
-            <option value="level-up">🚀 레벨 +1</option>
-          </select>
+        <!-- 대상 선택 -->
+        <div class="mb-3">
+          <p class="text-slate-400 text-xs mb-1">👤 대상</p>
+          <div class="flex flex-wrap gap-2" id="admin-target-btns">
+            <button onclick="setAdminTarget('전체')"   data-target="전체"   class="admin-tgt-btn flex-1 bg-slate-600 text-white text-sm font-bold py-2 rounded-xl border-2 border-transparent">👨‍👩‍👧‍👦 전체</button>
+            <button onclick="setAdminTarget('온유')"   data-target="온유"   class="admin-tgt-btn flex-1 bg-slate-600 text-white text-sm font-bold py-2 rounded-xl border-2 border-transparent">👦 온유</button>
+            <button onclick="setAdminTarget('기쁨')"   data-target="기쁨"   class="admin-tgt-btn flex-1 bg-slate-600 text-white text-sm font-bold py-2 rounded-xl border-2 border-transparent">👧 기쁨</button>
+            <button onclick="setAdminTarget('주안')"   data-target="주안"   class="admin-tgt-btn flex-1 bg-slate-600 text-white text-sm font-bold py-2 rounded-xl border-2 border-transparent">👶 주안</button>
+            <button onclick="setAdminTarget('하선')"   data-target="하선"   class="admin-tgt-btn flex-1 bg-slate-600 text-white text-sm font-bold py-2 rounded-xl border-2 border-transparent">👩 하선</button>
+            <button onclick="setAdminTarget('창륜')"   data-target="창륜"   class="admin-tgt-btn flex-1 bg-slate-600 text-white text-sm font-bold py-2 rounded-xl border-2 border-transparent">👨 창륜</button>
+          </div>
+          <input type="hidden" id="admin-target" value="온유">
         </div>
-        <button onclick="executeAdminAction()" class="w-full bg-amber-500 hover:bg-amber-400 text-white font-black py-3 rounded-xl transition">실행하기</button>
+
+        <!-- 보상 유형 & 수치 -->
+        <div class="mb-3">
+          <p class="text-slate-400 text-xs mb-1">🎁 보상 유형</p>
+          <div class="grid grid-cols-2 gap-2 mb-2">
+            <button onclick="setAdminAction('talent-up')"   data-action="talent-up"   class="admin-act-btn bg-slate-600 text-white text-sm font-bold py-2 rounded-xl border-2 border-transparent">💰 달란트 +</button>
+            <button onclick="setAdminAction('talent-down')" data-action="talent-down" class="admin-act-btn bg-slate-600 text-white text-sm font-bold py-2 rounded-xl border-2 border-transparent">💸 달란트 −</button>
+            <button onclick="setAdminAction('height-up')"   data-action="height-up"   class="admin-act-btn bg-slate-600 text-white text-sm font-bold py-2 rounded-xl border-2 border-transparent">🦒 키 +</button>
+            <button onclick="setAdminAction('height-down')" data-action="height-down" class="admin-act-btn bg-slate-600 text-white text-sm font-bold py-2 rounded-xl border-2 border-transparent">📉 키 −</button>
+            <button onclick="setAdminAction('level-up')"    data-action="level-up"    class="admin-act-btn bg-slate-600 text-white text-sm font-bold py-2 rounded-xl border-2 border-transparent">🚀 레벨 +</button>
+            <button onclick="setAdminAction('level-down')"  data-action="level-down"  class="admin-act-btn bg-slate-600 text-white text-sm font-bold py-2 rounded-xl border-2 border-transparent">🔽 레벨 −</button>
+          </div>
+          <input type="hidden" id="admin-action" value="talent-up">
+        </div>
+
+        <!-- 수치 직접 입력 -->
+        <div class="bg-slate-700 rounded-xl p-3 mb-3 flex items-center gap-3">
+          <span id="admin-amount-label" class="text-slate-300 text-sm flex-1">달란트 지급량</span>
+          <input type="number" id="admin-amount" value="300" min="1" step="50"
+            class="w-28 bg-slate-600 text-white text-right font-bold rounded-lg px-3 py-1.5 text-base border border-slate-500">
+          <span id="admin-amount-unit" class="text-slate-400 text-sm">💰</span>
+        </div>
+
+        <!-- 빠른 입력 프리셋 -->
+        <div class="flex flex-wrap gap-1.5 mb-3" id="admin-presets"></div>
+
+        <!-- 메모 (선택) -->
+        <input type="text" id="admin-memo" placeholder="메모 (선택) — 예: 성경 퀴즈 정답 보너스"
+          class="w-full bg-slate-700 text-white border border-slate-600 rounded-xl px-3 py-2 text-xs mb-3">
+
+        <button onclick="executeAdminAction()" class="w-full bg-amber-500 hover:bg-amber-400 text-white font-black py-3 rounded-xl transition">✅ 실행하기</button>
       </div>
 
       <!-- 성경 통독 진도 관리 -->
@@ -316,7 +383,7 @@
       <div class="bg-slate-800 rounded-2xl p-5 mb-4">
         <h3 class="text-sky-400 font-black mb-4 text-lg">🗓️ 주간 스탬프 관리</h3>
         <div class="flex space-x-3">
-          <button onclick="triggerFanfareCelebration(); showNotification('✅ 오늘 완독 스탬프 추가!');" class="flex-1 bg-yellow-500 hover:bg-yellow-400 text-white font-black py-3 rounded-xl">
+          <button onclick="triggerFanfareCelebration();" class="flex-1 bg-yellow-500 hover:bg-yellow-400 text-white font-black py-3 rounded-xl">
             ⭐ 오늘 완독 스탬프 찍기
           </button>
           <button onclick="resetWeeklyStamps()" class="flex-1 bg-slate-600 hover:bg-slate-500 text-white font-black py-3 rounded-xl">
@@ -334,6 +401,52 @@
           <button onclick="changePin()" class="bg-rose-600 hover:bg-rose-500 text-white font-bold px-4 rounded-xl">변경</button>
         </div>
         <p class="text-slate-500 text-xs mt-2">기본 비밀번호: <strong class="text-slate-400">0823</strong></p>
+      </div>
+
+      <!-- 🛒 달란트 백화점 편집 -->
+      <div class="bg-slate-800 rounded-2xl p-5 mb-4">
+        <h3 class="text-amber-400 font-black mb-4 text-lg">🛒 달란트 백화점 편집</h3>
+        <div id="admin-store-list" class="space-y-2 mb-3"></div>
+        <button onclick="addStoreItem()" class="w-full border-2 border-dashed border-slate-600 hover:border-amber-400 text-slate-400 hover:text-amber-400 font-bold py-2 rounded-xl text-sm transition">
+          + 상품 추가
+        </button>
+      </div>
+
+      <!-- 💰 보상 수치 조정 -->
+      <div class="bg-slate-800 rounded-2xl p-5 mb-4">
+        <h3 class="text-green-400 font-black mb-4 text-lg">💰 보상 수치 조정</h3>
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-300 text-sm">📖 완독 달란트 (빵빠레)</span>
+            <input type="number" id="reward-read" min="0" step="50"
+              class="w-24 bg-slate-700 text-white border border-slate-600 rounded-lg px-2 py-1 text-sm text-right">
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-300 text-sm">🎯 퀴즈 정답 달란트</span>
+            <input type="number" id="reward-quiz" min="0" step="50"
+              class="w-24 bg-slate-700 text-white border border-slate-600 rounded-lg px-2 py-1 text-sm text-right">
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-300 text-sm">🗓️ 주간 달성 목표 (일)</span>
+            <input type="number" id="reward-weekly-days" min="1" max="7" step="1"
+              class="w-24 bg-slate-700 text-white border border-slate-600 rounded-lg px-2 py-1 text-sm text-right">
+          </div>
+        </div>
+        <button onclick="saveRewardConfig()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded-xl mt-3 text-sm">저장</button>
+      </div>
+
+      <!-- 🔔 알림 시간 설정 -->
+      <div class="bg-slate-800 rounded-2xl p-5 mb-4">
+        <h3 class="text-sky-400 font-black mb-3 text-lg">🔔 성경 읽기 알림 시간</h3>
+        <div class="flex items-center gap-2">
+          <input type="time" id="admin-notif-time" value="20:00"
+            class="flex-1 bg-slate-700 text-white border border-slate-600 rounded-xl px-3 py-2 text-sm">
+          <button onclick="saveNotifTime()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold px-4 py-2 rounded-xl text-sm">저장</button>
+        </div>
+        <p class="text-slate-400 text-xs mt-2">설정 시간 <b>5분 전</b>에 음악+안내방송이 나오고, 정시에 브라우저 알림이 울려요 (알림 허용 필요)</p>
+        <button onclick="playBibleAnnouncement()" class="w-full bg-purple-700 hover:bg-purple-600 text-white font-bold py-2 rounded-xl mt-3 text-sm">
+          🔊 지금 방송 테스트하기
+        </button>
       </div>
 
       <!-- 데이터 리셋 -->
@@ -374,15 +487,18 @@
         <div class="cloud" style="top:3%; animation-delay:6s; font-size:1.2rem;">☁️</div>
 
         <!-- 나무 -->
-        <div class="tree" style="left:5%; top:72%;">🌲</div>
-        <div class="tree" style="left:20%; top:72%;">🌳</div>
-        <div class="tree" style="left:40%; top:72%;">🌲</div>
-        <div class="tree" style="left:60%; top:72%;">🌳</div>
-        <div class="tree" style="left:80%; top:72%;">🌲</div>
-        <div class="tree" style="right:2%; top:72%;">🏁</div>
+        <div class="tree" style="left:5%; top:91%;">🌲</div>
+        <div class="tree" style="left:20%; top:91%;">🌳</div>
+        <div class="tree" style="left:40%; top:91%;">🌲</div>
+        <div class="tree" style="left:60%; top:91%;">🌳</div>
+        <div class="tree" style="left:80%; top:91%;">🌲</div>
+        <div class="tree" style="right:2%; top:88%;">🏁</div>
 
-        <!-- 도로 점선 -->
-        <div class="road-line"></div>
+        <!-- 레인 구분선 4개 → 5레인 -->
+        <div class="road-lane-line" style="top:44%;"></div>
+        <div class="road-lane-line" style="top:55%;"></div>
+        <div class="road-lane-line" style="top:66%;"></div>
+        <div class="road-lane-line" style="top:77%;"></div>
 
         <!-- 자동차들 (JS가 위치 계산) -->
         <div id="race-cars"></div>
@@ -498,9 +614,15 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div class="bg-white/20 p-3 rounded-2xl">
               <label class="block text-xs text-amber-100 font-bold mb-1">📖 오늘 읽을 범위</label>
-              <input type="text" id="bible-range" value="열왕기하 11-13장" placeholder="예: 열왕기하 11-13장"
-                class="bg-white text-slate-800 font-bold py-1 px-3 rounded-lg w-full outline-none text-sm focus:ring-2 focus:ring-amber-300"
-                oninput="scheduleQuizLoad()" onchange="scheduleQuizLoad()">
+              <div class="flex gap-1">
+                <input type="text" id="bible-range" value="열왕기하 11-13장" placeholder="예: 열왕기하 11-13장"
+                  class="bg-white text-slate-800 font-bold py-1 px-3 rounded-lg flex-1 outline-none text-sm focus:ring-2 focus:ring-amber-300"
+                  onkeydown="if(event.key==='Enter'){applyBibleRange();}">
+                <button onclick="applyBibleRange()" class="bg-amber-300 hover:bg-amber-200 text-amber-900 font-black text-xs px-2 py-1 rounded-lg whitespace-nowrap transition">
+                  ✅ 적용
+                </button>
+              </div>
+              <p id="bible-range-applied" class="text-[10px] text-amber-200 mt-1 hidden">✔ 범위 적용됨 — 아래 퀴즈와 연동됩니다</p>
             </div>
             <div class="bg-white/20 p-3 rounded-2xl">
               <label class="block text-xs text-amber-100 font-bold mb-1">⏱️ 타이머 (20분)</label>
@@ -524,9 +646,14 @@
               <span class="text-sm font-bold text-amber-50 flex items-center space-x-2">
                 <span>🗓️</span><span>이번 주 완독 스탬프 (목표: 5일 이상!)</span>
               </span>
-              <button onclick="resetWeeklyStamps()" class="text-[10px] bg-amber-800/60 hover:bg-amber-800 text-amber-100 py-0.5 px-2 rounded">
-                <i class="fa-solid fa-redo mr-1"></i>새 주 시작
-              </button>
+              <div class="flex gap-1">
+                <button onclick="cancelLastStamp()" class="text-[10px] bg-red-700/70 hover:bg-red-700 text-red-100 py-0.5 px-2 rounded">
+                  <i class="fa-solid fa-rotate-left mr-1"></i>마지막 취소
+                </button>
+                <button onclick="resetWeeklyStamps()" class="text-[10px] bg-amber-800/60 hover:bg-amber-800 text-amber-100 py-0.5 px-2 rounded">
+                  <i class="fa-solid fa-redo mr-1"></i>새 주 시작
+                </button>
+              </div>
             </div>
             <div class="grid grid-cols-6 gap-2" id="stamp-container"></div>
             <p class="text-[11px] text-amber-100/90 mt-2 text-center">
@@ -549,9 +676,9 @@
               <span>🎯 오늘의 성경 퀴즈</span>
               <span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-bold">무료 내장 DB</span>
             </h3>
-            <button onclick="loadTodayQuiz()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-1.5 px-4 rounded-xl text-sm transition flex items-center space-x-2 shadow">
-              <i class="fa-solid fa-rotate"></i>
-              <span>오늘 퀴즈 불러오기</span>
+            <button id="quiz-load-btn" onclick="loadTodayQuizWithFeedback()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-1.5 px-4 rounded-xl text-sm transition flex items-center space-x-2 shadow">
+              <i class="fa-solid fa-rotate" id="quiz-btn-icon"></i>
+              <span id="quiz-btn-text">오늘 퀴즈 불러오기</span>
             </button>
           </div>
           <p class="text-xs text-gray-400 mb-4">읽은 범위를 입력하면 해당 장의 퀴즈가 자동으로 나타납니다. 정답 맞추면 부모님이 100달란트 지급!</p>
@@ -569,36 +696,7 @@
           <!-- 달란트 백화점 -->
           <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-amber-200">
             <h3 class="text-lg title-font text-amber-800 mb-4">🛒 달란트 백화점</h3>
-            <div class="space-y-2">
-              <div class="p-2.5 bg-slate-50 rounded-xl flex items-center justify-between border border-slate-200">
-                <div class="flex items-center space-x-2">
-                  <span class="text-2xl">🧊</span>
-                  <div><p class="text-sm font-bold">도깨비 냉장고 이용권</p><p class="text-xs text-gray-400">맛있는 간식 꺼내먹기!</p></div>
-                </div>
-                <button onclick="buyReward('도깨비 냉장고 이용권', 1000)" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg">1,000💰</button>
-              </div>
-              <div class="p-2.5 bg-slate-50 rounded-xl flex items-center justify-between border border-slate-200">
-                <div class="flex items-center space-x-2">
-                  <span class="text-2xl">🏪</span>
-                  <div><p class="text-sm font-bold">GS25 상품권 1,000원</p><p class="text-xs text-gray-400">삼각김밥이랑 젤리!</p></div>
-                </div>
-                <button onclick="buyReward('GS25 상품권 1,000원', 1500)" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg">1,500💰</button>
-              </div>
-              <div class="p-2.5 bg-slate-50 rounded-xl flex items-center justify-between border border-slate-200">
-                <div class="flex items-center space-x-2">
-                  <span class="text-2xl">🧸</span>
-                  <div><p class="text-sm font-bold">다이소 상품권 1,000원</p><p class="text-xs text-gray-400">스티커랑 장난감!</p></div>
-                </div>
-                <button onclick="buyReward('다이소 상품권 1,000원', 1500)" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg">1,500💰</button>
-              </div>
-              <div class="p-2.5 bg-slate-50 rounded-xl flex items-center justify-between border border-slate-200">
-                <div class="flex items-center space-x-2">
-                  <span class="text-2xl">💸</span>
-                  <div><p class="text-sm font-bold">진짜 현금 용돈 1,000원</p><p class="text-xs text-gray-400">저금통에 쏙!</p></div>
-                </div>
-                <button onclick="buyReward('진짜 현금 용돈 1,000원', 2000)" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg">2,000💰</button>
-              </div>
-            </div>
+            <div class="space-y-2" id="store-list"></div>
           </div>
 
         </div>
@@ -1727,6 +1825,33 @@
     }
   };
 
+  // 퀴즈 버튼 — 로딩 피드백 + 자동 스크롤
+  function loadTodayQuizWithFeedback() {
+    const btn = document.getElementById('quiz-load-btn');
+    const icon = document.getElementById('quiz-btn-icon');
+    const txt = document.getElementById('quiz-btn-text');
+    icon.className = 'fa-solid fa-spinner fa-spin';
+    txt.textContent = '불러오는 중...';
+    btn.disabled = true;
+    setTimeout(() => {
+      loadTodayQuiz();
+      icon.className = 'fa-solid fa-rotate';
+      txt.textContent = '오늘 퀴즈 불러오기';
+      btn.disabled = false;
+      document.getElementById('quiz-content').scrollIntoView({behavior:'smooth', block:'start'});
+    }, 400);
+  }
+
+  // 오늘 읽을 범위 적용 버튼
+  function applyBibleRange() {
+    const rangeEl = document.getElementById('bible-range');
+    const notice = document.getElementById('bible-range-applied');
+    if (!rangeEl.value.trim()) return;
+    notice.classList.remove('hidden');
+    loadTodayQuiz();
+    showNotification(`📖 오늘 읽을 범위: ${rangeEl.value} — 퀴즈 연동 완료!`);
+  }
+
   // 자동 퀴즈 로드 (입력 후 0.8초 뒤 자동 실행)
   let quizLoadTimer = null;
   function scheduleQuizLoad() {
@@ -1857,6 +1982,31 @@
   let timerSeconds = 1200;
   let pendingPurchase = null;
 
+  // ── 개인 로그인 ──
+  let currentUser = null; // { id, name, emoji }
+  const MEMBER_COLORS = { 온유:'#3b82f6', 기쁨:'#ec4899', 주안:'#22c55e', 하선:'#a855f7', 창륜:'#f97316' };
+
+  // ── 개인 진도 (A안: 공통 진도 + 누가 읽었는지 개인 기록) ──
+  let memberProgress = {}; // { memberId: { bookName: { ch: true } } }
+
+  // ── 달란트 백화점 설정 ──
+  const DEFAULT_STORE_ITEMS = [
+    { id:1, emoji:'🧊', name:'도깨비 냉장고 이용권', desc:'맛있는 간식 꺼내먹기!', price:1000 },
+    { id:2, emoji:'🏪', name:'GS25 상품권 1,000원',  desc:'삼각김밥이랑 젤리!',    price:1500 },
+    { id:3, emoji:'🧸', name:'다이소 상품권 1,000원', desc:'스티커랑 장난감!',      price:1500 },
+    { id:4, emoji:'💸', name:'진짜 현금 용돈 1,000원',desc:'저금통에 쏙!',          price:2000 },
+  ];
+  let storeItems = JSON.parse(JSON.stringify(DEFAULT_STORE_ITEMS));
+
+  // ── 보상 수치 ──
+  const DEFAULT_REWARD = { readComplete:300, quizCorrect:100, weeklyDays:5 };
+  let rewardConfig = { ...DEFAULT_REWARD };
+
+  // ── 알림 ──
+  let notifTime = localStorage.getItem('notif_time') || '20:00';
+  let notifTimer = null;
+  let earlyAlarmTimer = null;
+
   // ============================================================
   // Firebase 동기화 (모듈 로드 후 연결)
   // ============================================================
@@ -1875,9 +2025,13 @@
       window._firebaseListen((data) => {
         if (data.family) familyData = data.family;
         if (data.stamps) weeklyStamps = data.stamps;
+        if (data.memberProgress) memberProgress = data.memberProgress;
+        if (data.storeItems) storeItems = data.storeItems;
+        if (data.rewardConfig) rewardConfig = data.rewardConfig;
         renderFamily();
         renderWeeklyStamps();
         renderRaceTrack();
+        renderStoreList();
         statusTxt.textContent = '✅ 동기화 완료';
       });
 
@@ -1885,12 +2039,20 @@
       if (cloud) {
         familyData = cloud.family || DEFAULT_FAMILY;
         weeklyStamps = cloud.stamps || [false,false,false,false,false,false];
+        memberProgress = cloud.memberProgress || {};
+        if (cloud.storeItems) storeItems = cloud.storeItems;
+        if (cloud.rewardConfig) rewardConfig = cloud.rewardConfig;
         initBibleProgress(cloud.bibleProgress || null);
         initPrayer(cloud.prayerData || null);
         statusTxt.textContent = '✅ 클라우드 연결됨';
       } else {
         familyData = JSON.parse(localStorage.getItem('bible_adventure_family')) || DEFAULT_FAMILY;
         weeklyStamps = JSON.parse(localStorage.getItem('bible_adventure_weekly_stamps')) || [false,false,false,false,false,false];
+        memberProgress = JSON.parse(localStorage.getItem('member_progress')) || {};
+        const savedStore = JSON.parse(localStorage.getItem('store_items'));
+        if (savedStore) storeItems = savedStore;
+        const savedReward = JSON.parse(localStorage.getItem('reward_config'));
+        if (savedReward) rewardConfig = savedReward;
         const savedProgress = JSON.parse(localStorage.getItem('bible_progress'));
         initBibleProgress(savedProgress);
         initPrayer(JSON.parse(localStorage.getItem('bible_prayer')));
@@ -1902,6 +2064,11 @@
       statusTxt.textContent = '📱 오프라인 모드 (Firebase 미설정)';
       familyData = JSON.parse(localStorage.getItem('bible_adventure_family')) || DEFAULT_FAMILY;
       weeklyStamps = JSON.parse(localStorage.getItem('bible_adventure_weekly_stamps')) || [false,false,false,false,false,false];
+      memberProgress = JSON.parse(localStorage.getItem('member_progress')) || {};
+      const savedStore2 = JSON.parse(localStorage.getItem('store_items'));
+      if (savedStore2) storeItems = savedStore2;
+      const savedReward2 = JSON.parse(localStorage.getItem('reward_config'));
+      if (savedReward2) rewardConfig = savedReward2;
       const savedProgress = JSON.parse(localStorage.getItem('bible_progress'));
       initBibleProgress(savedProgress);
       initPrayer(JSON.parse(localStorage.getItem('bible_prayer')));
@@ -1910,18 +2077,24 @@
     renderFamily();
     renderWeeklyStamps();
     renderRaceTrack();
+    renderStoreList();
     updateTimerDisplay();
-    loadTodayQuiz(); // 앱 시작 시 퀴즈 자동 로드
+    loadTodayQuiz();
+    initLogin();
+    scheduleNotifTimer();
   }
 
   async function saveData() {
-    // 항상 localStorage에도 백업
     localStorage.setItem('bible_adventure_family', JSON.stringify(familyData));
     localStorage.setItem('bible_adventure_weekly_stamps', JSON.stringify(weeklyStamps));
+    localStorage.setItem('member_progress', JSON.stringify(memberProgress));
+    localStorage.setItem('store_items', JSON.stringify(storeItems));
+    localStorage.setItem('reward_config', JSON.stringify(rewardConfig));
 
-    // Firebase 저장
     if (window._firebaseSave) {
-      await window._firebaseSave({ family: familyData, stamps: weeklyStamps });
+      const current = await (window._firebaseLoad ? window._firebaseLoad() : null) || {};
+      Object.assign(current, { family: familyData, stamps: weeklyStamps, memberProgress, storeItems, rewardConfig });
+      await window._firebaseSave(current);
     }
   }
 
@@ -1939,7 +2112,7 @@
     const sorted = [...familyData].sort((a,b) => b.talents - a.talents);
 
     // 레인 높이 배분 (5명 → 5 레인, 트랙 60~70% 영역에 배치)
-    const lanes = [18, 30, 42, 54, 66]; // top % (하늘~도로 사이)
+    const lanes = [36, 47, 58, 69, 80]; // top % — 5개 레인 (도로 33~90% 영역)
 
     carsDiv.innerHTML = '';
     familyData.forEach((m, i) => {
@@ -2041,6 +2214,22 @@
 
   function getCompletedWeeklyCount() { return weeklyStamps.filter(Boolean).length; }
 
+  async function cancelLastStamp() {
+    const lastTrue = weeklyStamps.lastIndexOf(true);
+    if (lastTrue === -1) {
+      showNotification("❌ 취소할 스탬프가 없어요!");
+      return;
+    }
+    if (!confirm(`마지막 스탬프(${lastTrue+1}일차)를 취소할까요?\n전원 달란트 ${rewardConfig.readComplete}씩 차감됩니다.`)) return;
+    weeklyStamps[lastTrue] = false;
+    familyData.forEach(m => { m.talents = Math.max(0, m.talents - rewardConfig.readComplete); });
+    await saveData();
+    renderWeeklyStamps();
+    renderFamily();
+    renderRaceTrack();
+    showNotification(`↩️ ${lastTrue+1}일차 스탬프 취소 — 전원 달란트 300 차감`);
+  }
+
   function resetWeeklyStamps() {
     if (confirm("새로운 주간 챌린지를 시작할까요? 스탬프가 초기화됩니다.")) {
       weeklyStamps = [false,false,false,false,false,false];
@@ -2136,8 +2325,11 @@
       showNotification("📢 이번 주 도장판이 꽉 찼어요! '새 주 시작' 버튼을 눌러주세요.");
       return;
     }
+    const rangeText = document.getElementById('bible-range')?.value || '오늘 범위';
+    const confirmed = confirm(`📖 오늘 성경 읽기를 완료했나요?\n\n범위: ${rangeText}\n\n✅ 확인을 누르면 스탬프가 찍히고 전원 300달란트가 지급됩니다.`);
+    if (!confirmed) return;
     weeklyStamps[firstEmpty] = true;
-    familyData.forEach(m => m.talents += 300);
+    familyData.forEach(m => m.talents += rewardConfig.readComplete);
 
     const count = getCompletedWeeklyCount();
     let weeklyBonus = false;
@@ -2174,7 +2366,7 @@
       t+=dur[i]*0.8;
     });
 
-    let msg = `🎺 빵빠레! 전원 300달란트 지급! 이번 주 ${count}일 완독!`;
+    let msg = `🎺 빵빠레! 전원 ${rewardConfig.readComplete}달란트 지급! 이번 주 ${count}일 완독!`;
     if (weeklyBonus) msg += ` 🦒✨ <strong>주 5일 달성! 레벨업 + 키 0.5cm 성장!</strong>`;
     showNotification(msg);
 
@@ -2232,16 +2424,91 @@
   // ============================================================
   // 부모 관리
   // ============================================================
-  async function executeAdminAction(){
-    const id=document.getElementById('admin-target').value;
-    const action=document.getElementById('admin-action').value;
-    const t=familyData.find(m=>m.id===id);
-    if(!t) return;
-    if(action==='talent-up'){ t.talents+=300; showNotification(`💰 ${t.name} +300달란트`); }
-    else if(action==='talent-down'){ if(t.talents>=300){t.talents-=300;showNotification(`💸 ${t.name} -300달란트`);}else{showNotification('달란트 부족!');} }
-    else if(action==='height-up'){ t.height+=0.5; showNotification(`🦒 ${t.name} 키 +0.5cm`); }
-    else if(action==='level-up'){ t.level++; t.height+=0.5; showNotification(`🚀 ${t.name} Lv.${t.level}!`); }
+  // 대상·액션 선택 UI
+  function setAdminTarget(val) {
+    document.getElementById('admin-target').value = val;
+    document.querySelectorAll('.admin-tgt-btn').forEach(b => {
+      const on = b.dataset.target === val;
+      b.classList.toggle('border-amber-400', on);
+      b.classList.toggle('bg-amber-600', on);
+      b.classList.toggle('bg-slate-600', !on);
+    });
+  }
+
+  const ACTION_META = {
+    'talent-up':   { label:'달란트 지급량', unit:'💰', default:300,  step:50  },
+    'talent-down': { label:'달란트 차감량', unit:'💸', default:300,  step:50  },
+    'height-up':   { label:'키 증가 (cm)', unit:'cm', default:0.5,  step:0.5 },
+    'height-down': { label:'키 감소 (cm)', unit:'cm', default:0.5,  step:0.5 },
+    'level-up':    { label:'레벨 증가',    unit:'Lv', default:1,    step:1   },
+    'level-down':  { label:'레벨 감소',    unit:'Lv', default:1,    step:1   },
+  };
+  const PRESETS = {
+    'talent-up':   [100, 200, 300, 500, 1000, 2000],
+    'talent-down': [100, 200, 300, 500],
+    'height-up':   [0.5, 1, 2],
+    'height-down': [0.5, 1],
+    'level-up':    [1, 2, 3],
+    'level-down':  [1],
+  };
+
+  function setAdminAction(val) {
+    document.getElementById('admin-action').value = val;
+    document.querySelectorAll('.admin-act-btn').forEach(b => {
+      const on = b.dataset.action === val;
+      b.classList.toggle('border-amber-400', on);
+      b.classList.toggle('bg-amber-600', on);
+      b.classList.toggle('bg-slate-600', !on);
+    });
+    const meta = ACTION_META[val];
+    document.getElementById('admin-amount-label').textContent = meta.label;
+    document.getElementById('admin-amount-unit').textContent = meta.unit;
+    document.getElementById('admin-amount').value = meta.default;
+    document.getElementById('admin-amount').step = meta.step;
+    // 프리셋 버튼
+    const presetsEl = document.getElementById('admin-presets');
+    presetsEl.innerHTML = (PRESETS[val] || []).map(v =>
+      `<button onclick="document.getElementById('admin-amount').value=${v}"
+        class="bg-slate-600 hover:bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-lg transition">
+        ${v}${meta.unit}
+      </button>`
+    ).join('');
+  }
+
+  async function executeAdminAction() {
+    const targetId = document.getElementById('admin-target').value;
+    const action   = document.getElementById('admin-action').value;
+    const amount   = parseFloat(document.getElementById('admin-amount').value) || 0;
+    const memo     = document.getElementById('admin-memo').value.trim();
+
+    const targets = targetId === '전체' ? familyData : familyData.filter(m => m.id === targetId);
+    if (!targets.length) return;
+
+    const meta = ACTION_META[action];
+    let msg = '';
+
+    targets.forEach(t => {
+      if (action === 'talent-up')   { t.talents += amount; }
+      if (action === 'talent-down') { t.talents = Math.max(0, t.talents - amount); }
+      if (action === 'height-up')   { t.height  += amount; }
+      if (action === 'height-down') { t.height  = Math.max(0, t.height - amount); }
+      if (action === 'level-up')    { t.level   += Math.round(amount); }
+      if (action === 'level-down')  { t.level   = Math.max(1, t.level - Math.round(amount)); }
+    });
+
+    const targetName = targetId === '전체' ? '전원' : targets[0].name;
+    const sign = action.endsWith('-up') ? '+' : '−';
+    msg = `${meta.unit} ${targetName} ${sign}${amount}${meta.unit}${memo ? ` (${memo})` : ''}`;
+    showNotification(msg);
+    document.getElementById('admin-memo').value = '';
+
     await saveData(); renderFamily(); renderRaceTrack();
+  }
+
+  // 관리자 패널 열릴 때 초기 선택 상태 적용
+  function initAdminActionUI() {
+    setAdminTarget('온유');
+    setAdminAction('talent-up');
   }
 
   // ============================================================
@@ -2491,6 +2758,11 @@
     document.getElementById('admin-panel').classList.remove('hidden');
     document.getElementById('admin-btn-label').textContent = '관리자 ✓';
     renderAdminBibleMap();
+    renderAdminStoreList();
+    renderRewardConfig();
+    initAdminActionUI();
+    const notifInput = document.getElementById('admin-notif-time');
+    if (notifInput) notifInput.value = notifTime;
   }
 
   function closeAdminPanel() {
@@ -2709,9 +2981,14 @@
     const progress = bibleProgress[book.name] || {};
     for (let i = 1; i <= book.ch; i++) {
       const isRead = progress[i] === true;
-      const btn = document.createElement('button');
-      btn.className = `text-xs font-bold py-1.5 rounded-lg border transition ${isRead ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white text-gray-500 border-gray-200 hover:border-emerald-400'}`;
-      btn.textContent = i;
+      // 이 장을 읽은 멤버 dot 수집
+      const readers = Object.entries(memberProgress)
+        .filter(([mid, mp]) => mp[book.name] && mp[book.name][i])
+        .map(([mid]) => mid);
+
+      const btn = document.createElement('div');
+      btn.className = `relative text-xs font-bold py-1.5 rounded-lg border transition cursor-pointer text-center ${isRead ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white text-gray-500 border-gray-200 hover:border-emerald-400'}`;
+      btn.innerHTML = `${i}${readers.length ? `<div class="flex justify-center gap-0.5 mt-0.5">${readers.map(id=>`<span class="member-dot member-dot-${id}" title="${id}"></span>`).join('')}</div>` : ''}`;
       btn.onclick = () => toggleChapter(book, i);
       grid.appendChild(btn);
     }
@@ -2719,7 +2996,16 @@
 
   async function toggleChapter(book, chNum) {
     if (!bibleProgress[book.name]) bibleProgress[book.name] = {};
-    bibleProgress[book.name][chNum] = !bibleProgress[book.name][chNum];
+    const newVal = !bibleProgress[book.name][chNum];
+    bibleProgress[book.name][chNum] = newVal;
+
+    // 개인 진도 기록 (로그인된 사용자가 있을 때)
+    if (currentUser) {
+      if (!memberProgress[currentUser.id]) memberProgress[currentUser.id] = {};
+      if (!memberProgress[currentUser.id][book.name]) memberProgress[currentUser.id][book.name] = {};
+      memberProgress[currentUser.id][book.name][chNum] = newVal;
+    }
+
     renderChapterGrid(book);
     renderBibleMap();
     await saveBibleProgress();
@@ -2736,11 +3022,241 @@
 
   async function saveBibleProgress() {
     localStorage.setItem('bible_progress', JSON.stringify(bibleProgress));
+    localStorage.setItem('member_progress', JSON.stringify(memberProgress));
     if (window._firebaseSave) {
       const current = await window._firebaseLoad() || {};
       current.bibleProgress = bibleProgress;
+      current.memberProgress = memberProgress;
       await window._firebaseSave(current);
     }
+  }
+
+  // ============================================================
+  // 👤 로그인
+  // ============================================================
+  function initLogin() {
+    const saved = localStorage.getItem('current_user');
+    if (saved) {
+      try { currentUser = JSON.parse(saved); updateLoginUI(); } catch(e) {}
+    }
+    if (!currentUser) openLoginModal();
+  }
+
+  function openLoginModal() {
+    const list = document.getElementById('login-member-list');
+    const members = familyData.length ? familyData : DEFAULT_FAMILY;
+    list.innerHTML = members.map(m => `
+      <button onclick="loginAs('${m.id}')"
+        class="w-full flex items-center space-x-4 p-4 rounded-2xl border-2 border-transparent hover:border-amber-400 bg-amber-50 hover:bg-amber-100 transition text-left">
+        <span class="text-3xl">${m.emoji}</span>
+        <div>
+          <p class="font-black text-slate-800 text-base">${m.name}</p>
+          <p class="text-xs text-gray-400">${m.age}</p>
+        </div>
+        ${currentUser && currentUser.id === m.id ? '<span class="ml-auto text-xs bg-amber-500 text-white px-2 py-0.5 rounded-full">현재</span>' : ''}
+      </button>`).join('');
+    document.getElementById('login-modal').classList.remove('hidden');
+  }
+
+  function closeLoginModal() {
+    document.getElementById('login-modal').classList.add('hidden');
+  }
+
+  function loginAs(memberId) {
+    const m = (familyData.length ? familyData : DEFAULT_FAMILY).find(x => x.id === memberId);
+    if (!m) return;
+    currentUser = { id: m.id, name: m.name, emoji: m.emoji };
+    localStorage.setItem('current_user', JSON.stringify(currentUser));
+    closeLoginModal();
+    updateLoginUI();
+    showNotification(`${m.emoji} ${m.name}(으)로 로그인했어요! 오늘도 말씀 읽기 화이팅!`);
+    // 알림 배너 (아직 허용 안 했을 때)
+    if (Notification.permission === 'default') {
+      setTimeout(() => document.getElementById('notif-banner').classList.remove('hidden'), 1500);
+    }
+  }
+
+  function updateLoginUI() {
+    const btn = document.getElementById('current-user-btn');
+    const emojiEl = document.getElementById('current-user-emoji');
+    const nameEl = document.getElementById('current-user-name');
+    if (currentUser) {
+      emojiEl.textContent = currentUser.emoji;
+      nameEl.textContent = currentUser.name;
+      btn.title = `${currentUser.name}로 로그인 중 — 탭하면 변경`;
+    } else {
+      emojiEl.textContent = '👤';
+      nameEl.textContent = '로그인';
+    }
+  }
+
+  // ============================================================
+  // 🔔 알림
+  // ============================================================
+  async function requestNotifPermission() {
+    document.getElementById('notif-banner').classList.add('hidden');
+    if (!('Notification' in window)) { showNotification('이 브라우저는 알림을 지원하지 않아요'); return; }
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      showNotification('🔔 알림 허용 완료! 매일 말씀 읽을 시간을 알려드릴게요.');
+      scheduleNotifTimer();
+    }
+  }
+
+  function dismissNotifBanner() {
+    document.getElementById('notif-banner').classList.add('hidden');
+    localStorage.setItem('notif_dismissed', '1');
+  }
+
+  function saveNotifTime() {
+    notifTime = document.getElementById('admin-notif-time').value;
+    localStorage.setItem('notif_time', notifTime);
+    scheduleNotifTimer();
+    showNotification(`🔔 알림 시간이 ${notifTime}으로 설정됐어요!`);
+  }
+
+  function scheduleNotifTimer() {
+    if (notifTimer) clearTimeout(notifTimer);
+    if (earlyAlarmTimer) clearTimeout(earlyAlarmTimer);
+    if (Notification.permission !== 'granted') return;
+    const [hh, mm] = notifTime.split(':').map(Number);
+    const now = new Date();
+    const target = new Date();
+    target.setHours(hh, mm, 0, 0);
+    if (target <= now) target.setDate(target.getDate() + 1);
+
+    // 5분 전 방송
+    const earlyTarget = new Date(target.getTime() - 5 * 60 * 1000);
+    const earlyDelay = earlyTarget - now;
+    if (earlyDelay > 0) {
+      earlyAlarmTimer = setTimeout(() => playBibleAnnouncement(), earlyDelay);
+    }
+
+    // 정시 브라우저 알림
+    notifTimer = setTimeout(() => {
+      new Notification('📖 성경 읽을 시간!', {
+        body: '온기주 팸, 오늘도 말씀 3장 읽어요! 💪',
+        icon: 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple/img/apple/64/1f4d6.png'
+      });
+      scheduleNotifTimer();
+    }, target - now);
+  }
+
+  function playBibleAnnouncement() {
+    const audio = new Audio('./말씀_읽을_시간.mp3');
+    audio.volume = 1.0;
+    audio.play().catch(() => {});
+    audio.addEventListener('ended', () => {
+      speakAnnouncement(() => {
+        const audio2 = new Audio('./말씀_읽을_시간.mp3');
+        audio2.volume = 1.0;
+        audio2.play().catch(() => {});
+      });
+    });
+  }
+
+  function speakAnnouncement(onDone) {
+    if (!window.speechSynthesis) { if (onDone) onDone(); return; }
+    const lines = [
+      '얘들아, 이제 성경 읽자!',
+      '모여라! 성경 읽기 전에 화장실 다녀오고, 물도 마시고, 성경도 챙기자!'
+    ];
+    let idx = 0;
+    function speakNext() {
+      if (idx >= lines.length) { if (onDone) onDone(); return; }
+      const utt = new SpeechSynthesisUtterance(lines[idx++]);
+      utt.lang = 'ko-KR';
+      utt.rate = 0.88;
+      utt.pitch = 1.1;
+      utt.onend = speakNext;
+      speechSynthesis.speak(utt);
+    }
+    speakNext();
+  }
+
+  // ============================================================
+  // 🛒 달란트 백화점
+  // ============================================================
+  function renderStoreList() {
+    const el = document.getElementById('store-list');
+    if (!el) return;
+    el.innerHTML = storeItems.map(item => `
+      <div class="p-2.5 bg-slate-50 rounded-xl flex items-center justify-between border border-slate-200">
+        <div class="flex items-center space-x-2">
+          <span class="text-2xl">${item.emoji}</span>
+          <div><p class="text-sm font-bold">${item.name}</p><p class="text-xs text-gray-400">${item.desc}</p></div>
+        </div>
+        <button onclick="buyReward('${item.name}', ${item.price})"
+          class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap">
+          ${item.price.toLocaleString()}💰
+        </button>
+      </div>`).join('');
+  }
+
+  function renderAdminStoreList() {
+    const el = document.getElementById('admin-store-list');
+    if (!el) return;
+    el.innerHTML = storeItems.map((item, idx) => `
+      <div class="bg-slate-700 rounded-xl p-3 space-y-2">
+        <div class="flex gap-2">
+          <input value="${item.emoji}" maxlength="2" oninput="storeItems[${idx}].emoji=this.value"
+            class="w-10 bg-slate-600 text-white text-center rounded-lg p-1 text-base">
+          <input value="${item.name}" oninput="storeItems[${idx}].name=this.value"
+            class="flex-1 bg-slate-600 text-white rounded-lg px-2 py-1 text-sm">
+          <button onclick="removeStoreItem(${idx})" class="text-red-400 hover:text-red-300 px-1">✕</button>
+        </div>
+        <div class="flex gap-2">
+          <input value="${item.desc}" oninput="storeItems[${idx}].desc=this.value"
+            class="flex-1 bg-slate-600 text-white rounded-lg px-2 py-1 text-xs" placeholder="설명">
+          <input type="number" value="${item.price}" min="0" step="100" oninput="storeItems[${idx}].price=parseInt(this.value)||0"
+            class="w-24 bg-slate-600 text-white rounded-lg px-2 py-1 text-sm text-right">
+        </div>
+      </div>`).join('');
+    // 저장 버튼
+    if (!document.getElementById('store-save-btn')) {
+      const btn = document.createElement('button');
+      btn.id = 'store-save-btn';
+      btn.className = 'w-full bg-amber-500 hover:bg-amber-400 text-white font-bold py-2 rounded-xl text-sm mt-2';
+      btn.textContent = '💾 백화점 저장';
+      btn.onclick = saveStoreItems;
+      el.after(btn);
+    }
+  }
+
+  function addStoreItem() {
+    storeItems.push({ id: Date.now(), emoji:'🎁', name:'새 상품', desc:'설명', price:1000 });
+    renderAdminStoreList();
+  }
+
+  function removeStoreItem(idx) {
+    storeItems.splice(idx, 1);
+    renderAdminStoreList();
+  }
+
+  async function saveStoreItems() {
+    await saveData();
+    renderStoreList();
+    showNotification('🛒 달란트 백화점 저장 완료!');
+  }
+
+  // ============================================================
+  // 💰 보상 수치
+  // ============================================================
+  function renderRewardConfig() {
+    const r = document.getElementById('reward-read');
+    const q = document.getElementById('reward-quiz');
+    const w = document.getElementById('reward-weekly-days');
+    if (r) r.value = rewardConfig.readComplete;
+    if (q) q.value = rewardConfig.quizCorrect;
+    if (w) w.value = rewardConfig.weeklyDays;
+  }
+
+  async function saveRewardConfig() {
+    rewardConfig.readComplete = parseInt(document.getElementById('reward-read').value) || 300;
+    rewardConfig.quizCorrect  = parseInt(document.getElementById('reward-quiz').value)  || 100;
+    rewardConfig.weeklyDays   = parseInt(document.getElementById('reward-weekly-days').value) || 5;
+    await saveData();
+    showNotification('💰 보상 수치 저장 완료!');
   }
 
   // ============================================================

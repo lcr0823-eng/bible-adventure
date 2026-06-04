@@ -100,7 +100,7 @@
 
     .car {
       position: absolute;
-      font-size: 1.6rem;
+      font-size: 2.4rem;
       transition: left 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
       animation: carBounce 0.4s ease-in-out infinite alternate;
@@ -133,7 +133,7 @@
       <div class="flex items-center space-x-3">
         <span class="text-3xl">🌳</span>
         <div>
-          <h1 class="text-2xl md:text-3xl title-font tracking-wide">온·기·주·하·창 성경 대모험</h1>
+          <h1 class="text-2xl md:text-3xl title-font tracking-wide">온,기,주 팸 성경통독</h1>
           <div class="flex items-center space-x-2 text-xs text-amber-200">
             <span class="sync-dot" id="sync-dot"></span>
             <span id="sync-status">연결 확인 중...</span>
@@ -145,12 +145,137 @@
           <i class="fa-solid fa-bell animate-bounce"></i>
           <span>🔔 5분전 방송!</span>
         </button>
-        <button onclick="resetAllData()" class="text-xs bg-red-700 hover:bg-red-800 text-white py-1 px-2 rounded">
-          <i class="fa-solid fa-rotate-left"></i> 리셋
+        <button onclick="openAdminLogin()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-full shadow-md flex items-center space-x-2 transition">
+          <i class="fa-solid fa-lock"></i>
+          <span id="admin-btn-label">관리자</span>
         </button>
       </div>
     </div>
   </header>
+
+  <!-- ===== 🔐 관리자 로그인 모달 ===== -->
+  <div id="admin-login-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-8 max-w-xs w-full text-center shadow-2xl border-4 border-slate-300">
+      <div class="text-5xl mb-3">🔐</div>
+      <h3 class="text-xl title-font text-slate-800 mb-1">관리자 로그인</h3>
+      <p class="text-xs text-gray-400 mb-5">창륜·하선 부모님 전용</p>
+      <!-- PIN 표시 -->
+      <div class="flex justify-center space-x-3 mb-5">
+        <div id="pin-dot-0" class="w-4 h-4 rounded-full border-2 border-slate-300 bg-white"></div>
+        <div id="pin-dot-1" class="w-4 h-4 rounded-full border-2 border-slate-300 bg-white"></div>
+        <div id="pin-dot-2" class="w-4 h-4 rounded-full border-2 border-slate-300 bg-white"></div>
+        <div id="pin-dot-3" class="w-4 h-4 rounded-full border-2 border-slate-300 bg-white"></div>
+      </div>
+      <!-- 숫자패드 -->
+      <div class="grid grid-cols-3 gap-2 mb-3">
+        <button onclick="pinInput('1')" class="pin-key bg-slate-100 hover:bg-amber-100 text-slate-800 font-black text-xl py-3 rounded-xl">1</button>
+        <button onclick="pinInput('2')" class="pin-key bg-slate-100 hover:bg-amber-100 text-slate-800 font-black text-xl py-3 rounded-xl">2</button>
+        <button onclick="pinInput('3')" class="pin-key bg-slate-100 hover:bg-amber-100 text-slate-800 font-black text-xl py-3 rounded-xl">3</button>
+        <button onclick="pinInput('4')" class="pin-key bg-slate-100 hover:bg-amber-100 text-slate-800 font-black text-xl py-3 rounded-xl">4</button>
+        <button onclick="pinInput('5')" class="pin-key bg-slate-100 hover:bg-amber-100 text-slate-800 font-black text-xl py-3 rounded-xl">5</button>
+        <button onclick="pinInput('6')" class="pin-key bg-slate-100 hover:bg-amber-100 text-slate-800 font-black text-xl py-3 rounded-xl">6</button>
+        <button onclick="pinInput('7')" class="pin-key bg-slate-100 hover:bg-amber-100 text-slate-800 font-black text-xl py-3 rounded-xl">7</button>
+        <button onclick="pinInput('8')" class="pin-key bg-slate-100 hover:bg-amber-100 text-slate-800 font-black text-xl py-3 rounded-xl">8</button>
+        <button onclick="pinInput('9')" class="pin-key bg-slate-100 hover:bg-amber-100 text-slate-800 font-black text-xl py-3 rounded-xl">9</button>
+        <button onclick="pinClear()" class="pin-key bg-red-100 hover:bg-red-200 text-red-600 font-black text-sm py-3 rounded-xl">지우기</button>
+        <button onclick="pinInput('0')" class="pin-key bg-slate-100 hover:bg-amber-100 text-slate-800 font-black text-xl py-3 rounded-xl">0</button>
+        <button onclick="closeAdminLogin()" class="pin-key bg-slate-200 hover:bg-slate-300 text-slate-600 font-black text-sm py-3 rounded-xl">취소</button>
+      </div>
+      <p id="pin-error" class="text-xs text-red-500 hidden">❌ 비밀번호가 틀렸어요!</p>
+    </div>
+  </div>
+
+  <!-- ===== 🛠️ 관리자 패널 (전체 오버레이) ===== -->
+  <div id="admin-panel" class="hidden fixed inset-0 bg-slate-900/95 z-40 overflow-y-auto">
+    <div class="max-w-2xl mx-auto px-4 py-6">
+      <!-- 관리자 헤더 -->
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-2xl title-font text-white">🛠️ 관리자 패널</h2>
+          <p class="text-slate-400 text-xs">창륜·하선 부모님 전용 관리 화면</p>
+        </div>
+        <button onclick="closeAdminPanel()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl font-bold">
+          <i class="fa-solid fa-xmark mr-1"></i> 닫기
+        </button>
+      </div>
+
+      <!-- 달란트 & 레벨 조정 -->
+      <div class="bg-slate-800 rounded-2xl p-5 mb-4">
+        <h3 class="text-amber-400 font-black mb-4 text-lg">💰 달란트 · 레벨 · 키 조정</h3>
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <select id="admin-target" class="bg-slate-700 text-white border border-slate-600 rounded-xl p-3 text-sm">
+            <option value="온유">👦 온유 (10살)</option>
+            <option value="기쁨">👧 기쁨 (8살)</option>
+            <option value="주안">👶 주안 (4살)</option>
+            <option value="하선">👩 하선 (엄마)</option>
+            <option value="창륜">👨 창륜 (아빠)</option>
+          </select>
+          <select id="admin-action" class="bg-slate-700 text-white border border-slate-600 rounded-xl p-3 text-sm">
+            <option value="talent-up">💰 달란트 +300</option>
+            <option value="talent-down">💸 달란트 -300</option>
+            <option value="height-up">🦒 키 +0.5cm</option>
+            <option value="level-up">🚀 레벨 +1</option>
+          </select>
+        </div>
+        <button onclick="executeAdminAction()" class="w-full bg-amber-500 hover:bg-amber-400 text-white font-black py-3 rounded-xl transition">실행하기</button>
+      </div>
+
+      <!-- 성경 통독 진도 관리 -->
+      <div class="bg-slate-800 rounded-2xl p-5 mb-4">
+        <h3 class="text-emerald-400 font-black mb-4 text-lg">📖 성경 통독 진도 관리</h3>
+        <p class="text-slate-400 text-xs mb-3">책을 선택하면 장별로 완독 표시를 할 수 있어요.</p>
+        <!-- 구약 -->
+        <p class="text-slate-300 text-xs font-bold mb-2">구약</p>
+        <div id="admin-ot-books" class="grid grid-cols-5 sm:grid-cols-7 gap-1.5 mb-4"></div>
+        <!-- 신약 -->
+        <p class="text-slate-300 text-xs font-bold mb-2">신약</p>
+        <div id="admin-nt-books" class="grid grid-cols-5 sm:grid-cols-7 gap-1.5 mb-4"></div>
+        <!-- 장 선택 -->
+        <div id="admin-chapter-area" class="hidden bg-slate-700 rounded-xl p-4">
+          <div class="flex justify-between items-center mb-3">
+            <span id="admin-book-title" class="text-white font-black"></span>
+            <div class="flex space-x-2">
+              <button onclick="adminMarkAll(true)" class="text-xs bg-emerald-600 text-white px-2 py-1 rounded-lg">전체완독</button>
+              <button onclick="adminMarkAll(false)" class="text-xs bg-slate-500 text-white px-2 py-1 rounded-lg">전체취소</button>
+            </div>
+          </div>
+          <div id="admin-chapter-grid" class="grid grid-cols-10 gap-1"></div>
+        </div>
+      </div>
+
+      <!-- 주간 스탬프 관리 -->
+      <div class="bg-slate-800 rounded-2xl p-5 mb-4">
+        <h3 class="text-sky-400 font-black mb-4 text-lg">🗓️ 주간 스탬프 관리</h3>
+        <div class="flex space-x-3">
+          <button onclick="triggerFanfareCelebration(); showNotification('✅ 오늘 완독 스탬프 추가!');" class="flex-1 bg-yellow-500 hover:bg-yellow-400 text-white font-black py-3 rounded-xl">
+            ⭐ 오늘 완독 스탬프 찍기
+          </button>
+          <button onclick="resetWeeklyStamps()" class="flex-1 bg-slate-600 hover:bg-slate-500 text-white font-black py-3 rounded-xl">
+            🔄 새 주 시작
+          </button>
+        </div>
+      </div>
+
+      <!-- PIN 변경 -->
+      <div class="bg-slate-800 rounded-2xl p-5 mb-4">
+        <h3 class="text-rose-400 font-black mb-3 text-lg">🔑 비밀번호 변경</h3>
+        <div class="flex space-x-2">
+          <input type="password" id="new-pin-input" maxlength="4" placeholder="새 비밀번호 4자리"
+            class="flex-1 bg-slate-700 text-white border border-slate-600 rounded-xl p-3 text-sm">
+          <button onclick="changePin()" class="bg-rose-600 hover:bg-rose-500 text-white font-bold px-4 rounded-xl">변경</button>
+        </div>
+        <p class="text-slate-500 text-xs mt-2">기본 비밀번호: <strong class="text-slate-400">0823</strong></p>
+      </div>
+
+      <!-- 데이터 리셋 -->
+      <div class="bg-slate-800 rounded-2xl p-5">
+        <h3 class="text-red-400 font-black mb-3 text-lg">⚠️ 전체 데이터 리셋</h3>
+        <button onclick="resetAllData()" class="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-3 rounded-xl">
+          모든 데이터 초기화
+        </button>
+      </div>
+    </div>
+  </div>
 
   <main class="max-w-7xl mx-auto px-4 mt-6 space-y-6">
 
@@ -198,6 +323,55 @@
       <div id="race-ranking" class="mt-3 grid grid-cols-5 gap-2"></div>
     </div>
 
+    <!-- ===== 📜 성경 통독 지도 ===== -->
+    <div class="bg-white rounded-3xl p-5 shadow-xl border-4 border-emerald-200">
+      <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
+        <h2 class="text-xl title-font text-emerald-700 flex items-center space-x-2">
+          <span>📜 성경 통독 지도</span>
+        </h2>
+        <div class="flex items-center space-x-3">
+          <div class="flex items-center space-x-1 text-xs">
+            <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span><span class="text-gray-500">완독</span>
+            <span class="w-3 h-3 rounded-full bg-yellow-400 inline-block ml-2"></span><span class="text-gray-500">진행중</span>
+            <span class="w-3 h-3 rounded-full bg-gray-200 inline-block ml-2"></span><span class="text-gray-500">미독</span>
+          </div>
+          <div class="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+            전체 진행률: <span id="bible-overall-pct">0</span>%
+          </div>
+        </div>
+      </div>
+
+      <!-- 전체 진행 바 -->
+      <div class="w-full bg-gray-100 h-3 rounded-full overflow-hidden mb-4">
+        <div id="bible-overall-bar" class="bg-gradient-to-r from-emerald-400 to-green-500 h-full rounded-full transition-all duration-700" style="width:0%"></div>
+      </div>
+
+      <!-- 구약 -->
+      <div class="mb-4">
+        <h3 class="text-sm font-black text-slate-600 mb-2">📖 구약성경</h3>
+        <div id="ot-books" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1.5"></div>
+      </div>
+
+      <!-- 신약 -->
+      <div>
+        <h3 class="text-sm font-black text-slate-600 mb-2">✝️ 신약성경</h3>
+        <div id="nt-books" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1.5"></div>
+      </div>
+
+      <!-- 책 클릭 시 장별 현황 팝업 -->
+      <div id="book-detail" class="hidden mt-4 p-4 bg-emerald-50 rounded-2xl border border-emerald-200">
+        <div class="flex justify-between items-center mb-3">
+          <h4 id="book-detail-title" class="font-black text-emerald-800 text-base"></h4>
+          <div class="flex space-x-2">
+            <button onclick="markAllChapters(true)" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg">전체 완독✅</button>
+            <button onclick="markAllChapters(false)" class="text-xs bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded-lg">전체 취소</button>
+            <button onclick="closeBookDetail()" class="text-xs bg-slate-300 hover:bg-slate-400 text-slate-700 px-3 py-1 rounded-lg">닫기</button>
+          </div>
+        </div>
+        <div id="chapter-grid" class="grid grid-cols-10 gap-1"></div>
+      </div>
+    </div>
+
     <!-- ===== 메인 그리드 ===== -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
@@ -211,29 +385,37 @@
           <div id="family-container" class="space-y-4"></div>
         </div>
 
-        <!-- 부모님 관리실 -->
-        <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-amber-200">
-          <h2 class="text-xl title-font text-amber-800 mb-3">
-            <i class="fa-solid fa-user-shield"></i> 부모님 전용 관리실
+        <!-- 🙏 가족 기도제목 -->
+        <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-purple-200">
+          <h2 class="text-xl title-font text-purple-800 mb-4 flex items-center justify-between">
+            <span>🙏 가족 기도제목</span>
+            <span class="text-xs text-purple-400 font-normal">날짜별 저장</span>
           </h2>
-          <p class="text-xs text-gray-400 mb-4">수동으로 달란트·키·레벨을 조정할 수 있어요.</p>
-          <div class="grid grid-cols-2 gap-2 mb-3">
-            <select id="admin-target" class="border border-amber-300 rounded-lg p-2 text-sm">
-              <option value="온유">👦 온유 (10살)</option>
-              <option value="기쁨">👧 기쁨 (8살)</option>
-              <option value="주안">👶 주안 (4살)</option>
-              <option value="하선">👩 하선 (엄마)</option>
-              <option value="창륜">👨 창륜 (아빠)</option>
-            </select>
-            <select id="admin-action" class="border border-amber-300 rounded-lg p-2 text-sm">
-              <option value="talent-up">💰 달란트 +300</option>
-              <option value="talent-down">💸 달란트 -300</option>
-              <option value="height-up">🦒 키 +0.5cm</option>
-              <option value="level-up">🚀 레벨 +1</option>
-            </select>
+
+          <!-- 날짜 선택 & 저장 -->
+          <div class="flex items-center space-x-2 mb-3">
+            <input type="date" id="prayer-date"
+              class="border border-purple-300 rounded-xl px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-300 flex-1">
+            <button onclick="savePrayer()"
+              class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-1.5 rounded-xl text-sm transition">
+              저장
+            </button>
           </div>
-          <button onclick="executeAdminAction()" class="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 px-4 rounded-xl transition">실행하기</button>
+
+          <textarea id="prayer-text" rows="4"
+            placeholder="오늘 우리 가족의 기도제목을 적어주세요...&#10;예) 온유의 학교 생활, 기쁨의 건강, 주안이의 신앙 등"
+            class="w-full border border-purple-200 rounded-2xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-300 bg-purple-50 placeholder-gray-400 leading-relaxed"></textarea>
+
+          <!-- 지난 기도제목 목록 -->
+          <div class="mt-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-purple-700">📋 지난 기도제목</span>
+              <span class="text-xs text-gray-400" id="prayer-count">0건</span>
+            </div>
+            <div id="prayer-history" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+          </div>
         </div>
+
       </section>
 
       <!-- 오른쪽: 메인 컨트롤 -->
@@ -247,8 +429,9 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div class="bg-white/20 p-3 rounded-2xl">
               <label class="block text-xs text-amber-100 font-bold mb-1">📖 오늘 읽을 범위</label>
-              <input type="text" id="bible-range" value="창세기 1 ~ 3장" placeholder="예: 창세기 1 ~ 3장"
-                class="bg-white text-slate-800 font-bold py-1 px-3 rounded-lg w-full outline-none text-sm focus:ring-2 focus:ring-amber-300">
+              <input type="text" id="bible-range" value="열왕기하 11-13장" placeholder="예: 열왕기하 11-13장"
+                class="bg-white text-slate-800 font-bold py-1 px-3 rounded-lg w-full outline-none text-sm focus:ring-2 focus:ring-amber-300"
+                oninput="scheduleQuizLoad()" onchange="scheduleQuizLoad()">
             </div>
             <div class="bg-white/20 p-3 rounded-2xl">
               <label class="block text-xs text-amber-100 font-bold mb-1">⏱️ 타이머 (20분)</label>
@@ -311,36 +494,8 @@
           </div>
         </div>
 
-        <!-- 미션 & 상점 -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          <!-- 오늘의 보너스 미션 -->
-          <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-amber-200">
-            <h3 class="text-lg title-font text-amber-800 mb-4">🎯 오늘의 보너스 미션</h3>
-            <div class="space-y-3">
-              <div class="p-3 bg-emerald-50 rounded-xl flex items-center justify-between border border-emerald-100">
-                <div>
-                  <span class="bg-emerald-200 text-emerald-800 text-xs font-bold px-1.5 py-0.5 rounded">주안(4살)</span>
-                  <p class="text-xs font-bold mt-1 text-emerald-950">성경 읽는 동안 얌전히 앉아있기</p>
-                </div>
-                <button onclick="completeMission('주안', 100)" class="bg-emerald-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-emerald-700">성공! +100💰</button>
-              </div>
-              <div class="p-3 bg-rose-50 rounded-xl flex items-center justify-between border border-rose-100">
-                <div>
-                  <span class="bg-rose-200 text-rose-800 text-xs font-bold px-1.5 py-0.5 rounded">기쁨(8살)</span>
-                  <p class="text-xs font-bold mt-1 text-rose-950">성경 단어 하나 또박또박 읽기</p>
-                </div>
-                <button onclick="completeMission('기쁨', 100)" class="bg-rose-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-rose-700">성공! +100💰</button>
-              </div>
-              <div class="p-3 bg-indigo-50 rounded-xl flex items-center justify-between border border-indigo-100">
-                <div>
-                  <span class="bg-indigo-200 text-indigo-800 text-xs font-bold px-1.5 py-0.5 rounded">온유(10살)</span>
-                  <p class="text-xs font-bold mt-1 text-indigo-950">성경 구절 1절 우렁차게 낭독하기</p>
-                </div>
-                <button onclick="completeMission('온유', 100)" class="bg-indigo-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-indigo-700">성공! +100💰</button>
-              </div>
-            </div>
-          </div>
+        <!-- 달란트 백화점 (전체 너비) -->
+        <div class="grid grid-cols-1 gap-6">
 
           <!-- 달란트 백화점 -->
           <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-amber-200">
@@ -381,6 +536,33 @@
       </section>
     </div>
   </main>
+
+  <!-- 🚗 자동차 선택 모달 -->
+  <div id="car-select-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-4 border-sky-300">
+      <h3 class="text-xl title-font text-sky-700 mb-1 text-center">🏎️ 내 자동차 고르기</h3>
+      <p id="car-select-name" class="text-center text-sm text-gray-400 mb-1"></p>
+      <p class="text-center text-xs text-sky-400 mb-4">🚓폴리 🚑앰버 🚒로이 🚁헬리 🚐브루노</p>
+      <div class="grid grid-cols-5 gap-3 mb-5">
+        <button onclick="selectCar('🏎️')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🏎️</button>
+        <button onclick="selectCar('🚗')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚗</button>
+        <button onclick="selectCar('🚙')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚙</button>
+        <button onclick="selectCar('🚕')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚕</button>
+        <button onclick="selectCar('🚐')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚐</button>
+        <button onclick="selectCar('🚌')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚌</button>
+        <button onclick="selectCar('🚑')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚑</button>
+        <button onclick="selectCar('🚒')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚒</button>
+        <button onclick="selectCar('🚓')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚓</button>
+        <button onclick="selectCar('🛻')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🛻</button>
+        <button onclick="selectCar('🏍️')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🏍️</button>
+        <button onclick="selectCar('🚲')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚲</button>
+        <button onclick="selectCar('🛵')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🛵</button>
+        <button onclick="selectCar('✈️')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">✈️</button>
+        <button onclick="selectCar('🚀')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚀</button>
+      </div>
+      <button onclick="closeCarModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 rounded-xl">취소</button>
+    </div>
+  </div>
 
   <!-- 구매 모달 -->
   <div id="purchase-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -553,15 +735,943 @@
         { q: "이스라엘의 첫 번째 대제사장은 누구인가요?", opts: ["모세","아론","여호수아","갈렙"], a: 1, exp: "모세의 형 아론이 이스라엘의 첫 번째 대제사장이 되었어요!" },
         { q: "제사장이 가슴에 달았던 특별한 것은?", opts: ["금 목걸이","12지파를 상징하는 12보석이 달린 판(흉패)","은팔찌","왕관"], a: 1, exp: "제사장은 이스라엘 12지파를 상징하는 12개의 보석이 달린 흉패를 가슴에 달았어요!" }
       ]
+    },
+
+    '레위기': {
+      '1-3': [
+        { q: "레위기는 어떤 사람들을 위한 책인가요?", opts: ["군인","제사장과 하나님께 드리는 제사 방법","농부","상인"], a: 1, exp: "레위기는 하나님께 예배드리는 방법과 제사장의 역할을 알려주는 책이에요!" },
+        { q: "번제는 어떻게 드리는 제사인가요?", opts: ["먹는 제사","동물을 불에 태워 드리는 제사","꽃을 드리는 제사","노래로 드리는 제사"], a: 1, exp: "번제는 동물을 통째로 불에 태워 하나님께 드리는 제사예요!" },
+        { q: "하나님이 원하시는 제물의 조건은?", opts: ["크기만 크면 돼요","흠 없이 깨끗한 것","색깔이 예쁜 것","빠른 동물"], a: 1, exp: "하나님은 흠 없이 건강하고 깨끗한 제물을 원하셨어요!" }
+      ],
+      '4-7': [
+        { q: "속죄제는 왜 드리나요?", opts: ["감사해서","실수로 죄를 지었을 때","돈이 많아서","왕의 명령으로"], a: 1, exp: "속죄제는 실수로 지은 죄를 용서받기 위해 드리는 제사예요!" },
+        { q: "화목제는 어떤 마음으로 드리는 제사인가요?", opts: ["슬픈 마음","하나님과 사이좋게 지내며 감사하는 마음","두려운 마음","억지로"], a: 1, exp: "화목제는 하나님과 화목하고 감사한 마음을 표현하는 제사예요!" },
+        { q: "제사장들이 드린 제물은 어떻게 했나요?", opts: ["버렸어요","제사장이 일부를 먹을 수 있었어요","왕에게 드렸어요","강에 던졌어요"], a: 1, exp: "제사장은 드려진 제물의 일부를 먹을 수 있었어요 — 하나님이 정해주신 규칙이에요!" }
+      ],
+      '8-10': [
+        { q: "아론과 아들들이 제사장으로 세워질 때 한 것은?", opts: ["왕관을 썼어요","기름을 머리에 부었어요","긴 옷을 입었어요","칼을 받았어요"], a: 1, exp: "모세가 아론에게 기름을 부어 제사장으로 세웠어요!" },
+        { q: "나답과 아비후가 죽은 이유는?", opts: ["전쟁에서","하나님이 명령하지 않은 불을 드려서","병으로","사고로"], a: 1, exp: "아론의 두 아들이 하나님이 허락하지 않은 방법으로 제사를 드려 죽었어요. 하나님 말씀을 꼭 따라야 해요!" },
+        { q: "레위기 10장에서 하나님이 제사장에게 금지하신 것은?", opts: ["음식 먹기","성막에서 술 마시기","기도하기","노래하기"], a: 1, exp: "하나님은 제사장이 성막에서 섬길 때 술을 마시면 안 된다고 하셨어요!" }
+      ],
+      '11-15': [
+        { q: "레위기에서 깨끗한 동물과 부정한 동물을 나눈 이유는?", opts: ["맛있는 것을 구분하려고","하나님 백성이 거룩하게 살도록","동물을 보호하려고","과학적 이유로"], a: 1, exp: "하나님은 이스라엘이 거룩한 하나님의 백성답게 살도록 먹을 것에도 규칙을 주셨어요!" },
+        { q: "굽이 갈라지고 되새김질하는 동물은?", opts: ["부정한 동물","깨끗한 동물 — 먹을 수 있어요","위험한 동물","희귀한 동물"], a: 1, exp: "굽이 갈라지고 되새김질하는 소, 양 같은 동물은 먹을 수 있는 깨끗한 동물이에요!" },
+        { q: "돼지는 왜 먹으면 안 됐나요?", opts: ["맛이 없어서","굽은 갈라졌지만 되새김질을 안 해서","너무 커서","빠르게 도망가서"], a: 1, exp: "돼지는 굽은 갈라졌지만 되새김질을 안 해서 부정한 동물로 분류되었어요!" }
+      ],
+      '16-20': [
+        { q: "대속죄일에 염소 두 마리 중 하나를 어떻게 했나요?", opts: ["먹었어요","광야로 보냈어요 — 백성의 죄를 지고","불에 태웠어요","왕에게 드렸어요"], a: 1, exp: "한 마리는 제물로 드리고, 한 마리는 백성의 죄를 상징적으로 지워 광야로 보냈어요!" },
+        { q: "레위기 19장의 유명한 말씀은?", opts: ["강해져라","네 이웃을 네 자신처럼 사랑하라","빨리 달려라","많이 모아라"], a: 1, exp: "'네 이웃 사랑하기를 네 자신과 같이 하라' — 예수님도 이 말씀을 인용하셨어요!" },
+        { q: "하나님이 '너희는 거룩하라'고 하신 이유는?", opts: ["멋있어 보이라고","나 여호와 너희 하나님이 거룩하기 때문이에요","남들보다 높아지라고","규칙을 만들려고"], a: 1, exp: "하나님은 거룩하시기 때문에 하나님의 백성도 거룩하게 살아야 해요!" }
+      ],
+      '21-27': [
+        { q: "희년은 몇 년마다 있었나요?", opts: ["7년","10년","50년","100년"], a: 2, exp: "50년마다 희년이 왔어요 — 빚이 탕감되고 노예가 자유로워지는 특별한 해예요!" },
+        { q: "안식년은 몇 년마다 있었나요?", opts: ["3년","5년","7년","10년"], a: 2, exp: "7년마다 안식년이 왔어요 — 땅도 쉬게 하고 빚도 탕감해 주는 해예요!" },
+        { q: "레위기의 핵심 주제는 무엇인가요?", opts: ["전쟁하기","거룩함과 하나님께 올바르게 예배드리기","여행하기","음식 만들기"], a: 1, exp: "레위기는 '거룩하라'는 말씀이 핵심이에요 — 하나님의 백성답게 구별된 삶을 살라는 거예요!" }
+      ]
+    },
+
+    '민수기': {
+      '1-3': [
+        { q: "민수기에서 이스라엘 백성을 센 이유는?", opts: ["세금을 걷으려고","전쟁에 나갈 수 있는 사람 수를 알려고","학교를 만들려고","집을 나눠주려고"], a: 1, exp: "민수기는 '수를 세다'는 뜻이에요 — 전쟁에 나갈 20세 이상 남자들을 세었어요!" },
+        { q: "레위 지파는 왜 군인 수에 포함되지 않았나요?", opts: ["수가 적어서","성막을 관리하고 하나님을 섬기는 역할이 따로 있어서","약해서","왕의 명령으로"], a: 1, exp: "레위 지파는 하나님의 성막을 관리하는 특별한 역할이 있었기 때문이에요!" },
+        { q: "이스라엘 12지파는 광야에서 어떻게 진을 쳤나요?", opts: ["아무데나","성막을 중심으로 동서남북 방향으로","강가에만","산 위에만"], a: 1, exp: "성막을 중심으로 동서남북 네 방향에 각 지파가 진을 쳤어요!" }
+      ],
+      '4-6': [
+        { q: "하나님이 아론에게 주신 유명한 축복 기도는?", opts: ["빨리 달려라","여호와는 네게 복을 주시고 너를 지키시기를 원하노라","강해져라","많이 먹어라"], a: 1, exp: "'여호와는 네게 복을 주시고 너를 지키시기를 원하노라' — 아론의 축복 기도예요! 지금도 교회에서 많이 사용해요!" },
+        { q: "나실인의 서원은 어떤 것인가요?", opts: ["많이 먹겠다는 약속","하나님께 특별히 구별되겠다는 약속 — 포도주도 안 마시고 머리도 안 깎아요","오래 달리겠다는 약속","왕을 섬기겠다는 약속"], a: 1, exp: "나실인은 하나님께 특별히 헌신한 사람으로 포도주를 마시지 않고 머리를 깎지 않았어요!" },
+        { q: "이스라엘이 광야 여행에서 가장 먼저 출발할 때 앞에서 간 것은?", opts: ["군사들","구름 기둥과 법궤","왕","음식 수레"], a: 1, exp: "하나님의 구름이 이끄시고 법궤가 앞에서 행진했어요!" }
+      ],
+      '7-10': [
+        { q: "성막이 완성된 후 각 지파 족장들이 한 것은?", opts: ["싸웠어요","하나님께 예물을 드렸어요","여행을 떠났어요","집을 지었어요"], a: 1, exp: "12지파 족장들이 성막을 위해 아름다운 예물을 드렸어요!" },
+        { q: "이스라엘이 광야를 떠날 신호는 무엇이었나요?", opts: ["북소리","나팔 소리와 구름이 움직이는 것","왕의 명령","해가 뜨는 것"], a: 1, exp: "구름이 성막에서 떠오르면 이스라엘도 함께 길을 떠났어요!" },
+        { q: "민수기 9장에서 유월절을 못 지킨 사람들이 특별히 지킬 수 있게 된 때는?", opts: ["없었어요","다음 달 14일에 지킬 수 있었어요","1년 후에","다음 해에"], a: 1, exp: "하나님은 부정하거나 먼 여행 중인 사람은 한 달 후에 유월절을 지킬 수 있게 하셨어요!" }
+      ],
+      '11-14': [
+        { q: "이스라엘 백성이 광야에서 자주 한 행동은?", opts: ["감사하기","불평하고 원망하기","노래하기","달리기"], a: 1, exp: "이스라엘은 광야에서 음식, 물 등 여러 가지로 하나님께 불평하고 원망했어요. 우리는 감사하는 사람이 되어야 해요!" },
+        { q: "가나안 땅을 정탐한 사람은 몇 명인가요?", opts: ["2명","6명","12명","24명"], a: 2, exp: "12지파에서 한 명씩, 총 12명의 정탐꾼이 가나안을 偵探했어요!" },
+        { q: "10명의 정탐꾼과 2명의 정탐꾼의 다른 점은?", opts: ["키가 달랐어요","10명은 두려워 못 들어간다 했고, 갈렙과 여호수아만 하나님을 믿고 들어가자 했어요","음식을 달리 먹었어요","옷이 달랐어요"], a: 1, exp: "갈렙과 여호수아만 '하나님이 함께하시면 이길 수 있다!'고 믿었어요. 믿음이 중요해요!" }
+      ],
+      '15-20': [
+        { q: "광야에서 하나님이 낮에 이스라엘을 인도하신 것은?", opts: ["천사","구름 기둥","불","바람"], a: 1, exp: "낮에는 구름 기둥, 밤에는 불 기둥이 이스라엘을 인도했어요!" },
+        { q: "고라가 모세에게 반역한 이유는?", opts: ["밥을 안 줘서","'우리도 다 거룩한데 왜 너만 지도자야?'라며 시기해서","길을 잘못 안내해서","물을 빼앗아서"], a: 1, exp: "고라와 동료들이 모세의 지도자 자리를 시기하여 반역했어요. 땅이 입을 벌려 삼켰어요!" },
+        { q: "모세가 반석에서 물을 낼 때 하나님이 명령하신 것은?", opts: ["반석을 두 번 때려라","반석에게 명령하여 물이 나오게 하라","기도만 하라","강으로 가라"], a: 1, exp: "하나님은 '반석에게 명령하라'고 하셨는데 모세가 화가 나서 반석을 때렸어요. 그래서 가나안에 못 들어가게 됐어요!" }
+      ],
+      '21-25': [
+        { q: "이스라엘이 놋뱀을 쳐다보면 살 수 있었던 이유는?", opts: ["뱀이 착해서","하나님의 말씀을 믿고 순종했을 때","뱀이 독이 없어서","마법 때문에"], a: 1, exp: "불뱀에 물린 사람이 하나님이 만들라고 하신 놋뱀을 쳐다보면 살았어요 — 믿음의 순종이에요!" },
+        { q: "발람이 이스라엘을 저주하러 갔을 때 그의 나귀에게 무슨 일이?", opts: ["나귀가 도망갔어요","나귀가 말을 했어요","나귀가 죽었어요","나귀가 날았어요"], a: 1, exp: "발람의 나귀가 천사를 보고 말을 했어요 — 하나님이 나귀 입을 여신 기적이에요!" },
+        { q: "발람이 이스라엘을 어떻게 했나요?", opts: ["저주했어요","저주하려 했지만 하나님이 축복하게 하셨어요","그냥 집으로 갔어요","왕에게 보고했어요"], a: 1, exp: "발람은 이스라엘을 저주하러 갔지만 하나님이 입을 바꾸셔서 오히려 축복했어요!" }
+      ],
+      '26-36': [
+        { q: "두 번째 인구 조사를 한 이유는?", opts: ["재미있어서","광야에서 죽은 사람들을 빼고 새 세대를 파악하려고","왕의 명령으로","땅을 나눠주려고"], a: 1, exp: "광야에서 첫 세대가 거의 다 죽어서 새롭게 가나안에 들어갈 두 번째 세대를 세었어요!" },
+        { q: "슬로브핫의 딸들이 특별한 이유는?", opts: ["용감한 군인이어서","아들 없이 딸들만인데 당당하게 상속권을 요청했어요","노래를 잘해서","빠르게 달려서"], a: 1, exp: "슬로브핫 딸들이 모세에게 담대하게 상속권을 요청해서 하나님이 딸도 상속받을 수 있다고 하셨어요!" },
+        { q: "민수기의 교훈은 무엇인가요?", opts: ["빨리 도망가기","하나님을 믿고 순종하면 복을 받아요","많이 먹기","싸워서 이기기"], a: 1, exp: "광야 40년 여정에서 믿음과 순종의 중요성을 배울 수 있어요!" }
+      ]
+    },
+
+    '신명기': {
+      '1-3': [
+        { q: "신명기는 어떤 책인가요?", opts: ["전쟁 이야기","모세가 가나안에 들어가기 전 이스라엘에게 한 마지막 설교","요리법","지도 책"], a: 1, exp: "신명기는 모세의 마지막 설교예요 — 하나님의 말씀을 기억하고 잘 살라는 내용이에요!" },
+        { q: "이스라엘이 광야에서 보낸 시간은?", opts: ["10년","20년","40년","100년"], a: 2, exp: "가나안 정탐 후 하나님을 믿지 않은 죄로 40년간 광야를 헤맸어요!" },
+        { q: "모세가 가나안에 들어가지 못한 이유는?", opts: ["나이가 너무 많아서","반석을 명령 대신 때린 것 때문에 하나님의 말씀에 불순종해서","병이 들어서","길을 잃어서"], a: 1, exp: "모세는 반석에서 물을 낼 때 하나님 명령과 다르게 해서 가나안에 들어가지 못했어요!" }
+      ],
+      '4-6': [
+        { q: "신명기에서 가장 유명한 말씀, 쉐마는 무엇인가요?", opts: ["빨리 달려라","이스라엘아 들으라 — 우리 하나님 여호와는 오직 하나인 여호와라","싸워 이겨라","많이 먹어라"], a: 1, exp: "'쉐마'는 '들으라'는 뜻이에요! '이스라엘아 들으라 우리 하나님 여호와는 오직 유일한 분이시다' — 아주 중요한 말씀이에요!" },
+        { q: "하나님을 사랑하는 방법으로 신명기 6장이 말하는 것은?", opts: ["운동하기","마음과 뜻과 힘을 다하여 사랑하기","공부하기","잠 자기"], a: 1, exp: "마음을 다하고 뜻을 다하고 힘을 다하여 하나님을 사랑하라고 해요!" },
+        { q: "부모님이 자녀에게 하나님 말씀을 가르치는 것에 대한 신명기의 말씀은?", opts: ["필요 없어요","집에 앉아서도, 길을 걸어서도, 자고 일어날 때도 가르쳐라","학교에서만 가르쳐라","어른이 되면 알아서 해요"], a: 1, exp: "모든 일상생활 속에서 자녀에게 하나님 말씀을 가르치라고 해요 — 지금 여러분 부모님이 하고 계신 거예요!" }
+      ],
+      '7-11': [
+        { q: "하나님이 이스라엘을 선택하신 이유는?", opts: ["수가 많아서","강해서","하나님이 사랑하시고 조상들에게 약속하셔서","예뻐서"], a: 2, exp: "하나님은 이스라엘이 강하거나 수가 많아서가 아니라 사랑 때문에 선택하셨어요!" },
+        { q: "만나를 주신 이유 중 하나는?", opts: ["맛있으라고","사람이 빵으로만 사는 게 아니고 하나님 말씀으로 산다는 것을 알게 하려고","배 부르게 하려고","요리 연습하려고"], a: 1, exp: "예수님도 시험을 받으실 때 신명기 8장 말씀을 인용하셨어요 — '사람이 빵으로만 살지 않는다'!" },
+        { q: "하나님이 이스라엘에게 가나안 원주민을 쫓아내라고 하신 이유는?", opts: ["땅이 갖고 싶어서","우상 숭배로 이스라엘이 물들지 않도록","원수여서","재미있으려고"], a: 1, exp: "가나안 원주민의 우상 숭배 문화에 물들지 않도록 하나님이 명령하셨어요!" }
+      ],
+      '12-18': [
+        { q: "이스라엘이 예배드릴 수 있는 장소는?", opts: ["어디서나","하나님이 정하신 곳 한 곳에서만","집에서만","강가에서만"], a: 1, exp: "하나님은 예배할 중심 장소를 하나 지정하셔서 이스라엘이 나뉘지 않게 하셨어요!" },
+        { q: "신명기 18장에서 모세가 예언한 것은?", opts: ["새 왕이 올 것이다","하나님이 나 같은 선지자를 보내실 것이다 — 예수님을 예언한 거예요","전쟁이 올 것이다","비가 올 것이다"], a: 1, exp: "모세는 '하나님이 나 같은 선지자를 보내실 것'이라고 했는데 이것은 예수님에 대한 예언이에요!" },
+        { q: "신명기에서 가르쳐주는 왕의 조건은?", opts: ["키가 커야 해요","하나님의 율법을 읽고 순종해야 해요","돈이 많아야 해요","싸움을 잘해야 해요"], a: 1, exp: "왕은 율법책을 항상 읽고 하나님 말씀을 지켜야 한다고 해요!" }
+      ],
+      '19-26': [
+        { q: "도피성은 무엇인가요?", opts: ["놀이터","실수로 사람을 죽인 사람이 피할 수 있는 안전한 도시","왕궁","감옥"], a: 1, exp: "실수로 사람을 죽인 사람이 억울하게 죽임당하지 않도록 피할 수 있는 도시예요!" },
+        { q: "신명기 24장에서 가난한 자들을 위해 말한 것은?", opts: ["못 도와줘요","추수할 때 이삭을 다 거두지 말고 가난한 사람들을 위해 남겨두어라","집을 지어줘라","왕에게 알려라"], a: 1, exp: "밭에서 이삭을 모두 거두지 말고 나그네와 고아와 과부를 위해 남겨두라고 해요 — 이웃 사랑이에요!" },
+        { q: "신명기 26장의 첫 소산물은?", opts: ["왕에게 드리는 것","처음 거둔 소산물을 하나님께 감사하며 드리는 것","군인들에게 주는 것","팔아서 돈으로 만드는 것"], a: 1, exp: "처음 익은 열매를 하나님께 드리며 이집트에서 구해주신 은혜를 감사했어요!" }
+      ],
+      '27-34': [
+        { q: "신명기 28장에서 순종하면 어떻게 된다고 했나요?", opts: ["아무것도 안 변해요","복을 받을 것이라고 했어요","전쟁에 나가야 해요","왕이 돼요"], a: 1, exp: "하나님 말씀에 순종하면 도시에서도 들에서도 복을 받을 것이라고 했어요!" },
+        { q: "모세의 마지막 모습은 어떠했나요?", opts: ["병들었어요","120살이었지만 눈도 좋고 기력도 왕성했어요","잠을 많이 잤어요","여행을 갔어요"], a: 1, exp: "모세는 죽을 때 120살이었지만 눈이 흐리지 않고 기력이 쇠하지 않았다고 해요!" },
+        { q: "모세의 뒤를 이어 이스라엘을 이끈 사람은?", opts: ["아론","갈렙","여호수아","사무엘"], a: 2, exp: "여호수아가 모세의 뒤를 이어 이스라엘을 가나안으로 이끌었어요!" }
+      ]
+    },
+
+    '여호수아': {
+      '1-3': [
+        { q: "여호수아에게 하나님이 하신 유명한 말씀은?", opts: ["빨리 달려라","강하고 담대하라 두려워하지 말라","집에 있어라","기다려라"], a: 1, exp: "'강하고 담대하라 두려워하지 말라' — 하나님이 함께하시겠다는 약속이에요!" },
+        { q: "기생 라합이 정탐꾼들을 숨겨준 표시는?", opts: ["파란 천","붉은 줄","초록 깃발","흰 돌"], a: 1, exp: "라합은 창문에 붉은 줄을 내걸어 구원의 표시로 삼았어요!" },
+        { q: "이스라엘이 요단강을 건널 때 법궤를 멘 제사장들이 발을 물에 대자?", opts: ["비가 왔어요","물이 갈라져서 마른 땅이 생겼어요","배가 왔어요","다리가 나타났어요"], a: 1, exp: "제사장들이 요단강에 발을 내딛자 물이 갈라져서 이스라엘이 걸어서 건넜어요!" }
+      ],
+      '4-6': [
+        { q: "요단강 기념으로 무엇을 했나요?", opts: ["노래를 불렀어요","강에서 돌 12개를 가져다 기념비를 세웠어요","깃발을 꽂았어요","나무를 심었어요"], a: 1, exp: "12지파에서 각 한 사람씩 돌을 가져다 기념비를 세워 하나님의 기적을 기억하게 했어요!" },
+        { q: "여리고 성벽을 무너뜨린 방법은?", opts: ["대포로","7일 동안 행진하고 나팔 불고 함성을 질러서","기계로","땅굴로"], a: 1, exp: "7일 동안 성 주위를 돌고, 7일째에 나팔 불고 함성을 지르자 성이 무너졌어요!" },
+        { q: "여리고에서 살아남은 사람은?", opts: ["군인들","라합과 그의 가족","왕과 신하들","아무도 없어요"], a: 1, exp: "정탐꾼을 숨겨준 라합과 그의 가족이 붉은 줄 표시 덕분에 살아남았어요!" }
+      ],
+      '7-9': [
+        { q: "아간이 죄를 지은 것은?", opts: ["도망쳤어요","하나님이 금하신 전리품을 몰래 숨겼어요","거짓말했어요","늦게 일어났어요"], a: 1, exp: "아간이 하나님이 취하지 말라 하신 물건을 숨겨서 이스라엘이 아이 성에서 졌어요!" },
+        { q: "기브온 사람들이 이스라엘에게 쓴 속임수는?", opts: ["전쟁으로","헌 신발과 낡은 양식으로 먼 나라에서 온 척하여 평화 조약을 맺었어요","울어서","선물로"], a: 1, exp: "기브온 사람들이 낡은 옷과 헌 신발을 신고 먼 나라에서 왔다고 속여 조약을 맺었어요!" },
+        { q: "아이 성을 함락할 때 여호수아가 쓴 전략은?", opts: ["정면 공격","매복 전술 — 뒤에 숨어 있다가 기습했어요","도망가는 척","배로 공격"], a: 1, exp: "여호수아는 군사 일부를 성 뒤에 숨겨두고 도망가는 척하다가 앞뒤로 협공했어요!" }
+      ],
+      '10-12': [
+        { q: "기브온 전투에서 하나님이 해주신 기적은?", opts: ["비를 내렸어요","해와 달이 멈췄어요","구름으로 적을 가렸어요","강이 갈라졌어요"], a: 1, exp: "여호수아가 기도하자 해와 달이 멈춰 전투를 마칠 시간을 주셨어요!" },
+        { q: "하나님이 이스라엘을 위해 적들에게 하신 것은?", opts: ["도망가게 하셨어요","하늘에서 큰 돌(우박)을 내리셨어요","잠들게 하셨어요","눈을 멀게 하셨어요"], a: 1, exp: "하나님이 큰 우박돌을 내려 적군들을 물리쳐 주셨어요!" },
+        { q: "여호수아가 가나안을 정복한 후 무엇을 나눠주었나요?", opts: ["음식","각 지파에게 땅을 나눠주었어요","옷","소와 양"], a: 1, exp: "여호수아는 가나안 땅을 12지파에게 나눠주었어요!" }
+      ],
+      '13-21': [
+        { q: "갈렙이 85살에 원한 것은?", opts: ["쉬고 싶었어요","아직도 강하니 아낙 자손이 있는 산지를 달라고 했어요","집으로 가고 싶었어요","먹을 것을 달라고 했어요"], a: 1, exp: "85살의 갈렙이 '나는 아직 강하다! 아낙 거인들이 있는 헤브론 산을 내게 달라!'고 했어요. 정말 믿음의 용사예요!" },
+        { q: "도피성은 몇 개를 지정했나요?", opts: ["2개","4개","6개","12개"], a: 2, exp: "이스라엘 땅에 도피성 6개를 지정했어요!" },
+        { q: "레위 지파에게는 땅 대신 무엇을 주었나요?", opts: ["소","도시들 — 각 지파에서 성읍을 받았어요","황금","배"], a: 1, exp: "레위 지파는 전체 땅에서 성읍들을 받아 각 지파 가운데 흩어져 하나님을 섬겼어요!" }
+      ],
+      '22-24': [
+        { q: "여호수아의 마지막 말씀 중 유명한 결단은?", opts: ["피곤하다","나와 내 집은 여호와를 섬기겠노라","떠나겠다","먹겠다"], a: 1, exp: "'나와 내 집은 여호와를 섬기겠노라!' — 여호수아 가족의 위대한 믿음의 선포예요!" },
+        { q: "여호수아가 백성들에게 선택하라고 한 것은?", opts: ["전쟁이냐 평화냐","여호와를 섬길 것이냐 다른 신을 섬길 것이냐","이집트로 돌아갈 것이냐 남을 것이냐","왕을 뽑을 것이냐 말 것이냐"], a: 1, exp: "여호수아는 '누구를 섬길지 오늘 선택하라'고 했어요. 우리도 매일 하나님을 선택해요!" },
+        { q: "여호수아는 몇 살에 세상을 떠났나요?", opts: ["80살","100살","110살","120살"], a: 2, exp: "여호수아는 110살까지 살다가 하나님 품으로 갔어요!" }
+      ]
+    },
+
+    '사사기': {
+      '1-3': [
+        { q: "사사기에서 이스라엘이 반복하는 나쁜 행동은?", opts: ["밥을 많이 먹기","하나님을 버리고 우상을 섬기기","잠 자기","달리기"], a: 1, exp: "사사기는 이스라엘이 하나님→우상→고난→회개→구원을 계속 반복하는 이야기예요!" },
+        { q: "사사는 어떤 사람인가요?", opts: ["왕","하나님이 세우신 구원자 지도자","제사장","군인"], a: 1, exp: "사사는 이스라엘이 위기에 처할 때 하나님이 특별히 세우신 구원자예요!" },
+        { q: "이스라엘이 원수에게 지배당하는 이유는?", opts: ["군사가 약해서","하나님을 버리고 우상을 섬겨서","땅이 작아서","비가 안 와서"], a: 1, exp: "이스라엘이 하나님을 버릴 때마다 원수에게 지배당하고 고통받았어요!" }
+      ],
+      '4-6': [
+        { q: "드보라는 어떤 특별한 사사인가요?", opts: ["아이 사사","여자 사사 — 선지자이기도 했어요","노인 사사","외국인 사사"], a: 1, exp: "드보라는 사사기에 나오는 여자 사사예요 — 전쟁도 이끌고 재판도 했어요!" },
+        { q: "가나안 장군 시스라를 죽인 사람은?", opts: ["드보라","바락 장군","야엘이라는 여인","솔로몬"], a: 2, exp: "야엘이라는 여인이 천막 말뚝으로 가나안 장군 시스라를 물리쳤어요!" },
+        { q: "기드온이 처음에 하나님 말씀을 들었을 때 어디에 있었나요?", opts: ["산꼭대기","포도주 틀에서 밀을 타작하고 있었어요","바다에서","궁궐에서"], a: 1, exp: "기드온은 미디안이 두려워 포도주 틀 속에 숨어 밀을 타작하고 있었어요!" }
+      ],
+      '7-9': [
+        { q: "기드온의 군사가 처음 32,000명에서 줄어든 최종 숫자는?", opts: ["10,000명","3,000명","300명","30명"], a: 2, exp: "하나님이 300명만 남기셨어요 — 사람의 힘이 아닌 하나님의 능력으로 이긴다는 것을 보여주시려고!" },
+        { q: "기드온의 300명이 미디안을 이긴 방법은?", opts: ["칼로 싸웠어요","항아리와 나팔과 횃불로 기습했어요","활로 쏘았어요","성을 쌓았어요"], a: 1, exp: "빈 항아리 안에 횃불을 숨기고 일제히 나팔 불고 항아리를 깨뜨리자 적이 혼란에 빠졌어요!" },
+        { q: "기드온이 이긴 후 백성이 왕이 되라고 하자 기드온이 한 말은?", opts: ["좋아요","나도 내 아들도 너희를 다스리지 않겠다 — 여호와께서 다스리신다","생각해볼게요","아들한테 물어볼게요"], a: 1, exp: "기드온은 '여호와께서 너희를 다스리실 것이다'라고 했어요 — 훌륭한 대답이에요!" }
+      ],
+      '10-12': [
+        { q: "입다는 어떤 서원을 해서 슬픈 일이 생겼나요?", opts: ["금을 드리겠다","전쟁에 이기면 집에서 제일 먼저 나오는 것을 드리겠다고 해서 딸이 나왔어요","말을 드리겠다","성전을 짓겠다"], a: 1, exp: "입다가 경솔한 서원을 해서 딸을 잃게 됐어요 — 말을 신중하게 해야 해요!" },
+        { q: "입다 이전에 사사가 된 사람들은 몇 명이나 되나요?", opts: ["3명","5명","여러 명이에요","1명"], a: 2, exp: "사사기에는 많은 사사들이 나와요 — 큰 사사와 작은 사사들이 있어요!" },
+        { q: "에브라임 지파와 길르앗(입다) 사이의 다툼에서 신호는?", opts: ["옷 색깔","'쉽볼렛'이라는 단어 발음","키","무기"], a: 1, exp: "'쉽볼렛'을 발음하지 못하면 에브라임 사람으로 구분했어요 — 발음으로 적군을 가려낸 거예요!" }
+      ],
+      '13-16': [
+        { q: "삼손의 힘의 비밀은?", opts: ["많이 먹어서","나실인으로 머리를 깎지 않았기 때문에","운동을 많이 해서","특별한 약을 먹어서"], a: 1, exp: "삼손은 태어날 때부터 하나님께 바쳐진 나실인이었고 머리카락이 힘의 비밀이었어요!" },
+        { q: "들릴라가 삼손에게 한 것은?", opts: ["밥을 줬어요","머리카락의 비밀을 빼내고 삼손의 머리를 깎았어요","노래를 불러줬어요","도망가게 도왔어요"], a: 1, exp: "들릴라가 계속 졸라서 삼손이 비밀을 말했고, 자는 동안 머리카락을 잘라 힘이 없어졌어요!" },
+        { q: "삼손의 마지막은?", opts: ["행복하게 살았어요","눈이 멀고 잡혔지만 마지막에 기도하며 신전 기둥을 무너뜨렸어요","도망갔어요","왕이 됐어요"], a: 1, exp: "삼손은 눈이 멀고 적에게 잡혔지만 마지막에 하나님께 기도하며 블레셋 신전을 무너뜨렸어요!" }
+      ],
+      '17-21': [
+        { q: "사사기 마지막 부분의 결론은?", opts: ["이스라엘이 아주 행복했어요","그 때는 왕이 없었고 사람마다 자기 소견에 옳은 대로 행했어요","전쟁에서 이겼어요","새 왕이 나왔어요"], a: 1, exp: "'각자 자기 소견에 옳은 대로 행했다' — 하나님 없이 사는 삶이 얼마나 혼란스러운지 보여줘요!" },
+        { q: "사사기의 교훈은?", opts: ["전쟁을 잘하기","하나님을 떠나면 어렵고 하나님께 돌아오면 구원받아요","음식을 많이 먹기","달리기 연습하기"], a: 1, exp: "사사기는 하나님을 떠났다가 고통받고 돌아오는 이야기의 반복이에요 — 항상 하나님 곁에 있어요!" },
+        { q: "사사기에 나오는 여자 사사는?", opts: ["드보라","미리암","라합","한나"], a: 0, exp: "드보라가 사사기에 나오는 유일한 여자 사사예요!" }
+      ]
+    },
+
+    '룻기': {
+      '1-4': [
+        { q: "룻이 시어머니 나오미에게 한 유명한 말은?", opts: ["집에 가겠어요","어머니가 가시는 곳에 나도 가겠어요 — 어머니의 하나님이 나의 하나님이에요","혼자 살겠어요","다른 곳에 가겠어요"], a: 1, exp: "'어머니가 가시는 곳에 나도 가겠어요' — 룻의 사랑과 충성이 담긴 감동적인 말이에요!" },
+        { q: "룻은 어느 나라 사람인가요?", opts: ["이스라엘","이집트","모압","앗수르"], a: 2, exp: "룻은 모압 여인이지만 이스라엘 하나님을 선택했어요 — 믿음으로 하나님 백성이 된 거예요!" },
+        { q: "룻이 보아스의 밭에서 한 일은?", opts: ["씨를 뿌렸어요","추수꾼 뒤에서 이삭을 주웠어요","물을 날랐어요","밥을 만들었어요"], a: 1, exp: "룻은 가난했지만 열심히 일했어요 — 추수 후 남은 이삭을 주워 나오미를 봉양했어요!" },
+        { q: "보아스가 룻을 어떻게 대했나요?", opts: ["쫓아냈어요","친절하게 대하고 먹을 것을 나눠줬어요","무시했어요","화를 냈어요"], a: 1, exp: "보아스는 룻의 사연을 듣고 친절하게 대해줬어요 — 이후 둘은 결혼했어요!" },
+        { q: "룻과 보아스의 아들 이름은?", opts: ["다윗","오벳 — 다윗 왕의 할아버지예요","솔로몬","요나단"], a: 1, exp: "룻의 아들 오벳은 이새의 아버지, 이새는 다윗의 아버지예요 — 룻은 다윗 왕의 증조할머니예요!" }
+      ]
+    },
+
+    '사무엘상': {
+      '1-3': [
+        { q: "한나가 하나님께 눈물로 기도한 것은?", opts: ["돈","아들을 주시면 하나님께 드리겠다","집","전쟁에서 이기게 해달라"], a: 1, exp: "한나는 아들을 달라고 울며 기도하고 아들을 주시면 하나님께 드리겠다고 서원했어요!" },
+        { q: "한나의 아들 이름은?", opts: ["다윗","사무엘 — '하나님이 들으셨다'는 뜻이에요","사울","요나단"], a: 1, exp: "사무엘은 '하나님이 들으셨다'는 뜻이에요 — 한나의 기도를 들어주셨어요!" },
+        { q: "어린 사무엘이 밤에 들은 것은?", opts: ["노래","하나님의 음성","천둥소리","바람소리"], a: 1, exp: "어린 사무엘이 자다가 하나님의 음성을 들었어요 — 처음엔 엘리가 부르는 줄 알았어요!" }
+      ],
+      '4-7': [
+        { q: "이스라엘이 블레셋에게 빼앗긴 것은?", opts: ["왕관","법궤(하나님의 언약궤)","성전","칼"], a: 1, exp: "이스라엘이 전쟁에서 져서 귀중한 법궤를 블레셋에게 빼앗겼어요!" },
+        { q: "블레셋에서 법궤 때문에 어떤 일이 생겼나요?", opts: ["부자가 됐어요","블레셋 신 다곤이 쓰러지고 블레셋에 재앙이 왔어요","비가 왔어요","잔치를 했어요"], a: 1, exp: "법궤가 블레셋에 가자 다곤 신이 쓰러지고 질병이 돌아 블레셋이 법궤를 돌려보냈어요!" },
+        { q: "사무엘의 가장 중요한 역할은?", opts: ["왕","선지자이자 마지막 사사 — 하나님과 백성을 이어주는 역할","군인","농부"], a: 1, exp: "사무엘은 이스라엘의 마지막 사사이자 선지자로 하나님의 말씀을 백성에게 전했어요!" }
+      ],
+      '8-12': [
+        { q: "이스라엘이 사무엘에게 요청한 것은?", opts: ["새 집","우리도 다른 나라처럼 왕을 세워달라","음식","전쟁 도움"], a: 1, exp: "이스라엘이 다른 나라처럼 왕을 세워달라고 요청했어요. 하나님이 슬퍼하셨지만 허락하셨어요!" },
+        { q: "이스라엘의 첫 번째 왕은?", opts: ["다윗","사무엘","사울","솔로몬"], a: 2, exp: "사울이 이스라엘의 첫 번째 왕이 됐어요!" },
+        { q: "사울이 처음 왕으로 세워질 때 어떤 모습이었나요?", opts: ["작고 약했어요","키가 크고 잘생겨서 이스라엘 중에 이보다 훌륭한 자가 없었어요","늙었었어요","어렸었어요"], a: 1, exp: "사울은 이스라엘 중에 제일 잘생기고 키가 컸어요!" }
+      ],
+      '13-15': [
+        { q: "사울이 하나님께 버림받은 이유는?", opts: ["전쟁에서 져서","사무엘을 기다리지 않고 번제를 직접 드리고 아말렉을 다 멸하지 않아서","병이 들어서","도망가서"], a: 1, exp: "사울은 두 번이나 하나님 말씀에 불순종해서 버림받았어요!" },
+        { q: "사무엘의 유명한 말씀은?", opts: ["전쟁을 잘해라","순종이 제사보다 낫다","빨리 달려라","많이 먹어라"], a: 1, exp: "'순종이 제사보다 낫고 듣는 것이 숫양의 기름보다 낫다' — 하나님은 제사보다 순종을 원하세요!" },
+        { q: "사울 다음에 왕이 될 사람은?", opts: ["요나단","사무엘","다윗","아브넬"], a: 2, exp: "하나님이 사울 대신 다윗을 왕으로 택하셨어요!" }
+      ],
+      '16-18': [
+        { q: "하나님이 다윗을 선택하신 이유는?", opts: ["키가 커서","잘생겨서","사람은 외모를 보나 하나님은 중심(마음)을 보셔서","강해서"], a: 2, exp: "'사람은 외모를 보거니와 나 여호와는 중심을 보느니라' — 하나님은 마음을 보세요!" },
+        { q: "다윗이 골리앗을 이긴 무기는?", opts: ["칼","물매와 돌 — 하나님의 이름으로 싸웠어요","활","창"], a: 1, exp: "다윗은 물매와 돌 하나로 거인 골리앗을 쓰러뜨렸어요 — 하나님의 이름으로 싸웠거든요!" },
+        { q: "골리앗은 얼마나 컸나요?", opts: ["보통 키","2미터 조금 넘는 정도","약 3미터나 되는 거인","1.5미터"], a: 2, exp: "골리앗은 키가 약 2.9미터나 되는 엄청난 거인이었어요!" }
+      ],
+      '19-23': [
+        { q: "다윗과 요나단의 관계는?", opts: ["적이었어요","아주 친한 친구 — 생명보다 귀한 우정이었어요","형제","모른 사이"], a: 1, exp: "다윗과 요나단은 영혼이 하나가 된 것 같은 최고의 친구였어요!" },
+        { q: "사울이 다윗을 죽이려고 한 이유는?", opts: ["다윗이 못생겨서","다윗의 인기가 사울보다 높아서 시기했어요","다윗이 거짓말해서","다윗이 도망가서"], a: 1, exp: "백성들이 '사울은 수천 명을, 다윗은 수만 명을!'이라고 노래하자 사울이 시기했어요!" },
+        { q: "다윗이 광야에서 숨어살 때 한 것은?", opts: ["아무것도 안 했어요","시편을 쓰고 하나님을 의지했어요","전쟁을 일으켰어요","이집트로 도망갔어요"], a: 1, exp: "다윗은 광야에서 도망다니면서도 하나님을 의지하며 많은 시편을 썼어요!" }
+      ],
+      '24-31': [
+        { q: "다윗이 굴에서 사울을 죽일 기회가 있었지만 하지 않은 이유는?", opts: ["무서워서","사울은 하나님이 기름부어 세우신 왕이라서","몰라서","힘이 없어서"], a: 1, exp: "다윗은 '하나님이 세우신 왕에게 내 손을 대지 않겠다'며 사울을 용서했어요!" },
+        { q: "사울과 그의 아들들은 어디서 전사했나요?", opts: ["예루살렘","길보아 산에서 블레셋과 싸우다가","광야에서","강에서"], a: 1, exp: "사울과 요나단, 세 아들이 길보아 산에서 블레셋에게 져서 죽었어요!" },
+        { q: "다윗은 사울의 죽음 소식을 듣고 어떻게 했나요?", opts: ["기뻐했어요","크게 슬퍼하며 울었어요","파티를 했어요","무시했어요"], a: 1, exp: "다윗은 원수였던 사울과 친구 요나단의 죽음을 크게 슬퍼하며 울었어요!" }
+      ]
+    },
+
+    '사무엘하': {
+      '1-4': [
+        { q: "다윗이 드디어 왕이 된 곳은?", opts: ["예루살렘","헤브론 — 처음엔 유다 지파의 왕이었어요","베들레헴","사마리아"], a: 1, exp: "다윗은 먼저 헤브론에서 유다 지파의 왕이 됐다가 나중에 온 이스라엘의 왕이 됐어요!" },
+        { q: "다윗이 유다 왕이 된 나이는?", opts: ["20살","25살","30살","40살"], a: 2, exp: "다윗은 30살에 왕이 됐고 40년 동안 다스렸어요!" },
+        { q: "이스보셋은 누구인가요?", opts: ["다윗의 아들","사울의 아들 — 잠시 북 이스라엘 왕이었어요","선지자","군인"], a: 1, exp: "사울의 아들 이스보셋이 아브넬의 지지로 북 이스라엘 왕이 됐지만 오래가지 못했어요!" }
+      ],
+      '5-7': [
+        { q: "다윗이 온 이스라엘의 왕이 된 후 수도로 정한 곳은?", opts: ["헤브론","베들레헴","예루살렘(시온 성)","사마리아"], a: 2, exp: "다윗은 예루살렘을 정복하여 '다윗 성'으로 만들고 수도로 삼았어요!" },
+        { q: "다윗이 법궤를 예루살렘으로 옮길 때 한 행동은?", opts: ["조용히 걸었어요","너무 기뻐서 춤을 추었어요","말을 탔어요","군사들과 함께 행진했어요"], a: 1, exp: "다윗은 법궤 앞에서 힘껏 춤을 추며 기뻐했어요 — 하나님께 드리는 기쁨의 예배예요!" },
+        { q: "하나님이 다윗에게 하신 영원한 약속은?", opts: ["땅을 주겠다","네 왕위를 영원히 세우겠다 — 예수님에 대한 예언이기도 해요","금을 주겠다","전쟁에서 이기게 하겠다"], a: 1, exp: "하나님이 다윗에게 '네 집과 네 나라가 영원히 계속되리라'고 약속하셨어요!" }
+      ],
+      '8-12': [
+        { q: "다윗이 요나단의 아들 므비보셋에게 한 일은?", opts: ["쫓아냈어요","다리가 불편했지만 왕의 식탁에서 함께 먹게 해주었어요","무시했어요","돈을 줬어요"], a: 1, exp: "다윗은 친구 요나단과의 약속을 지켜 불구인 므비보셋을 왕처럼 대우했어요!" },
+        { q: "다윗이 지은 큰 죄는?", opts: ["전쟁에서 도망간 것","밧세바를 취하고 남편 우리아를 전쟁에서 죽게 한 것","돈을 훔친 것","거짓 예배를 드린 것"], a: 1, exp: "다윗은 밧세바를 탐내고 그의 남편을 전쟁에서 죽게 해서 큰 죄를 지었어요!" },
+        { q: "선지자 나단이 다윗의 죄를 어떻게 깨닫게 했나요?", opts: ["직접 말했어요","부자가 가난한 자의 양 한 마리를 빼앗은 비유 이야기로","편지를 써서","왕 앞에서 울며"], a: 1, exp: "나단이 비유 이야기로 다윗이 스스로 자신의 죄를 깨닫게 했어요 — 다윗은 즉시 회개했어요!" }
+      ],
+      '13-20': [
+        { q: "다윗의 아들 압살롬이 한 일은?", opts: ["선지자가 됐어요","아버지 다윗에게 반역하여 왕이 되려 했어요","전쟁에서 이겼어요","성전을 지었어요"], a: 1, exp: "압살롬이 아버지 다윗에게 반역했어요 — 다윗은 도망가야 했어요!" },
+        { q: "압살롬의 최후는?", opts: ["왕이 됐어요","말을 타고 달리다 나무에 머리카락이 걸려 요압에게 죽었어요","도망갔어요","잡혔어요"], a: 1, exp: "압살롬은 긴 머리카락이 나무에 걸려 매달렸다가 다윗의 장군 요압에게 죽었어요!" },
+        { q: "압살롬의 소식을 들은 다윗의 반응은?", opts: ["기뻐했어요","'내 아들 압살롬아!'라며 크게 슬퍼하며 울었어요","화냈어요","아무렇지 않았어요"], a: 1, exp: "다윗은 반역한 아들이었지만 압살롬의 죽음을 진심으로 슬퍼했어요!" }
+      ],
+      '21-24': [
+        { q: "다윗이 말년에 지은 죄는?", opts: ["우상을 섬겼어요","자만심으로 이스라엘 인구를 조사했어요","전쟁을 일으켰어요","성전을 무너뜨렸어요"], a: 1, exp: "다윗이 교만하게 자기 군사의 수를 세었어요 — 하나님이 아닌 자신의 힘을 믿은 죄예요!" },
+        { q: "다윗이 지은 시편 중 '여호와는 나의 목자시니'는 몇 편인가요?", opts: ["1편","23편","100편","150편"], a: 1, exp: "시편 23편이에요 — '여호와는 나의 목자시니 내게 부족함이 없으리로다'!" },
+        { q: "다윗은 어떤 왕으로 기억되나요?", opts: ["완벽한 왕","하나님 마음에 합한 왕 — 실수도 했지만 늘 회개하고 돌아왔어요","무서운 왕","약한 왕"], a: 1, exp: "다윗은 '하나님 마음에 합한 사람'으로 불려요 — 실수해도 회개하고 하나님께 돌아왔거든요!" }
+      ]
+    },
+
+    '열왕기상': {
+      '1-3': [
+        { q: "다윗 왕이 늙어 몸이 차가워졌을 때, 신하들이 해결책으로 한 것은?", opts: ["따뜻한 음식을 드렸어요","젊은 여인 아비삭이 곁에서 돌봤어요","여행을 떠났어요","의사를 불렀어요"], a: 1, exp: "신하들이 수넴 처녀 아비삭을 데려와 다윗 왕 곁에서 돌보게 했어요!" },
+        { q: "솔로몬이 왕이 되기 전, 왕이 되려고 했던 다윗의 아들은?", opts: ["압살롬","아도니야","암논","스바댜"], a: 1, exp: "아도니야가 스스로 왕이 되려고 했지만, 하나님의 뜻으로 솔로몬이 왕이 되었어요!" },
+        { q: "솔로몬이 하나님께 드린 기도에서 구한 것은?", opts: ["금은보화","장수(오래 사는 것)","지혜로운 마음","적을 이기는 힘"], a: 2, exp: "솔로몬은 백성을 잘 다스리기 위한 지혜를 구했어요. 하나님이 매우 기뻐하셨어요!" }
+      ],
+      '4-6': [
+        { q: "솔로몬의 지혜가 얼마나 뛰어났나요?", opts: ["이스라엘에서 제일","동방과 이집트보다 뛰어났어요","보통 수준이었어요","아버지 다윗만큼이었어요"], a: 1, exp: "솔로몬의 지혜는 동방 모든 사람과 이집트 사람보다 뛰어났다고 성경이 말해요!" },
+        { q: "솔로몬이 성전을 짓기 시작한 것은 왕이 된 지 몇 년 후인가요?", opts: ["1년","4년","10년","20년"], a: 1, exp: "솔로몬은 왕이 된 지 4년째에 성전 건축을 시작했어요!" },
+        { q: "솔로몬 성전을 짓는 데 걸린 시간은?", opts: ["3년","5년","7년","10년"], a: 2, exp: "솔로몬 성전은 7년에 걸쳐 완성되었어요!" }
+      ],
+      '7-9': [
+        { q: "솔로몬이 성전을 완성한 후 드린 기도의 핵심은?", opts: ["더 많은 재물을 달라","하나님이 이 성전에서 백성의 기도를 들어달라","적을 물리쳐 달라","아들을 달라"], a: 1, exp: "솔로몬은 하나님께서 이 성전에서 이스라엘 백성의 기도를 들어주시길 간구했어요!" },
+        { q: "스바 여왕이 솔로몬을 찾아온 이유는?", opts: ["전쟁하러","솔로몬의 지혜를 시험하러","선물을 받으러","결혼하러"], a: 1, exp: "스바 여왕은 솔로몬의 지혜 소문을 듣고 직접 어려운 질문을 하러 왔어요!" },
+        { q: "하나님이 솔로몬에게 두 번째 나타나셔서 하신 경고는?", opts: ["더 많은 성전을 지어라","우상을 섬기면 이스라엘을 버리겠다","전쟁을 멈춰라","백성에게 더 잘해라"], a: 1, exp: "하나님은 솔로몬에게 다른 신을 따르면 이스라엘이 멸망할 것이라고 경고하셨어요!" }
+      ],
+      '10-12': [
+        { q: "솔로몬이 결국 범한 큰 죄는?", opts: ["전쟁을 많이 일으킨 것","외국 여인들 때문에 우상을 섬긴 것","백성에게 세금을 너무 많이 걷은 것","성전을 부순 것"], a: 1, exp: "솔로몬은 외국 아내들의 영향으로 우상을 섬기는 죄를 범했어요!" },
+        { q: "솔로몬 이후 나라가 어떻게 나뉘었나요?", opts: ["3개로","동서로","남북으로(유다/이스라엘)","없어졌어요"], a: 2, exp: "솔로몬 아들 르호보암 때 나라가 남쪽 유다와 북쪽 이스라엘로 나뉘었어요!" },
+        { q: "북이스라엘의 첫 번째 왕은 누구인가요?", opts: ["여로보암","르호보암","아합","예후"], a: 0, exp: "여로보암이 북이스라엘의 첫 번째 왕이 되었어요!" }
+      ],
+      '13-15': [
+        { q: "여로보암이 백성들이 예루살렘에 가지 못하도록 만든 것은?", opts: ["높은 벽","금송아지 두 개","큰 강","군사들"], a: 1, exp: "여로보암은 금송아지 두 개를 만들어 백성들이 하나님 대신 섬기게 했어요. 큰 죄였어요!" },
+        { q: "아사 왕은 어떤 왕이었나요?", opts: ["우상을 많이 섬긴 악한 왕","하나님 보시기에 선한 왕","전쟁만 한 왕","어린 왕"], a: 1, exp: "유다 왕 아사는 하나님 보시기에 선한 일을 행한 왕이에요!" },
+        { q: "유다와 이스라엘 두 나라 사이에 무슨 일이 계속 있었나요?", opts: ["평화로웠어요","전쟁이 끊이지 않았어요","서로 도왔어요","합쳐졌어요"], a: 1, exp: "남유다와 북이스라엘은 분열 후 오랫동안 서로 전쟁을 했어요!" }
+      ],
+      '16-18': [
+        { q: "북이스라엘에서 가장 악한 왕으로 알려진 사람은?", opts: ["여로보암","아합","예후","므나헴"], a: 1, exp: "아합 왕은 이세벨과 결혼하고 바알을 섬겨 북이스라엘 왕 중 가장 악한 왕이 되었어요!" },
+        { q: "엘리야 선지자가 선포한 것은?", opts: ["전쟁이 올 것이다","몇 년 동안 비가 오지 않을 것이다","왕이 바뀔 것이다","새 성전을 지어라"], a: 1, exp: "엘리야는 아합에게 하나님의 말씀 없이는 비도 이슬도 없을 것이라고 선포했어요!" },
+        { q: "갈멜산에서 엘리야와 대결한 것은?", opts: ["아합 왕","바알 선지자 450명","블레셋 군사","이방 왕"], a: 1, exp: "엘리야 혼자 바알 선지자 450명과 대결해서 하나님의 능력으로 승리했어요!" }
+      ],
+      '19-22': [
+        { q: "엘리야가 도망쳐 쉬고 있을 때 하나님이 보내신 것은?", opts: ["군사들","천사와 먹을 것","비","꿈"], a: 1, exp: "하나님은 지친 엘리야에게 천사를 보내 음식과 물을 주셨어요!" },
+        { q: "엘리야의 뒤를 이을 선지자는 누구인가요?", opts: ["엘리사","아모스","미가야","나단"], a: 0, exp: "하나님은 엘리야에게 엘리사를 후계자로 세우라고 하셨어요!" },
+        { q: "아합 왕이 나봇의 포도원을 빼앗은 방법은?", opts: ["돈을 많이 줬어요","이세벨이 거짓 증인을 세워 나봇을 죽이고 빼앗았어요","전쟁으로 빼앗았어요","교환했어요"], a: 1, exp: "이세벨이 거짓 증인으로 나봇을 죽이고 포도원을 빼앗았어요. 하나님이 진노하셨어요!" }
+      ]
+    },
+
+    '열왕기하': {
+      '1-3': [
+        { q: "엘리야가 하늘로 올라갈 때 탄 것은?", opts: ["독수리","불말과 불병거","구름","바람"], a: 1, exp: "엘리야는 불말과 불병거를 타고 회오리바람에 의해 하늘로 올라갔어요!" },
+        { q: "엘리사가 엘리야에게 간절히 구한 것은?", opts: ["재물","엘리야의 능력의 갑절","왕의 자리","평안"], a: 1, exp: "엘리사는 '당신의 성령이 갑절이나 내게 있게 해달라'고 간청했어요!" },
+        { q: "엘리사가 여리고의 물을 고친 방법은?", opts: ["기도만 했어요","소금을 물에 던졌어요","강을 막았어요","새 그릇에 물을 담았어요"], a: 1, exp: "엘리사는 소금을 물 근원에 던져 나쁜 물을 좋은 물로 고쳤어요!" }
+      ],
+      '4-6': [
+        { q: "엘리사가 수넴 여인의 죽은 아들을 살릴 때 한 행동은?", opts: ["기도만 했어요","아이 위에 엎드려 눈과 입을 맞췄어요","강물에 데려갔어요","성전에 데려갔어요"], a: 1, exp: "엘리사가 아이 위에 엎드려 기도하자 아이가 일곱 번 재채기를 하고 살아났어요!" },
+        { q: "나아만 장군의 병은 무엇이었나요?", opts: ["눈이 안 보였어요","다리를 못 걸었어요","나병(문둥병)이었어요","귀가 안 들렸어요"], a: 2, exp: "아람 군대장관 나아만은 나병 환자였어요!" },
+        { q: "엘리사가 나아만에게 말한 치료 방법은?", opts: ["성전에 가라","큰 제물을 드려라","요단강에 일곱 번 씻어라","한 달 동안 금식하라"], a: 2, exp: "엘리사는 나아만에게 요단강에 일곱 번 몸을 씻으라고 했어요. 순종하자 깨끗해졌어요!" }
+      ],
+      '7-9': [
+        { q: "사마리아가 아람 군대에 포위되어 굶주릴 때 기적이 일어난 곳은?", opts: ["성전","성문","나병환자 4명이 아람 진영을 발견했어요","강가"], a: 2, exp: "문 밖 나병환자 4명이 아람 진영에 갔더니 군대가 도망가고 식량이 가득했어요!" },
+        { q: "예후는 어떻게 왕이 되었나요?", opts: ["선거로","엘리사가 기름을 부어 세웠어요","전쟁에서 이겨서","왕의 아들이라서"], a: 1, exp: "엘리사의 명령으로 선지자 생도가 예후에게 기름을 부어 왕으로 세웠어요!" },
+        { q: "이세벨의 최후는 어떻게 되었나요?", opts: ["도망쳤어요","창문에서 던져져 죽었어요","감옥에 갇혔어요","병으로 죽었어요"], a: 1, exp: "이세벨은 예후가 오자 신하들에게 던져져 죽었어요. 엘리야의 예언이 이루어진 거예요!" }
+      ],
+      '10-12': [
+        { q: "예후가 바알 신전에 모인 사람들을 모두 모은 방법은?", opts: ["전쟁으로","바알에게 큰 제사를 드린다고 속여서","왕의 명령으로","선물을 준다고 해서"], a: 1, exp: "예후는 '바알에게 큰 제사를 드리겠다'고 속여 바알 숭배자들을 모아 제거했어요!" },
+        { q: "어린 나이에 왕이 된 요아스는 몇 살에 왕이 되었나요?", opts: ["5살","7살","10살","15살"], a: 1, exp: "요아스는 불과 7살에 유다 왕이 되었어요!" },
+        { q: "요아스 왕이 힘쓴 일은?", opts: ["전쟁","성전 수리","궁궐 건축","새 법 만들기"], a: 1, exp: "요아스는 제사장 여호야다의 도움으로 허물어진 성전을 수리했어요!" }
+      ],
+      '13-15': [
+        { q: "엘리사가 죽을 때 이스라엘 왕 요아스가 한 행동은?", opts: ["무시했어요","엘리사 곁에서 울며 '내 아버지여'라고 했어요","도망쳤어요","선물을 보냈어요"], a: 1, exp: "요아스 왕은 엘리사가 죽어가자 '내 아버지여, 이스라엘의 병거와 마병이여'라고 울었어요!" },
+        { q: "죽은 사람의 뼈가 엘리사의 무덤에 닿자 어떻게 되었나요?", opts: ["아무 일도 없었어요","그 사람이 살아났어요","뼈가 사라졌어요","무덤이 빛났어요"], a: 1, exp: "엘리사가 죽은 후에도 그의 뼈에 닿은 죽은 사람이 살아났어요! 하나님의 능력이에요!" },
+        { q: "아사랴(웃시야) 왕이 얼마나 왕위에 있었나요?", opts: ["20년","32년","52년","70년"], a: 2, exp: "아사랴(웃시야)는 무려 52년간 왕으로 다스렸어요!" }
+      ],
+      '16-18': [
+        { q: "아하스 왕은 어떤 왕이었나요?", opts: ["하나님을 잘 섬긴 왕","우상을 섬기고 심지어 아들을 불에 태운 악한 왕","전쟁을 잘한 왕","성전을 수리한 왕"], a: 1, exp: "아하스는 우상을 섬기고 자기 아들을 불에 태워 바친 매우 악한 왕이었어요!" },
+        { q: "북이스라엘이 앗수르에 멸망한 이유는?", opts: ["군사가 약해서","하나님을 버리고 우상을 섬겼기 때문에","왕이 도망가서","전염병 때문에"], a: 1, exp: "이스라엘은 하나님을 버리고 우상을 계속 섬겨서 앗수르에 멸망했어요!" },
+        { q: "히스기야 왕은 어떤 왕이었나요?", opts: ["악한 왕","하나님을 온전히 신뢰한 선한 왕","평범한 왕","어린 왕"], a: 1, exp: "히스기야는 다윗처럼 하나님을 온전히 신뢰한 유다의 선한 왕이에요!" }
+      ],
+      '19-21': [
+        { q: "히스기야 왕이 앗수르의 협박 편지를 받고 한 일은?", opts: ["바로 항복했어요","성전에 가서 하나님께 펼쳐놓고 기도했어요","도망쳤어요","전쟁을 준비했어요"], a: 1, exp: "히스기야는 협박 편지를 성전에 펼쳐놓고 하나님께 기도했어요. 정말 믿음이 대단해요!" },
+        { q: "히스기야가 병들어 죽게 되었을 때 하나님은 어떻게 하셨나요?", opts: ["그냥 데려가셨어요","기도를 들으시고 15년 더 살게 해주셨어요","치료법을 알려주셨어요","다른 왕을 세우셨어요"], a: 1, exp: "히스기야가 울며 기도하자 하나님이 15년을 더 살게 해주셨어요!" },
+        { q: "므낫세 왕은 몇 년 동안 왕위에 있었나요?", opts: ["10년","25년","45년","55년"], a: 3, exp: "므낫세는 무려 55년간 왕위에 있었지만 매우 악한 왕이었어요!" }
+      ],
+      '22-25': [
+        { q: "요시야 왕이 성전을 수리하다 발견한 것은?", opts: ["금은보화","율법책(하나님의 말씀 책)","오래된 무기","비밀 방"], a: 1, exp: "성전을 수리하다 오랫동안 잊혀졌던 율법책을 발견했어요!" },
+        { q: "요시야 왕은 율법책을 읽고 어떻게 했나요?", opts: ["무시했어요","옷을 찢으며 회개하고 온 백성과 언약을 새롭게 했어요","다른 곳에 숨겼어요","태워버렸어요"], a: 1, exp: "요시야는 율법책을 듣고 옷을 찢으며 회개하고, 온 백성과 함께 하나님과 새 언약을 세웠어요!" },
+        { q: "남유다가 바벨론에 멸망한 것은 궁극적으로 왜인가요?", opts: ["군사가 약해서","오랜 세월 하나님을 떠나 우상을 섬긴 죄 때문에","왕이 어려서","자연재해 때문에"], a: 1, exp: "유다의 멸망은 하나님을 버리고 우상을 섬긴 죄의 결과였어요. 하나님은 오래 참으셨지만 결국 심판하셨어요!" }
+      ]
+    },
+
+    '역대상': {
+      '1-10': [
+        { q: "역대상은 무엇으로 시작하나요?", opts: ["전쟁 이야기","아담부터 시작하는 긴 족보(가계)","노래","기도"], a: 1, exp: "역대상은 아담부터 이스라엘까지 하나님 백성의 족보로 시작해요!" },
+        { q: "사울 왕이 죽은 이유는?", opts: ["병으로","하나님을 떠나고 신접한 여인을 찾아가서 죄를 지어서","전쟁에서 용감하게 싸우다","나이가 많아서"], a: 1, exp: "사울은 하나님을 떠나고 신접한 여인을 찾아가는 등 죄를 지어서 죽었어요!" }
+      ],
+      '11-20': [
+        { q: "다윗이 왕이 된 후 가장 먼저 한 일은?", opts: ["성전 건축","예루살렘 정복","인구조사","전쟁 선포"], a: 1, exp: "다윗은 왕이 되자 예루살렘을 정복하여 수도로 만들었어요!" },
+        { q: "다윗을 도운 용사들 중 가장 유명한 세 용사가 한 것은?", opts: ["도망갔어요","적진에 뚫고 들어가 다윗이 원하는 우물물을 길어왔어요","노래했어요","잠을 잤어요"], a: 1, exp: "세 용사가 목숨을 걸고 적진에 들어가 다윗을 위해 우물물을 길어왔어요!" }
+      ],
+      '21-29': [
+        { q: "다윗이 성전을 직접 짓지 못한 이유는?", opts: ["돈이 없어서","전쟁에서 피를 많이 흘렸기 때문에 하나님이 아들 솔로몬에게 맡기셨어요","설계도가 없어서","시간이 없어서"], a: 1, exp: "다윗은 전쟁을 많이 했기 때문에 하나님이 평화의 왕 솔로몬에게 성전 건축을 맡기셨어요!" },
+        { q: "다윗이 성전 건축을 위해 미리 한 것은?", opts: ["아무것도 안 했어요","금, 은, 나무 등 재료를 엄청나게 준비했어요","군사를 훈련했어요","설계도만 그렸어요"], a: 1, exp: "다윗은 직접 짓지는 못했지만 엄청난 양의 재료와 헌금을 미리 준비해두었어요!" }
+      ]
+    },
+
+    '역대하': {
+      '1-9': [
+        { q: "솔로몬 성전에 하나님의 영광이 가득 찰 때 어떤 현상이?", opts: ["지진이 났어요","구름이 성전에 가득 차서 제사장들이 서 있을 수 없었어요","비가 왔어요","빛이 났어요"], a: 1, exp: "하나님의 영광이 구름으로 성전을 가득 채워서 제사장들이 서 있을 수 없었어요!" },
+        { q: "솔로몬의 기도 중 유명한 말씀은?", opts: ["전쟁에서 이기게 해주세요","내 이름으로 일컫는 백성이 기도하면 내가 듣겠다","돈을 주세요","집을 주세요"], a: 1, exp: "'내 이름으로 일컫는 내 백성이 스스로 낮추고 기도하면 내가 하늘에서 듣겠다' — 유명한 기도의 응답 약속이에요!" }
+      ],
+      '10-20': [
+        { q: "르호보암이 나라를 잃게 된 이유는?", opts: ["전쟁을 못 해서","어른들의 조언을 무시하고 백성을 더 힘들게 한 것","돈이 없어서","병이 들어서"], a: 1, exp: "르호보암이 어른들 말 대신 젊은 친구들 말을 들어 백성을 더 혹독하게 대하자 나라가 분열됐어요!" },
+        { q: "여호사밧 왕이 전쟁 앞에서 한 것은?", opts: ["도망갔어요","하나님께 기도하고 찬양대를 앞세워 나아갔어요","돈을 줬어요","숨었어요"], a: 1, exp: "여호사밧은 찬양대를 군대 앞에 세우고 하나님을 찬양하며 나아갔어요 — 하나님이 싸워주셨어요!" }
+      ],
+      '21-36': [
+        { q: "역대하에서 선한 왕들의 공통점은?", opts: ["힘이 셌어요","하나님을 의지하고 말씀에 순종했어요","돈이 많았어요","싸움을 잘했어요"], a: 1, exp: "히스기야, 요시야, 여호사밧 등 선한 왕들은 모두 하나님을 의지하고 말씀에 순종했어요!" },
+        { q: "역대하의 마지막은 어떻게 끝나나요?", opts: ["전쟁으로","바벨론에 포로로 잡혀갔다가 고레스 왕의 명령으로 돌아올 수 있게 됐어요","왕이 죽으면서","평화롭게"], a: 1, exp: "역대하는 바벨론 포로 생활 후 고레스 왕의 귀환 명령으로 희망차게 끝나요!" }
+      ]
+    },
+
+    '에스라': {
+      '1-4': [
+        { q: "에스라는 어떤 책인가요?", opts: ["전쟁 이야기","바벨론 포로에서 돌아온 이스라엘이 성전을 다시 짓는 이야기","사랑 이야기","왕 이야기"], a: 1, exp: "에스라는 바벨론 포로에서 돌아온 백성이 예루살렘 성전을 다시 세우는 이야기예요!" },
+        { q: "이스라엘이 바벨론에서 돌아올 수 있게 해준 왕은?", opts: ["다리오","느부갓네살","고레스(키루스)","아하수에로"], a: 2, exp: "페르시아 고레스 왕이 이스라엘 백성이 고향으로 돌아가도 된다는 명령을 내렸어요!" }
+      ],
+      '5-10': [
+        { q: "에스라는 어떤 사람인가요?", opts: ["군인","하나님의 율법에 능통한 제사장이자 학자","왕","상인"], a: 1, exp: "에스라는 하나님 율법을 깊이 연구한 제사장이에요 — 백성에게 말씀을 가르쳤어요!" },
+        { q: "에스라가 슬퍼한 이유는?", opts: ["성전이 부서져서","이스라엘 백성이 이방 여인과 결혼하여 하나님 말씀을 어겨서","전쟁이 나서","비가 안 와서"], a: 1, exp: "에스라는 하나님 명령을 어기고 잘못된 결혼을 한 백성을 위해 울며 회개했어요!" }
+      ]
+    },
+
+    '느헤미야': {
+      '1-4': [
+        { q: "느헤미야는 무엇을 다시 세웠나요?", opts: ["성전","예루살렘 성벽","왕궁","도로"], a: 1, exp: "느헤미야는 무너진 예루살렘 성벽을 다시 세우는 일을 했어요!" },
+        { q: "느헤미야가 왕에게 슬픈 얼굴을 보인 이유는?", opts: ["배가 고파서","예루살렘이 황폐하다는 소식에 슬퍼했어요","병이 나서","졸려서"], a: 1, exp: "고향 예루살렘이 무너졌다는 소식에 느헤미야가 울고 기도했어요 — 왕이 이를 보고 도움을 줬어요!" }
+      ],
+      '5-9': [
+        { q: "성벽 건축할 때 방해하는 원수들이 있었는데, 느헤미야가 한 것은?", opts: ["멈췄어요","한 손에 무기 한 손에 공구를 들고 일하며 기도했어요","도망갔어요","포기했어요"], a: 1, exp: "느헤미야는 한 손에 공구, 한 손에 무기를 들고 일하면서 하나님께 기도했어요!" },
+        { q: "성벽이 완성된 기간은?", opts: ["1년","6개월","52일","1달"], a: 2, exp: "52일 만에 예루살렘 성벽이 완성됐어요 — 하나님의 도우심으로 이뤄진 기적이에요!" }
+      ],
+      '10-13': [
+        { q: "에스라가 성벽 완성 후 백성 앞에서 한 것은?", opts: ["노래했어요","율법책을 크게 읽어주었어요","잔치를 열었어요","선물을 나눠줬어요"], a: 1, exp: "에스라가 광장에서 율법책을 읽어주고 레위인들이 백성에게 말씀을 설명해줬어요!" },
+        { q: "'이 날은 우리 주의 성일이니 슬퍼하지 말라'는 말씀에 이어진 것은?", opts: ["전쟁 나라","여호와로 인하여 기뻐하는 것이 너희의 힘이니라","도망가라","조용히 있어라"], a: 1, exp: "'여호와로 인하여 기뻐하는 것이 너희의 힘이니라' — 우리 기쁨의 원천은 하나님이에요!" }
+      ]
+    },
+
+    '에스더': {
+      '1-4': [
+        { q: "에스더는 어떤 사람인가요?", opts: ["선지자","유대인 고아였지만 페르시아 왕비가 된 여인","군인","제사장"], a: 1, exp: "에스더는 고아였지만 아름답고 지혜로워 페르시아 왕 아하수에로의 왕비가 됐어요!" },
+        { q: "에스더를 길러준 삼촌(사촌오빠)은?", opts: ["에스라","모르드개","느헤미야","하만"], a: 1, exp: "모르드개가 에스더를 친딸처럼 키워줬어요!" }
+      ],
+      '5-8': [
+        { q: "하만이 유대인을 죽이려고 한 이유는?", opts: ["유대인이 나쁜 사람이어서","모르드개가 하만에게 절하지 않아 화가 나서","왕의 명령으로","전쟁 때문에"], a: 1, exp: "하만은 모르드개가 자기에게 절하지 않는 것에 화가 나서 모든 유대인을 죽이려 했어요!" },
+        { q: "에스더가 왕에게 나아가기 전 한 것은?", opts: ["화장을 했어요","3일 동안 금식하며 기도했어요","도망쳤어요","편지를 썼어요"], a: 1, exp: "에스더는 '죽으면 죽으리라'는 결심으로 3일 금식 기도 후 왕에게 나아갔어요!" }
+      ],
+      '9-10': [
+        { q: "에스더와 모르드개 덕분에 어떤 날이 생겼나요?", opts: ["유월절","부림절 — 유대인이 구원받은 것을 기념하는 절기","성전 건축 기념일","왕 즉위 기념일"], a: 1, exp: "부림절은 하만의 음모에서 유대인이 구원받은 것을 기억하는 절기예요!" },
+        { q: "에스더서에서 하나님의 이름은 직접 나오지 않지만 어떻게 나타나나요?", opts: ["안 나타나요","에스더와 모르드개를 통해 일하시는 하나님의 섭리로 나타나요","기적으로만 나타나요","천사로 나타나요"], a: 1, exp: "에스더서는 하나님 이름이 없지만 모든 사건 뒤에 하나님의 손길이 있어요 — 하나님은 항상 역사 속에 계세요!" }
+      ]
+    },
+
+    '욥기': {
+      '1-3': [
+        { q: "욥은 어떤 사람이었나요?", opts: ["나쁜 사람","하나님을 경외하는 완전하고 정직한 사람","왕","군인"], a: 1, exp: "욥은 '완전하고 정직하며 하나님을 경외하고 악에서 떠난 자'라고 성경이 말해요!" },
+        { q: "사탄이 욥을 시험한 이유는?", opts: ["재미로","욥이 하나님께 복 받아서 섬기는 거라고 의심해서","욥을 미워해서","왕의 명령으로"], a: 1, exp: "사탄은 '욥이 복 받아서 하나님을 섬기는 것'이라고 주장했어요. 하나님이 시험을 허락하셨어요!" }
+      ],
+      '4-31': [
+        { q: "욥의 친구들이 한 말은?", opts: ["힘내세요","네가 죄를 지어서 벌을 받는 것이다","하나님이 잘못하셨어요","도망가세요"], a: 1, exp: "욥의 세 친구가 '네가 죄를 지었기 때문에 고난을 당한다'고 비난했어요 — 틀린 말이었어요!" },
+        { q: "욥이 고난 중에도 한 말은?", opts: ["하나님이 나쁘다","내 구속자가 살아 계시다는 것을 알아요","포기할래요","도망갈래요"], a: 1, exp: "'내 구속자가 살아 계심을 나는 알아요' — 욥은 고난 중에도 믿음을 지켰어요!" }
+      ],
+      '38-42': [
+        { q: "하나님이 욥에게 말씀하실 때 어디서 나타나셨나요?", opts: ["구름에서","회오리바람 속에서","불 속에서","꿈에서"], a: 1, exp: "하나님이 회오리바람 속에서 욥에게 말씀하셨어요!" },
+        { q: "욥의 고난이 끝난 후 어떻게 됐나요?", opts: ["아무것도 안 돌아왔어요","처음보다 갑절로 복을 받았어요","그냥 회복됐어요","왕이 됐어요"], a: 1, exp: "욥이 믿음을 지키고 기도하자 하나님이 처음보다 갑절의 복을 주셨어요!" }
+      ]
+    },
+
+    '시편': {
+      '1-30': [
+        { q: "시편 1편에서 복 있는 사람은?", opts: ["돈이 많은 사람","악인의 꾀를 따르지 않고 하나님 말씀을 즐거워하는 사람","힘센 사람","인기 있는 사람"], a: 1, exp: "시편 1편 — 악인의 꾀를 따르지 않고 밤낮 하나님 말씀을 묵상하는 사람이 복이 있어요!" },
+        { q: "시편 23편의 시작은?", opts: ["하나님은 나의 왕","여호와는 나의 목자시니 내게 부족함이 없으리로다","하나님을 찬양해","기뻐해"], a: 1, exp: "'여호와는 나의 목자시니 내게 부족함이 없으리로다' — 다윗이 쓴 가장 유명한 시편이에요!" }
+      ],
+      '31-60': [
+        { q: "시편 46편의 유명한 말씀은?", opts: ["도망가라","하나님은 우리의 피난처시요 힘이시니","빨리 달려라","조용히 있어라"], a: 1, exp: "'하나님은 우리의 피난처시요 힘이시니 환난 중에 만날 큰 도움이시라' — 힘들 때 기억해요!" },
+        { q: "시편은 누가 주로 썼나요?", opts: ["모세","다윗 — 그 외에도 여러 사람이 썼어요","솔로몬만","사무엘"], a: 1, exp: "시편 150편 중 다윗이 가장 많이 썼고, 아삽, 고라 자손, 솔로몬 등도 썼어요!" }
+      ],
+      '61-90': [
+        { q: "시편 90편을 쓴 사람은?", opts: ["다윗","모세","솔로몬","아삽"], a: 1, exp: "시편 90편은 모세가 쓴 시편이에요 — '주는 영원부터 영원까지 하나님이시니이다'!" },
+        { q: "시편에서 하나님을 무엇이라고 많이 표현했나요?", opts: ["전쟁 영웅","반석, 피난처, 목자, 빛","대왕","의사"], a: 1, exp: "시편은 하나님을 반석, 요새, 피난처, 목자, 빛 등 다양한 말로 표현해요!" }
+      ],
+      '91-120': [
+        { q: "시편 100편의 내용은?", opts: ["슬픈 노래","온 땅이여 여호와께 기쁜 소리를 낼지어다 — 감사와 찬양","전쟁 노래","도움 요청"], a: 1, exp: "시편 100편은 '온 땅이여 여호와께 즐거운 찬송을 드려라!'는 기쁜 찬양이에요!" },
+        { q: "시편 119편은 무엇에 대한 시인가요?", opts: ["전쟁","하나님의 말씀(율법)을 사랑하는 노래","왕에 대한 노래","자연 노래"], a: 1, exp: "시편 119편은 성경에서 가장 긴 장으로 하나님 말씀(율법)을 사랑하는 내용이에요!" }
+      ],
+      '121-150': [
+        { q: "시편 121편의 시작은?", opts: ["내가 산을 향하여 눈을 들리라 나의 도움이 어디서 올까","하나님은 위대하다","찬양해","달려라"], a: 0, exp: "'내가 산을 향하여 눈을 들리라 나의 도움이 어디서 올까' — 도움은 하나님께로부터 와요!" },
+        { q: "시편 150편(마지막)의 결론은?", opts: ["슬픔","호흡이 있는 자마다 여호와를 찬양할지어다","전쟁 준비","쉬어라"], a: 1, exp: "'호흡이 있는 자마다 여호와를 찬양할지어다!' — 시편은 온 세상이 하나님을 찬양하라는 것으로 끝나요!" }
+      ]
+    },
+
+    '잠언': {
+      '1-9': [
+        { q: "잠언의 핵심 말씀은?", opts: ["돈이 최고야","여호와를 경외하는 것이 지혜의 근본이라","빨리 달려야 해","공부가 최고야"], a: 1, exp: "'여호와를 경외하는 것이 지혜의 근본이라' — 하나님을 경외하는 것이 진정한 지혜의 시작이에요!" },
+        { q: "잠언은 주로 누가 썼나요?", opts: ["다윗","솔로몬 왕","모세","에스라"], a: 1, exp: "잠언은 지혜의 왕 솔로몬이 주로 썼어요!" }
+      ],
+      '10-22': [
+        { q: "잠언에서 좋은 친구에 대해 뭐라고 했나요?", opts: ["친구는 필요없어요","친구는 사랑이 끊어지지 않고 어려운 때를 위해 태어난 형제 같아요","많은 친구가 좋아요","부자 친구가 좋아요"], a: 1, exp: "'친구는 사랑이 끊어지지 않고 형제는 위급할 때를 위해 났느니라' — 진짜 친구는 힘들 때 함께해요!" },
+        { q: "잠언에서 교만에 대해 뭐라고 했나요?", opts: ["교만한 것이 좋아요","교만은 패망의 선봉이요 거만한 마음은 넘어짐의 앞잡이라","교만해도 괜찮아요","교만은 용기예요"], a: 1, exp: "'교만은 패망의 선봉이요' — 교만하면 실패한다는 뜻이에요!" }
+      ],
+      '23-31': [
+        { q: "잠언 31장의 현숙한 여인은 어떤 여인인가요?", opts: ["예쁜 여인","부지런하고 지혜로워 가족을 잘 돌보는 여인","왕비","선지자"], a: 1, exp: "잠언 31장의 현숙한 여인은 부지런하고 가족을 사랑하며 하나님을 경외하는 여인이에요!" },
+        { q: "잠언의 교훈은 한마디로?", opts: ["빨리 달려라","하나님을 경외하고 지혜롭게 살아라","돈을 많이 모아라","싸워 이겨라"], a: 1, exp: "잠언은 하나님을 두려워하고 지혜롭게 사는 삶의 방법을 알려주는 책이에요!" }
+      ]
+    },
+
+    '전도서': {
+      '1-4': [
+        { q: "전도서를 쓴 사람은?", opts: ["다윗","전도자 — 솔로몬으로 알려져 있어요","에스라","모세"], a: 1, exp: "전도서는 '전도자'가 썼는데 솔로몬 왕으로 알려져 있어요!" },
+        { q: "전도서의 시작 말씀은?", opts: ["기뻐하라","헛되고 헛되며 헛되고 헛되니 모든 것이 헛되도다","달려라","찬양해"], a: 1, exp: "'헛되고 헛되니 모든 것이 헛되도다' — 하나님 없이는 모든 것이 의미 없다는 뜻이에요!" }
+      ],
+      '5-8': [
+        { q: "전도서 5장에서 하나님 앞에서 주의할 것은?", opts: ["많이 먹기","말을 많이 하는 것 — 적은 말로 성실히 하는 것이 좋아요","노래하기","달리기"], a: 1, exp: "하나님 앞에서 말을 너무 많이 하지 말고 서원한 것은 꼭 지키라고 해요!" },
+        { q: "전도서가 말하는 진정한 행복은?", opts: ["돈","명예","하나님 안에서 먹고 마시고 일하는 것을 즐거워하기","여행"], a: 2, exp: "하나님이 주신 것들을 감사하며 즐기는 것이 진정한 행복이에요!" }
+      ],
+      '9-12': [
+        { q: "전도서의 결론은?", opts: ["돈을 모아라","하나님을 경외하고 그의 명령을 지켜라 — 이것이 사람의 전부","공부해라","달려라"], a: 1, exp: "'하나님을 경외하고 그의 명령을 지켜라 이것이 사람의 전부니라' — 인생의 결론이에요!" },
+        { q: "전도서 12장에서 젊은이에게 하는 말은?", opts: ["많이 먹어라","젊을 때 창조주 하나님을 기억하라","공부해라","잠 자라"], a: 1, exp: "'너의 젊은 날에 너의 창조자를 기억하라' — 어릴 때부터 하나님을 알아가는 것이 복이에요!" }
+      ]
+    },
+
+    '아가': {
+      '1-4': [
+        { q: "아가는 어떤 책인가요?", opts: ["전쟁 이야기","솔로몬의 사랑 시 — 하나님과 이스라엘의 사랑도 나타내요","지혜의 책","역사책"], a: 1, exp: "아가는 솔로몬의 아름다운 사랑 시로 하나님이 이스라엘을 사랑하시는 것도 담고 있어요!" },
+        { q: "아가에서 사랑을 어떻게 표현했나요?", opts: ["싸움으로","꽃, 과일, 향기 등 아름다운 자연으로","전쟁으로","돈으로"], a: 1, exp: "아가는 꽃, 과일, 향기 등 아름다운 자연의 언어로 사랑을 표현해요!" }
+      ],
+      '5-8': [
+        { q: "아가 8장에서 사랑에 대해 한 말은?", opts: ["사랑은 약해요","사랑은 죽음처럼 강하고 많은 물도 끌 수 없어요","사랑은 슬퍼요","사랑은 돈이에요"], a: 1, exp: "'사랑은 죽음처럼 강하고 많은 물도 이 사랑을 끄지 못한다' — 진정한 사랑은 강해요!" },
+        { q: "아가의 교훈은?", opts: ["싸워라","하나님의 사랑은 변함없고 강하고 아름다워요","달려라","공부해라"], a: 1, exp: "아가는 하나님이 우리를 얼마나 아름답고 강하게 사랑하시는지 보여줘요!" }
+      ]
+    },
+
+    '이사야': {
+      '1-6': [
+        { q: "이사야는 어떤 선지자인가요?", opts: ["작은 선지자","구약의 가장 위대한 선지자 중 하나 — 예수님에 대한 예언이 많아요","군인 선지자","왕 선지자"], a: 1, exp: "이사야는 '구약의 복음서'라 불릴 만큼 예수님에 대한 예언이 많은 위대한 선지자예요!" },
+        { q: "이사야가 하나님을 만났을 때 들은 것은?", opts: ["고요한 바람","거룩하다 거룩하다 거룩하다 만군의 여호와여!","노래","천둥"], a: 1, exp: "이사야가 성전에서 하나님을 보는 환상 중 천사들이 '거룩하다 거룩하다 거룩하다!'라고 외쳤어요!" }
+      ],
+      '7-12': [
+        { q: "이사야 9장의 유명한 예언은?", opts: ["전쟁이 온다","한 아이가 태어날 것이다 — 기묘자, 모사, 전능하신 하나님, 영존하시는 아버지, 평강의 왕","비가 온다","왕이 온다"], a: 1, exp: "'한 아이가 우리에게 태어났고' — 이것은 예수님에 대한 예언이에요!" },
+        { q: "이사야 11장의 예언에서 평화로운 세상은?", opts: ["전쟁이 많은 세상","이리와 어린 양이 함께 살고 어린 아이가 뱀의 굴에 손을 넣어도 안전한 세상","더운 세상","추운 세상"], a: 1, exp: "이사야 11장은 예수님이 오셔서 다스리실 평화로운 세상을 예언해요!" }
+      ],
+      '40-45': [
+        { q: "이사야 40장의 유명한 말씀은?", opts: ["달려라","오직 여호와를 앙망하는 자는 새 힘을 얻으리니 독수리처럼 날개를 칠 것이요","먹어라","자라"], a: 1, exp: "'오직 여호와를 앙망하는 자는 새 힘을 얻으리니!' — 힘들 때 기억하면 좋은 말씀이에요!" },
+        { q: "이사야 53장은 누구에 대한 예언인가요?", opts: ["이사야","이스라엘","예수님 — '그가 찔림은 우리의 허물 때문이라'","다윗"], a: 2, exp: "이사야 53장은 예수님의 고난을 미리 예언했어요 — '그가 찔림은 우리의 허물 때문이라'!" }
+      ],
+      '55-66': [
+        { q: "이사야 55장의 초대는?", opts: ["전쟁하러 와라","오호라 목마른 자들아 물로 나아오라 — 하나님께 오라는 초대","달리기 대회 초대","잔치 초대"], a: 1, exp: "'목마른 자들아 물로 나아오라' — 하나님은 모든 사람을 구원으로 초대하세요!" },
+        { q: "이사야 61장에서 예수님이 읽으신 말씀은?", opts: ["전쟁 선포","가난한 자에게 아름다운 소식을 전하게 하려 하심이라","명령","경고"], a: 1, exp: "예수님이 회당에서 이사야 61장을 읽으시며 '이 말씀이 오늘 너희 귀에 이루어졌다'고 하셨어요!" }
+      ]
+    },
+
+    '예레미야': {
+      '1-5': [
+        { q: "예레미야는 왜 '눈물의 선지자'라고 불리나요?", opts: ["눈이 아파서","이스라엘의 죄와 멸망을 슬퍼하며 많이 울어서","비가 와서","양파를 먹어서"], a: 1, exp: "예레미야는 이스라엘이 하나님을 떠난 것과 다가올 심판을 슬퍼하며 많이 울었어요!" },
+        { q: "예레미야가 선지자로 부름받았을 때 한 말은?", opts: ["좋아요","나는 아이라 말할 줄 모르나이다","제가 잘 할게요","달려갈게요"], a: 1, exp: "예레미야는 어려서 '말할 줄 모른다'고 했지만 하나님이 함께하겠다고 약속하셨어요!" }
+      ],
+      '18-24': [
+        { q: "토기장이 비유에서 하나님은 무엇에 비교됐나요?", opts: ["도자기","흙을 마음대로 빚는 토기장이","물","불"], a: 1, exp: "하나님은 토기장이처럼 이스라엘을 마음대로 빚을 수 있는 분이세요!" },
+        { q: "예레미야 23장의 예언은?", opts: ["전쟁이 온다","의로운 가지(예수님)를 보내겠다","비가 온다","왕이 바뀐다"], a: 1, exp: "예레미야 23장은 다윗의 후손에서 의로운 왕(예수님)을 보내시겠다는 예언이에요!" }
+      ],
+      '29-33': [
+        { q: "바벨론에 잡혀간 사람들에게 예레미야가 전한 말은?", opts: ["도망쳐라","그 성에 정착하여 평안을 구하라 — 70년 후 돌아온다","싸워라","포기해라"], a: 1, exp: "하나님은 바벨론에서도 '거기서 평안히 살고 70년 후에 돌아오게 하겠다'고 하셨어요!" },
+        { q: "예레미야 33장의 유명한 약속은?", opts: ["전쟁이 끝난다","내게 부르짖으라 내가 크고 은밀한 일을 알게 하리라","비가 온다","집을 지어라"], a: 1, exp: "'내게 부르짖으라 내가 네게 응답하겠고 크고 은밀한 일을 알게 하리라' — 기도의 초대예요!" }
+      ],
+      '36-52': [
+        { q: "예레미야가 우물에 던져진 이유는?", opts: ["전쟁 때문에","백성을 약하게 한다는 이유로 죽이려고 해서","밥을 못 먹어서","자신이 원해서"], a: 1, exp: "예레미야가 항복하라는 말을 전하자 적들이 그를 우물에 던졌어요. 에벳멜렉이 구해줬어요!" },
+        { q: "예레미야서의 교훈은?", opts: ["강해져라","하나님의 말씀을 듣고 순종하면 살고 거역하면 고난이 온다","달려라","먹어라"], a: 1, exp: "예레미야는 평생 거절당하면서도 하나님 말씀을 전했어요 — 힘들어도 순종하는 삶을 보여줘요!" }
+      ]
+    },
+
+    '예레미야애가': {
+      '1-5': [
+        { q: "예레미야애가는 무엇에 대한 책인가요?", opts: ["기쁜 노래","예루살렘이 멸망한 것을 슬퍼하는 노래","전쟁 노래","사랑 노래"], a: 1, exp: "예레미야애가는 예루살렘이 바벨론에 멸망한 것을 슬퍼하는 애도의 시예요!" },
+        { q: "예레미야애가 3장의 희망의 말씀은?", opts: ["다 끝났어요","여호와의 인자와 긍휼이 무궁하여 아침마다 새로워요","도망가요","포기해요"], a: 1, exp: "'여호와의 인자와 긍휼이 무궁하시도다 아침마다 새로우니 주의 성실하심이 크시도소이다' — 절망 중에도 희망이에요!" }
+      ]
+    },
+
+    '에스겔': {
+      '1-3': [
+        { q: "에스겔이 처음 본 환상은?", opts: ["아름다운 정원","네 생물과 바퀴가 있는 신비로운 환상","전쟁 장면","바다 장면"], a: 1, exp: "에스겔은 바벨론 강가에서 네 생물과 불과 바퀴가 있는 하나님의 영광스러운 환상을 보았어요!" },
+        { q: "에스겔이 선지자로 부름받은 특별한 방법은?", opts: ["꿈에서","책(두루마리)을 받아 먹으라는 명령을 받았어요","바람으로","노래로"], a: 1, exp: "하나님이 에스겔에게 두루마리를 주시며 먹으라 하셨어요 — 말씀을 삶에 받아들이는 것이에요!" }
+      ],
+      '37-39': [
+        { q: "에스겔 37장의 마른 뼈 환상은 무슨 뜻인가요?", opts: ["공동묘지 이야기","죽은 것 같은 이스라엘이 하나님의 영으로 다시 살아나는 예언이에요","무서운 이야기","게임 이야기"], a: 1, exp: "마른 뼈들이 살아나는 환상은 이스라엘이 포로에서 돌아와 다시 살아날 것을 예언해요!" },
+        { q: "에스겔 37장에서 마른 뼈가 살아날 때 무엇이 들어왔나요?", opts: ["물","불","하나님의 생기(영)","바람만"], a: 2, exp: "하나님의 생기(영)가 들어가자 마른 뼈들이 살아났어요 — 성령님의 능력을 보여줘요!" }
+      ],
+      '40-48': [
+        { q: "에스겔 마지막 부분의 주제는?", opts: ["전쟁","새 성전과 새 예루살렘에 대한 환상","먹기","달리기"], a: 1, exp: "에스겔 후반부는 앞으로 있을 완전한 성전과 하나님이 함께하시는 새 도성의 환상이에요!" },
+        { q: "에스겔서의 핵심 주제는?", opts: ["전쟁 이야기","하나님의 영광과 하나님 백성의 회복","먹는 이야기","여행 이야기"], a: 1, exp: "에스겔서는 하나님의 영광이 이스라엘을 떠났다가 돌아오는 것과 백성의 회복을 담고 있어요!" }
+      ]
+    },
+
+    '다니엘': {
+      '1-3': [
+        { q: "다니엘과 세 친구가 왕의 음식 대신 먹기를 원한 것은?", opts: ["왕의 음식이 맛없어서","하나님의 율법을 지키기 위해 채소와 물만 먹겠다고 했어요","알레르기가 있어서","다이어트해서"], a: 1, exp: "다니엘과 친구들은 왕의 음식으로 자신을 더럽히지 않겠다고 채소만 먹었어요 — 10일 후 더 건강했어요!" },
+        { q: "느부갓네살 왕의 금신상에 절하지 않은 세 친구는?", opts: ["다니엘, 아사랴, 미사엘","사드락, 메삭, 아벳느고","가브리엘, 미가엘, 라파엘","베드로, 야고보, 요한"], a: 1, exp: "사드락, 메삭, 아벳느고 세 친구가 금신상에 절하지 않아 풀무불에 던져졌어요!" }
+      ],
+      '4-6': [
+        { q: "풀무불에 던져진 세 친구와 함께 있었던 네 번째 사람은?", opts: ["다니엘","왕의 신하","하나님이 보내신 천사 같은 분","그림자"], a: 2, exp: "느부갓네살 왕이 불 속에서 네 번째 사람을 보았는데 신의 아들 같다고 했어요!" },
+        { q: "다니엘이 사자 굴에 들어간 이유는?", opts: ["잘못을 해서","하루 세 번 하나님께 기도하는 것을 멈추지 않아서","왕을 화나게 해서","도망가려고 해서"], a: 1, exp: "다니엘은 기도 금지 명령에도 하루 세 번 하나님께 기도했어요 — 사자들이 다니엘을 해치지 않았어요!" }
+      ],
+      '7-12': [
+        { q: "다니엘이 꾼 꿈과 환상은?", opts: ["쉬운 이야기","네 짐승, 하늘 구름 타고 오는 인자 등 미래에 대한 환상이에요","재미있는 이야기","보통 꿈"], a: 1, exp: "다니엘서 후반부는 세상 나라들의 흥망성쇠와 하나님 나라의 완성에 대한 환상이 가득해요!" },
+        { q: "다니엘서의 핵심 메시지는?", opts: ["강해져라","하나님이 역사의 주인이시며 결국 하나님 나라가 영원히 승리해요","달려라","먹어라"], a: 1, exp: "다니엘서는 어떤 어려움에도 하나님이 주인이시며 믿음을 지키면 승리한다는 것을 보여줘요!" }
+      ]
+    },
+
+    '호세아': {
+      '1-7': [
+        { q: "호세아 선지자의 결혼은 무엇을 상징했나요?", opts: ["행복한 결혼","이스라엘이 하나님을 배신하는 것 — 호세아의 아내가 떠난 것처럼","일반적인 결혼","왕의 명령"], a: 1, exp: "호세아의 아내가 떠난 것처럼 이스라엘이 하나님을 버린 것을 보여줘요 — 그래도 하나님은 사랑하세요!" },
+        { q: "하나님이 이스라엘에게 원하신 것은?", opts: ["제사만 많이 드려라","인애(사랑)를 원하고 번제를 원하지 않는다","군사를 강하게 해라","돈을 많이 모아라"], a: 1, exp: "'나는 인애를 원하고 제사를 원하지 아니하노라' — 하나님은 진심 어린 사랑을 원하세요!" }
+      ],
+      '8-14': [
+        { q: "호세아 11장의 하나님 사랑 표현은?", opts: ["'이스라엘을 버리겠다'","'이스라엘이 어렸을 때 내가 사랑하여 이집트에서 아들을 불러냈다'","'벌을 주겠다'","'잊어버리겠다'"], a: 1, exp: "하나님은 이스라엘을 어렸을 때부터 사랑하신 아버지처럼 돌보셨어요!" }
+      ]
+    },
+
+    '요엘': {
+      '1-3': [
+        { q: "요엘 2장의 유명한 약속은?", opts: ["전쟁이 온다","내가 내 영을 만민에게 부어주리니 — 성령을 보내주시겠다는 약속","비가 온다","왕이 온다"], a: 1, exp: "'내가 내 영을 만민에게 부어주리니' — 오순절에 이루어진 성령님에 대한 약속이에요!" },
+        { q: "요엘이 말한 메뚜기 재앙은 무엇을 뜻하나요?", opts: ["진짜 메뚜기만","이스라엘의 심판과 회개의 촉구를 나타내요","날씨 예보","농업 이야기"], a: 1, exp: "요엘의 메뚜기 재앙은 이스라엘이 회개하지 않으면 더 큰 심판이 온다는 경고예요!" }
+      ]
+    },
+
+    '아모스': {
+      '1-5': [
+        { q: "아모스는 어떤 사람이었나요?", opts: ["제사장","선지자 학교 출신","목자이자 뽕나무를 재배하는 농부였는데 선지자로 부름받았어요","왕"], a: 2, exp: "아모스는 평범한 목자였는데 하나님이 특별히 부르셔서 선지자가 됐어요!" },
+        { q: "아모스가 강하게 외친 것은?", opts: ["부자가 돼라","정의를 물같이 공의를 마르지 않는 강같이 흘려라","전쟁해라","먹어라"], a: 1, exp: "'정의를 물같이, 공의를 마르지 않는 강같이 흘리라!' — 사회 정의를 강하게 외쳤어요!" }
+      ],
+      '6-9': [
+        { q: "아모스가 책망한 사람들은?", opts: ["가난한 사람들","부자들이 가난한 자를 착취하는 불의","군인들","선지자들"], a: 1, exp: "아모스는 부자들이 가난한 자를 돈으로 사고 착취하는 불의에 강하게 경고했어요!" }
+      ]
+    },
+
+    '오바댜': {
+      '1-1': [
+        { q: "오바댜는 어느 나라를 향한 예언인가요?", opts: ["이집트","에돔 — 이스라엘의 형제 나라예요","바벨론","아람"], a: 1, exp: "오바댜는 에서의 후손 에돔이 이스라엘이 멸망할 때 기뻐한 것을 책망하는 예언이에요!" },
+        { q: "오바댜의 교훈은?", opts: ["전쟁해라","교만하지 말고 형제를 도우라 — 형제가 어려울 때 기뻐하면 안 돼요","달려라","먹어라"], a: 1, exp: "에돔이 교만하게 이스라엘의 멸망을 기뻐한 것에 대한 심판 — 형제를 사랑해야 해요!" }
+      ]
+    },
+
+    '요나': {
+      '1-4': [
+        { q: "요나가 도망간 이유는?", opts: ["배가 무서워서","니느웨에 가라는 하나님 말씀이 싫어서","파도가 무서워서","고래가 무서워서"], a: 1, exp: "요나는 원수 나라 니느웨에 가서 구원의 복음을 전하라는 명령이 싫어서 반대 방향으로 도망갔어요!" },
+        { q: "요나를 삼킨 것은?", opts: ["상어","큰 물고기(고래)","악어","문어"], a: 1, exp: "하나님이 큰 물고기를 준비하여 요나를 삼키게 하셨어요 — 요나는 3일 동안 물고기 배 속에 있었어요!" },
+        { q: "니느웨 사람들이 요나의 설교를 듣고 한 것은?", opts: ["무시했어요","회개하고 하나님께 돌아왔어요","도망갔어요","싸웠어요"], a: 1, exp: "요나의 설교에 니느웨 온 백성이 금식하며 회개했어요 — 하나님이 심판을 거두셨어요!" },
+        { q: "요나서의 교훈은?", opts: ["도망가도 돼요","하나님은 이스라엘만 아니라 모든 민족을 사랑하세요","고래가 무서워요","바다가 위험해요"], a: 1, exp: "요나서는 하나님의 사랑이 이스라엘만이 아니라 원수 나라까지 미친다는 것을 보여줘요!" }
+      ]
+    },
+
+    '미가': {
+      '1-4': [
+        { q: "미가 5장의 유명한 예언은?", opts: ["예루살렘에서 구원자가 온다","베들레헴에서 이스라엘을 다스릴 자가 나온다 — 예수님 탄생 예언이에요","전쟁이 온다","왕이 바뀐다"], a: 1, exp: "'베들레헴 에브라다야 너는 작지만 이스라엘을 다스릴 자가 나오리라' — 예수님이 베들레헴에서 나실 예언이에요!" }
+      ],
+      '5-7': [
+        { q: "미가 6장의 유명한 말씀은?", opts: ["전쟁해라","여호와께서 요구하시는 것은 정의, 인자, 겸손히 하나님과 동행하기","달려라","부자가 돼라"], a: 1, exp: "'오직 정의를 행하며 인자를 사랑하며 겸손히 네 하나님과 함께 행하는 것이니라' — 중요한 말씀이에요!" }
+      ]
+    },
+
+    '나훔': {
+      '1-3': [
+        { q: "나훔은 어느 나라에 대한 예언인가요?", opts: ["이스라엘","니느웨(앗수르)","바벨론","에돔"], a: 1, exp: "나훔은 요나 때 회개했지만 다시 악해진 니느웨(앗수르)의 멸망을 예언해요!" },
+        { q: "나훔 1장의 하나님에 대한 표현은?", opts: ["하나님은 약하세요","여호와는 선하시고 환난 날의 요새시라","하나님은 무섭기만 해요","하나님은 멀리 계세요"], a: 1, exp: "'여호와는 선하시며 환난 날에 요새시라' — 어려울 때 하나님이 우리의 피난처예요!" }
+      ]
+    },
+
+    '하박국': {
+      '1-3': [
+        { q: "하박국이 하나님께 질문한 것은?", opts: ["비를 주세요","왜 악한 자가 잘 되고 의인이 고통을 받나요?","집을 주세요","전쟁을 멈춰주세요"], a: 1, exp: "하박국은 하나님께 '왜 나쁜 사람이 잘 되는가?'라고 솔직하게 질문했어요!" },
+        { q: "하박국 2장의 유명한 말씀은?", opts: ["달려라","의인은 믿음으로 살리라","먹어라","공부해라"], a: 1, exp: "'오직 의인은 믿음으로 말미암아 살리라' — 바울이 로마서에서도 인용한 중요한 말씀이에요!" }
+      ]
+    },
+
+    '스바냐': {
+      '1-3': [
+        { q: "스바냐가 경고한 것은?", opts: ["지진이 온다","여호와의 날 — 하나님의 심판이 온다","비가 온다","왕이 바뀐다"], a: 1, exp: "스바냐는 하나님을 떠난 이스라엘에게 심판의 날이 온다고 경고했어요!" },
+        { q: "스바냐 3장의 희망의 메시지는?", opts: ["포기해라","하나님이 너로 인하여 기쁨으로 노래하시리라","도망가라","울어라"], a: 1, exp: "'그가 너로 말미암아 기쁨을 이기지 못하시며 기쁨으로 노래하시리라' — 하나님이 우리를 기뻐하세요!" }
+      ]
+    },
+
+    '학개': {
+      '1-2': [
+        { q: "학개가 백성에게 촉구한 것은?", opts: ["전쟁해라","성전 재건을 서둘러라 — 자기 집만 짓고 하나님의 집을 방치했어요","여행해라","공부해라"], a: 1, exp: "백성이 자기 집은 잘 지으면서 하나님의 성전은 방치하자 학개가 성전부터 지으라고 했어요!" },
+        { q: "학개의 약속은?", opts: ["전쟁이 온다","이 성전의 나중 영광이 처음보다 크리라 — 예수님이 오실 성전이에요","비가 온다","왕이 온다"], a: 1, exp: "하나님은 '이 성전의 나중 영광이 이전보다 크리라'고 하셨어요 — 예수님이 오실 것을 예언해요!" }
+      ]
+    },
+
+    '스가랴': {
+      '1-6': [
+        { q: "스가랴에 나오는 유명한 말씀은?", opts: ["전쟁해라","힘으로도 아니고 능력으로도 아니며 오직 나의 영으로","달려라","먹어라"], a: 1, exp: "'힘으로도 아니고 능력으로도 아니며 오직 나의 영으로 되느니라' — 하나님의 성령으로만 가능해요!" },
+        { q: "스가랴 9장의 예언은?", opts: ["왕이 말을 타고 온다","왕이 겸손히 나귀 새끼를 타고 온다 — 예수님의 예루살렘 입성 예언이에요","전쟁이 온다","비가 온다"], a: 1, exp: "예수님이 나귀 새끼를 타고 예루살렘에 입성하신 것은 스가랴의 예언을 이룬 것이에요!" }
+      ],
+      '7-14': [
+        { q: "스가랴 12-14장의 예언은?", opts: ["평범한 역사","예수님의 재림과 하나님 나라의 완성에 대한 예언이에요","전쟁 이야기","농업 이야기"], a: 1, exp: "스가랴 후반부는 예수님의 재림과 모든 민족이 하나님 앞에 무릎 꿇을 것을 예언해요!" }
+      ]
+    },
+
+    '말라기': {
+      '1-4': [
+        { q: "말라기가 책망한 것은?", opts: ["너무 많이 드리는 것","형식적이고 병들고 흠 있는 제물을 드리는 것 — 진심이 없는 예배","전쟁하는 것","달리는 것"], a: 1, exp: "말라기는 제사장들이 병들고 못된 동물을 드리며 진심 없이 예배하는 것을 꾸짖었어요!" },
+        { q: "말라기 3장의 유명한 말씀은?", opts: ["전쟁해라","십일조를 창고에 드려 나를 시험하여 보라 내가 복을 쏟으리라","달려라","공부해라"], a: 1, exp: "'온전한 십일조를 창고에 들여 나를 시험해보라 내가 하늘 문을 열어 복을 쏟으리라'!" },
+        { q: "말라기 4장, 구약의 마지막 예언은?", opts: ["전쟁이 온다","엘리야 같은 자가 와서 주의 길을 예비한다 — 세례 요한을 예언해요","비가 온다","왕이 바뀐다"], a: 1, exp: "구약의 마지막 예언은 엘리야 같은 자(세례 요한)가 와서 예수님을 예비할 것이에요 — 400년 후 이루어졌어요!" }
+      ]
+    },
+
+    '마태복음': {
+      '1-4': [
+        { q: "예수님은 어디서 태어나셨나요?", opts: ["예루살렘","나사렛","베들레헴","가나안"], a: 2, exp: "예수님은 미가의 예언대로 베들레헴에서 태어나셨어요!" },
+        { q: "동방에서 온 박사들이 가져온 세 가지 선물은?", opts: ["꽃, 과일, 고기","황금, 유향, 몰약","옷, 신발, 음식","금, 은, 보석"], a: 1, exp: "동방 박사들이 황금과 유향과 몰약을 아기 예수님께 드렸어요!" },
+        { q: "예수님이 세례를 받으실 때 하늘에서 들린 소리는?", opts: ["전쟁하라","이는 내 사랑하는 아들이요 내 기뻐하는 자라","달려라","먹어라"], a: 1, exp: "'이는 내 사랑하는 아들이요 내 기뻐하는 자라!' — 하나님 아버지의 기쁨의 선언이에요!" }
+      ],
+      '5-7': [
+        { q: "산상수훈이 시작되는 말씀은?", opts: ["전쟁해라","심령이 가난한 자는 복이 있나니 천국이 그들의 것임이요","달려라","공부해라"], a: 1, exp: "예수님의 산상수훈은 '팔복'으로 시작해요 — '심령이 가난한 자는 복이 있나니'!" },
+        { q: "주기도문을 가르치신 곳은?", opts: ["성전","산 위에서 — 산상수훈에서요","바다에서","집에서"], a: 1, exp: "예수님이 산 위에서 제자들에게 '이렇게 기도하라' 며 주기도문을 가르쳐 주셨어요!" }
+      ],
+      '8-12': [
+        { q: "예수님이 오병이어 기적에서 사용하신 것은?", opts: ["왕의 음식","떡 다섯 개와 물고기 두 마리","많은 돈","큰 빵 덩어리"], a: 1, exp: "예수님이 어린 소년의 도시락 떡 5개와 물고기 2마리로 5,000명을 먹이셨어요!" },
+        { q: "예수님이 '수고하고 무거운 짐 진 자들아'라고 부르신 후 하신 말씀은?", opts: ["더 열심히 해라","다 내게로 오라 내가 너희를 쉬게 하리라","도망가라","울어라"], a: 1, exp: "'수고하고 무거운 짐 진 자들아 다 내게로 오라 내가 너희를 쉬게 하리라' — 예수님의 초대예요!" }
+      ],
+      '13-17': [
+        { q: "예수님이 많이 가르치신 방법은?", opts: ["시험","비유 — 일상의 이야기로 천국을 설명하셨어요","전쟁 이야기","노래"], a: 1, exp: "예수님은 씨앗, 누룩, 진주, 그물 등 일상적인 것들로 천국을 설명하셨어요!" },
+        { q: "베드로가 예수님을 고백한 것은?", opts: ["좋은 선생님","당신은 그리스도시요 살아 계신 하나님의 아들이시니이다","예언자","왕"], a: 1, exp: "베드로가 '주는 그리스도시요 살아 계신 하나님의 아들이시니이다'라고 고백했어요!" }
+      ],
+      '18-22': [
+        { q: "예수님이 어린 아이에 대해 하신 말씀은?", opts: ["아이는 작아요","천국에서 큰 자는 이 어린 아이와 같이 자기를 낮추는 자예요","아이는 중요하지 않아요","아이는 공부해야 해요"], a: 1, exp: "'누구든지 어린 아이와 같이 자기를 낮추는 자가 천국에서 큰 자니라'!" },
+        { q: "예수님의 두 가지 큰 계명은?", opts: ["공부해라, 달려라","하나님을 사랑하라, 네 이웃을 네 몸같이 사랑하라","싸워 이겨라, 돈을 모아라","먹어라, 자라"], a: 1, exp: "첫째는 하나님을 사랑하는 것, 둘째는 이웃을 내 몸처럼 사랑하는 것이에요!" }
+      ],
+      '23-28': [
+        { q: "예수님이 십자가에서 하신 기도는?", opts: ["도망가라","아버지여 저들을 용서해주세요","살려주세요","화가 나요"], a: 1, exp: "예수님은 자신을 못 박는 사람들을 위해 용서해 달라고 기도하셨어요!" },
+        // REMOVED_LINE
+        // JUNK_LINE_BELOW_IS_COMMENTED
+        //"'엘리 엘리 라마 사박다니' — '나의 하나님 나의 하나님 어찌하여 나를 버리셨나이까' (시편 22편이에요!)"], },
+        { q: "예수님이 부활하신 후 제자들에게 하신 명령은?", opts: ["쉬어라","모든 민족에게 가서 제자로 삼아 세례를 주고 가르쳐라 — 지상대명령이에요","집에 있어라","달려라"], a: 1, exp: "'모든 민족에게 가서 복음을 전하라' — 예수님의 마지막 명령이에요!" }
+      ]
+    },
+
+    '마가복음': {
+      '1-5': [
+        { q: "마가복음에서 자주 나오는 단어는?", opts: ["천천히","즉시 — 예수님이 빠르게 일하셨어요","나중에","기다려"], a: 1, exp: "마가복음은 '즉시'라는 단어가 많이 나와요 — 예수님의 활동이 역동적으로 표현돼요!" },
+        { q: "예수님이 열두 제자를 부르신 이유는?", opts: ["심부름꾼으로","함께하시고 전도하고 귀신을 쫓아내는 권세를 주시려고","집 짓는 일꾼으로","요리사로"], a: 1, exp: "예수님은 제자들을 부르셔서 함께하시고 복음을 전하는 사명을 주셨어요!" }
+      ],
+      '6-10': [
+        { q: "예수님이 물 위를 걸어오실 때 제자들은?", opts: ["기뻐했어요","귀신인 줄 알고 무서워했어요","인사했어요","손뼉을 쳤어요"], a: 1, exp: "제자들이 물 위를 걷는 예수님을 보고 귀신인 줄 알고 소리 질렀어요 — 예수님이 '나다 두려워 말라'고 하셨어요!" },
+        { q: "예수님이 '어린 아이들이 내게 오는 것을 막지 말라'고 하신 이유는?", opts: ["아이들이 귀여워서","하나님 나라는 이런 자들의 것이라고 하셨어요","아이들이 도와줘서","아이들이 강해서"], a: 1, exp: "예수님은 어린 아이들을 안아주시고 '천국은 이런 자의 것'이라고 하셨어요!" }
+      ],
+      '11-16': [
+        { q: "마가복음에서 예수님의 무덤이 빈 것을 발견한 사람들은?", opts: ["제자들","막달라 마리아 등 여인들","군인들","제사장들"], a: 1, exp: "막달라 마리아와 여러 여인들이 예수님의 빈 무덤을 발견했어요!" },
+        { q: "마가복음 16장에서 부활하신 예수님이 하신 명령은?", opts: ["쉬어라","온 천하에 다니며 만민에게 복음을 전파하라","집에 있어라","먹어라"], a: 1, exp: "'온 천하에 다니며 만민에게 복음을 전파하라' — 지금도 우리가 받은 명령이에요!" }
+      ]
+    },
+
+    '누가복음': {
+      '1-4': [
+        { q: "마리아가 천사의 말을 들었을 때 한 말은?", opts: ["싫어요","주의 여종이오니 말씀대로 내게 이루어지이다","무서워요","생각해볼게요"], a: 1, exp: "마리아는 '주의 여종이오니 말씀대로 이루어지이다'라고 순종했어요 — 아름다운 믿음이에요!" },
+        { q: "예수님이 탄생했을 때 가장 먼저 소식을 들은 사람들은?", opts: ["왕들","제사장들","들판의 목자들","부자들"], a: 2, exp: "들판에서 밤새 양을 지키던 목자들에게 천사가 나타나 예수님 탄생 소식을 전했어요!" }
+      ],
+      '5-9': [
+        { q: "삭개오는 왜 나무 위에 올라갔나요?", opts: ["나무가 좋아서","키가 작아 예수님을 보려고","놀려고","과일 따려고"], a: 1, exp: "세리장 삭개오는 키가 작아서 뽕나무 위에 올라가 예수님을 보려고 했어요!" },
+        { q: "예수님이 삭개오에게 하신 말씀은?", opts: ["내려라 오늘 내가 네 집에 유하여야 하겠다","그냥 가세요","밥 먹었어요?","나중에 봐요"], a: 0, exp: "예수님이 삭개오를 보시고 '삭개오야 내려오라 오늘 내가 네 집에 머물겠다'고 하셨어요!" }
+      ],
+      '10-16': [
+        { q: "선한 사마리아인 비유에서 강도 만난 자를 도운 것은?", opts: ["제사장","레위인","사마리아인 — 원수 취급받던 사람이었어요","군인"], a: 2, exp: "제사장과 레위인은 지나쳤지만 사마리아인이 상처를 싸매주고 여관에 데려다줬어요!" },
+        { q: "탕자의 비유에서 아버지는 돌아온 아들을 어떻게 했나요?", opts: ["혼냈어요","멀리서 보고 달려가 껴안고 잔치를 열었어요","모른 척했어요","문을 닫았어요"], a: 1, exp: "아버지는 먼 곳에서 돌아오는 아들을 보고 달려가 껴안고 큰 잔치를 열었어요 — 하나님 사랑이에요!" }
+      ],
+      '17-24': [
+        { q: "예수님이 십자가에서 하신 말씀 중 하나는?", opts: ["도망가라","아버지여 저들을 사하여 주옵소서 자기들이 하는 것을 알지 못함이니이다","무서워요","화가 나요"], a: 1, exp: "예수님은 자신을 십자가에 못 박는 사람들을 위해 '용서해 주세요'라고 기도하셨어요!" },
+        { q: "엠마오로 가는 제자들에게 부활하신 예수님이 하신 것은?", opts: ["손을 흔들었어요","성경을 풀어 설명해 주셨어요","손만 흔들었어요","잠만 자셨어요"], a: 1, exp: "부활하신 예수님이 모르는 척 동행하시며 성경을 설명해 주셨어요!" }
+      ]
+    },
+
+    '요한복음': {
+      '1-4': [
+        { q: "요한복음 1장 1절은?", opts: ["태초에 천지가","태초에 말씀이 계시니라 이 말씀이 하나님과 함께 계셨으니 이 말씀은 곧 하나님이시니라","하나님이 세상을","처음에 예수님이"], a: 1, exp: "'태초에 말씀이 계시니라' — 예수님은 태초부터 계신 하나님이세요!" },
+        { q: "요한복음 3장 16절은?", opts: ["하나님은 강하다","하나님이 세상을 이처럼 사랑하사 독생자를 주셨으니 믿는 자마다 영생을 얻게 하려 하심이라","달려라","공부해라"], a: 1, exp: "요한복음 3:16은 성경에서 가장 유명한 구절이에요 — 하나님의 사랑을 한 문장으로 담았어요!" }
+      ],
+      '5-10': [
+        { q: "예수님이 '나는 생명의 빵이라'고 하신 것은?", opts: ["음식이 최고예요","예수님이 우리의 진정한 양식이심을 뜻해요","밥을 많이 드세요","제빵사예요"], a: 1, exp: "'나는 생명의 빵이라 — 내게 오는 자는 결코 주리지 않겠다' — 예수님만이 진정한 생명이에요!" },
+        { q: "요한복음 10장에서 예수님은 자신을 무엇이라 하셨나요?", opts: ["왕","선한 목자 — 양을 위해 목숨을 버리는 분","군인","선생님"], a: 1, exp: "'나는 선한 목자라 선한 목자는 양을 위하여 목숨을 버리거니와' — 우리를 위해 죽으신 예수님이에요!" }
+      ],
+      '11-15': [
+        { q: "나사로를 살리실 때 예수님이 하신 말씀은?", opts: ["조용히 있어라","나는 부활이요 생명이니 나를 믿는 자는 죽어도 살겠고","달려라","울지마라"], a: 1, exp: "'나는 부활이요 생명이니 나를 믿는 자는 죽어도 살겠고' — 나사로가 살아났어요!" },
+        { q: "요한복음 14장에서 예수님이 하신 말씀은?", opts: ["도망가라","내가 곧 길이요 진리요 생명이니 나로 말미암지 않고는 아버지께로 올 자가 없느니라","공부해라","달려라"], a: 1, exp: "'나는 길이요 진리요 생명이라' — 예수님만이 하나님께 가는 유일한 길이에요!" }
+      ],
+      '16-21': [
+        { q: "예수님이 보내시겠다고 약속하신 것은?", opts: ["천사","보혜사 성령님 — 진리의 영이에요","군대","음식"], a: 1, exp: "'내가 아버지께 구하겠으니 다른 보혜사를 너희에게 주셔서 영원히 너희와 함께 있게 하리라' — 성령님이에요!" },
+        { q: "요한복음 21장에서 예수님이 베드로에게 세 번 물으신 것은?", opts: ["달릴 수 있어?","요한아 나를 사랑하느냐","공부했어?","먹었어?"], a: 1, exp: "'요한의 아들 시몬아 네가 나를 사랑하느냐' — 예수님은 베드로를 세 번 회복시켜 주셨어요!" }
+      ]
+    },
+
+    '사도행전': {
+      '1-4': [
+        { q: "오순절에 성령님이 임하실 때 일어난 일은?", opts: ["비가 왔어요","급하고 강한 바람 같은 소리가 나고 불의 혀가 각 사람 위에 나타났어요","지진이 났어요","천사가 나타났어요"], a: 1, exp: "오순절에 성령님이 임하시며 불의 혀처럼 각 사람 위에 임하시고 다른 방언을 말하게 하셨어요!" },
+        { q: "베드로의 설교 후 믿은 사람은 몇 명인가요?", opts: ["100명","500명","3,000명","12명"], a: 2, exp: "베드로의 첫 번째 설교 후 3,000명이 믿고 세례를 받았어요!" }
+      ],
+      '5-10': [
+        { q: "스데반이 돌에 맞아 순교할 때 한 기도는?", opts: ["복수해주세요","주여 이 죄를 저들에게 돌리지 마옵소서","살려주세요","도와주세요"], a: 1, exp: "스데반은 돌에 맞으면서도 예수님처럼 '저들을 용서해 주세요'라고 기도했어요!" },
+        { q: "에티오피아 내시에게 복음을 전한 사람은?", opts: ["베드로","바울","빌립","바나바"], a: 2, exp: "집사 빌립이 성령님의 인도를 받아 에티오피아 내시에게 이사야 말씀으로 예수님을 전했어요!" }
+      ],
+      '11-15': [
+        { q: "사울(바울)이 예수님을 만난 것은?", opts: ["꿈에서","성전에서","다메섹으로 가는 길에서 빛과 음성으로","바다에서"], a: 2, exp: "기독교인을 잡으러 다메섹으로 가던 사울에게 부활하신 예수님이 나타나셔서 그가 변화됐어요!" },
+        { q: "예루살렘 공의회에서 결정한 것은?", opts: ["예수님을 안 믿어도 돼","이방인에게 모세 율법을 다 지키라 하지 않기로 했어요","전쟁하기로","집을 지으러가기로"], a: 1, exp: "이방인 신자들에게 무거운 율법의 짐을 지우지 않기로 결정했어요 — 은혜로 구원받아요!" }
+      ],
+      '16-20': [
+        { q: "바울과 실라가 감옥에서 한 것은?", opts: ["울었어요","기도하고 찬양을 불렀어요","잠을 잤어요","탈출하려 했어요"], a: 1, exp: "바울과 실라가 감옥에서 기도하며 찬양을 부르자 지진이 나고 감옥 문이 열렸어요!" },
+        { q: "아테네(아덴)에서 바울이 선포한 것은?", opts: ["아무것도","알지 못하는 신에게 바치는 제단을 보고 '이 신이 예수님'이라고 전했어요","전쟁 소식","날씨 예보"], a: 1, exp: "바울은 아덴의 '알지 못하는 신' 제단을 보고 그 신이 바로 예수님이라고 전했어요!" }
+      ],
+      '21-28': [
+        { q: "바울이 로마로 가게 된 이유는?", opts: ["여행 가고 싶어서","황제에게 상소하여 로마 법정에 서게 되어서","친구를 만나려고","도망가려고"], a: 1, exp: "바울이 유대인들에게 억울하게 고발당하자 로마 시민권을 사용해 황제에게 상소했어요!" },
+        { q: "사도행전의 핵심 말씀은?", opts: ["공부해라","오직 성령이 너희에게 임하시면 너희가 권능을 받고 증인이 되리라","달려라","먹어라"], a: 1, exp: "'오직 성령이 임하시면 권능을 받고 예루살렘과 온 세상의 증인이 되리라' — 우리도 복음의 증인이에요!" }
+      ]
+    },
+
+    '로마서': {
+      '1-5': [
+        { q: "로마서의 핵심 주제는?", opts: ["전쟁","복음 — 예수님을 믿음으로 의롭게 된다는 것이에요","음식","여행"], a: 1, exp: "로마서는 '복음은 모든 믿는 자에게 구원을 주시는 하나님의 능력'이라고 선언해요!" },
+        { q: "로마서 8장 28절은?", opts: ["달려라","하나님을 사랑하는 자 곧 그의 뜻대로 부르심을 입은 자들에게는 모든 것이 합력하여 선을 이루느니라","먹어라","공부해라"], a: 1, exp: "'모든 것이 합력하여 선을 이루느니라' — 힘든 일도 하나님 안에서는 선한 결과로 이어져요!" }
+      ],
+      '6-11': [
+        { q: "로마서 12장 1절에서 우리 몸을 드리라고 한 것은?", opts: ["불에 드려라","거룩한 산 제물로 드려라 — 우리 삶 전체를 예배로 드리는 것이에요","강에 드려라","왕에게 드려라"], a: 1, exp: "'너희 몸을 하나님이 기뻐하시는 거룩한 산 제물로 드리라 이것이 너희의 합당한 예배니라'!" },
+        { q: "로마서 12장에서 악을 이기는 방법은?", opts: ["싸워서","선으로 악을 이기라","도망가서","무시해서"], a: 1, exp: "'악에게 지지 말고 선으로 악을 이기라' — 사랑과 선으로 세상을 바꿀 수 있어요!" }
+      ],
+      '12-16': [
+        { q: "로마서의 마지막 결론은?", opts: ["달려라","모든 것을 홀로 아시는 하나님께 예수 그리스도로 영광이 세세 무궁토록 있어라","공부해라","전쟁해라"], a: 1, exp: "로마서는 복음의 신비를 모두 아시는 하나님께 찬양으로 마무리돼요!" }
+      ]
+    },
+
+    '고린도전서': {
+      '1-7': [
+        { q: "고린도전서 13장에서 제일 중요한 것은?", opts: ["지식","용기","사랑 — 사랑이 없으면 아무것도 아니에요","돈"], a: 2, exp: "'사랑은 오래 참고 사랑은 온유하며' — 고린도전서 13장은 '사랑 장'으로 불려요!" },
+        { q: "사랑의 특징 중 하나는?", opts: ["자기를 자랑해요","자기 유익을 구하지 않아요","화를 잘 내요","교만해요"], a: 1, exp: "'사랑은 자기의 유익을 구하지 아니하며' — 진정한 사랑은 자기보다 남을 생각해요!" }
+      ],
+      '8-16': [
+        { q: "예수님이 부활하셨다는 것이 왜 중요한가요?", opts: ["그냥 좋아서","예수님이 부활하지 않으셨다면 우리 믿음도 헛것이에요","재미있어서","신기해서"], a: 1, exp: "'그리스도께서 살아나지 아니하셨으면 너희 믿음도 헛것이요' — 부활이 기독교의 핵심이에요!" },
+        { q: "고전 15장의 마지막 말씀은?", opts: ["포기해라","항상 주의 일에 힘쓰라 이는 너희 수고가 주 안에서 헛되지 않음을 앎이라","달려라","자라"], a: 1, exp: "'항상 주의 일에 힘쓰라 너희 수고가 주 안에서 결코 헛되지 않으니라'!" }
+      ]
+    },
+
+    '갈라디아서': {
+      '1-6': [
+        { q: "갈라디아서 2장 20절은?", opts: ["달려라","내가 그리스도와 함께 십자가에 못 박혔나니 이제 사는 것은 내가 아니요 오직 내 안에 그리스도께서 사시는 것이라","먹어라","공부해라"], a: 1, exp: "'내 안에 그리스도께서 사신다' — 예수님을 믿으면 예수님이 우리 안에 사세요!" },
+        { q: "성령의 열매 9가지 중 첫 번째는?", opts: ["절제","사랑","희락","화평"], a: 1, exp: "성령의 열매는 사랑, 희락, 화평, 오래 참음, 자비, 양선, 충성, 온유, 절제예요!" }
+      ]
+    },
+
+    '에베소서': {
+      '1-6': [
+        { q: "에베소서 2장 8절은?", opts: ["공부해서 구원받아요","너희는 그 은혜에 의하여 믿음으로 말미암아 구원을 받았으니 이것은 너희에게서 난 것이 아니요 하나님의 선물이라","달려서 구원받아요","선행으로 구원받아요"], a: 1, exp: "'은혜로 믿음으로 구원받았으니 이것은 하나님의 선물이라' — 구원은 선물이에요!" },
+        { q: "에베소서 6장의 전신 갑주는?", opts: ["진짜 갑옷","하나님이 주신 영적 무장 — 진리, 의, 복음, 믿음, 구원, 성경 말씀","학교 준비물","운동 장비"], a: 1, exp: "하나님의 전신 갑주 — 진리의 허리띠, 의의 호심경, 복음의 신발, 믿음의 방패, 구원의 투구, 성령의 검이에요!" }
+      ]
+    },
+
+    '빌립보서': {
+      '1-4': [
+        { q: "빌립보서 4장 13절은?", opts: ["달려라","내게 능력 주시는 자 안에서 내가 모든 것을 할 수 있느니라","먹어라","자라"], a: 1, exp: "'내게 능력 주시는 자 안에서 내가 모든 것을 할 수 있느니라' — 힘들 때 기억해요!" },
+        { q: "빌립보서 4장 4절은?", opts: ["울어라","주 안에서 항상 기뻐하라 내가 다시 말하노니 기뻐하라","달려라","공부해라"], a: 1, exp: "'항상 기뻐하라!' — 바울이 감옥에서 쓴 편지인데 기쁨이 가득해요!" }
+      ]
+    },
+
+    '골로새서': {
+      '1-4': [
+        { q: "골로새서 3장 23절은?", opts: ["사람에게 보이려고 해라","무슨 일을 하든지 마음을 다하여 주께 하듯 하고 사람에게 하듯 하지 말라","쉬어라","달려라"], a: 1, exp: "'무슨 일을 하든지 주님께 하듯 하라' — 공부도 청소도 다 하나님께 드리는 예배예요!" }
+      ]
+    },
+
+    '데살로니가전서': {
+      '1-5': [
+        { q: "데살로니가전서 5장 16-18절은?", opts: ["달려라","항상 기뻐하라 쉬지 말고 기도하라 범사에 감사하라","먹어라","공부해라"], a: 1, exp: "'항상 기뻐하라, 쉬지 말고 기도하라, 범사에 감사하라' — 세 가지 황금 명령이에요!" }
+      ]
+    },
+
+    '데살로니가후서': {
+      '1-3': [
+        { q: "데살로니가후서에서 바울이 경고한 것은?", opts: ["달리기","게으르게 살지 말고 일하며 먹으라","먹지 말아라","자라"], a: 1, exp: "'일하기 싫거든 먹지도 말라' — 게으름을 경계하고 성실하게 살라고 권면해요!" }
+      ]
+    },
+
+    '디모데전서': {
+      '1-6': [
+        { q: "디모데전서 4장 12절은?", opts: ["어린이는 말하면 안 돼요","누구든지 네 연소함을 업신여기지 못하게 하라 오직 말과 행실과 사랑과 믿음과 정절에서 믿는 자에게 본이 되어라","달려라","공부해라"], a: 1, exp: "'네 연소함을 업신여기지 못하게 하라 믿는 자의 본이 되라' — 어려도 믿음의 본이 될 수 있어요!" }
+      ]
+    },
+
+    '디모데후서': {
+      '1-4': [
+        { q: "디모데후서 3장 16절은?", opts: ["성경은 재미없어요","모든 성경은 하나님의 감동으로 된 것으로 교훈과 책망과 바르게 함과 의로 교육하기에 유익하니라","성경은 어려워요","성경은 많이 있어요"], a: 1, exp: "'모든 성경은 하나님의 감동으로 된 것' — 성경은 하나님이 직접 주신 소중한 말씀이에요!" }
+      ]
+    },
+
+    '디도서': {
+      '1-3': [
+        { q: "디도서의 핵심은?", opts: ["전쟁해라","선한 일을 열심히 하는 자가 되라","달려라","먹어라"], a: 1, exp: "디도서는 교회 지도자의 자격과 성도가 선한 일을 힘써 행하라는 것을 가르쳐요!" }
+      ]
+    },
+
+    '빌레몬서': {
+      '1-1': [
+        { q: "빌레몬서는 누구에 대한 이야기인가요?", opts: ["왕","도망간 종 오네시모를 용서하고 형제로 받아달라는 편지","군인","선지자"], a: 1, exp: "바울이 도망 노예 오네시모를 위해 주인 빌레몬에게 용서와 화해를 부탁한 짧은 편지예요!" }
+      ]
+    },
+
+    '히브리서': {
+      '1-7': [
+        { q: "히브리서에서 예수님을 무엇이라고 소개하나요?", opts: ["좋은 선생님","우리의 대제사장 — 멜기세덱의 반차를 좇은 영원한 대제사장이에요","왕","군인"], a: 1, exp: "히브리서는 예수님이 우리를 위해 중보하시는 영원한 대제사장이심을 강조해요!" },
+        { q: "히브리서 11장은 무엇에 대한 장인가요?", opts: ["전쟁 장","믿음 장 — 믿음의 영웅들이 나와요","음식 장","여행 장"], a: 1, exp: "히브리서 11장은 '믿음의 장'으로 아벨, 에녹, 아브라함, 모세 등 믿음의 영웅들이 나와요!" }
+      ],
+      '8-13': [
+        { q: "히브리서 11장 1절의 믿음의 정의는?", opts: ["느낌이에요","믿음은 바라는 것들의 실상이요 보이지 않는 것들의 증거니라","공부예요","달리기예요"], a: 1, exp: "'믿음은 바라는 것들의 실상이요 보이지 않는 것들의 증거니라' — 믿음의 완벽한 정의예요!" },
+        { q: "히브리서 12장에서 신앙 경주 비유는?", opts: ["수영을 잘해야 해요","인내로 달려야 할 경주 — 예수님을 바라보며 달려요","빨리 달려야 해요","포기해도 돼요"], a: 1, exp: "'인내로써 우리 앞에 당한 경주를 하며 믿음의 주요 온전하게 하시는 이인 예수를 바라보자'!" }
+      ]
+    },
+
+    '야고보서': {
+      '1-5': [
+        { q: "야고보서 1장 22절은?", opts: ["말씀을 듣기만 해도 돼요","너희는 말씀을 행하는 자가 되고 듣기만 하여 자신을 속이는 자가 되지 말라","공부해라","달려라"], a: 1, exp: "'말씀을 행하는 자가 되라!' — 듣기만 하지 말고 실천해야 해요!" },
+        { q: "야고보서에서 믿음과 행함의 관계는?", opts: ["행함만 있으면 돼요","믿음도 없으면 죽은 것 — 믿음은 행함으로 나타나요","믿음만 있으면 돼요","둘 다 필요 없어요"], a: 1, exp: "'행함이 없는 믿음은 죽은 것' — 진짜 믿음은 삶에서 나타나요!" }
+      ]
+    },
+
+    '베드로전서': {
+      '1-5': [
+        { q: "베드로전서 5장 7절은?", opts: ["스스로 해결해라","너희 염려를 다 주께 맡기라 이는 그가 너희를 돌보심이라","혼자 참아라","도망가라"], a: 1, exp: "'너희 염려를 다 주께 맡기라 그가 너희를 돌보심이라' — 걱정을 하나님께 드려요!" },
+        { q: "베드로전서에서 성도를 무엇이라고 불렀나요?", opts: ["보통 사람","택하신 족속, 왕같은 제사장, 거룩한 나라, 그의 소유가 된 백성","군인","학생"], a: 1, exp: "'너희는 택하신 족속이요 왕같은 제사장이요 거룩한 나라요 하나님의 백성' — 우리의 정체성이에요!" }
+      ]
+    },
+
+    '베드로후서': {
+      '1-3': [
+        { q: "베드로후서 1장 21절은?", opts: ["성경은 사람이 만든 것","예언은 언제든지 사람의 뜻으로 낸 것이 아니요 성령의 감동하심을 받은 사람들이 하나님께 받아 말한 것","성경은 재미없어요","성경은 오래됐어요"], a: 1, exp: "'성경은 성령님의 감동으로 된 것' — 성경은 하나님의 말씀이에요!" }
+      ]
+    },
+
+    '요한일서': {
+      '1-5': [
+        { q: "요한일서 4장 8절은?", opts: ["하나님은 강하다","하나님은 사랑이시라","하나님은 무서워","하나님은 크시다"], a: 1, exp: "'하나님은 사랑이시라' — 하나님의 본질이 사랑이에요!" },
+        { q: "요한일서 1장 9절은?", opts: ["죄는 괜찮아요","만일 우리가 우리 죄를 자백하면 그는 미쁘시고 의로우사 우리 죄를 사하시며 우리를 모든 불의에서 깨끗하게 하실 것이요","죄는 숨겨요","죄는 작아요"], a: 1, exp: "죄를 자백하면 하나님이 용서하신다 — 언제든지 하나님께 솔직하게 고백해요!" }
+      ]
+    },
+
+    '요한이서': {
+      '1-1': [
+        { q: "요한이서의 핵심 메시지는?", opts: ["전쟁해라","서로 사랑하고 진리 안에서 살아라","달려라","먹어라"], a: 1, exp: "요한이서는 서로 사랑하며 진리를 지키는 삶에 대해 짧지만 귀한 말씀이에요!" }
+      ]
+    },
+
+    '요한삼서': {
+      '1-1': [
+        { q: "요한삼서에서 칭찬받은 가이오는?", opts: ["부자여서","진리 안에서 행하고 형제들을 잘 돌보아서","힘이 세서","달리기를 잘 해서"], a: 1, exp: "가이오는 진리 안에서 살고 나그네 된 형제들을 잘 돌봐서 칭찬받았어요!" }
+      ]
+    },
+
+    '유다서': {
+      '1-1': [
+        { q: "유다서의 마지막 찬양은?", opts: ["싸워라","능히 너희를 보호하사 거침이 없게 하시고 너희로 그 영광 앞에 흠이 없이 기쁨으로 서게 하실 이에게 영광이 있을지어다","달려라","먹어라"], a: 1, exp: "유다서의 마지막 찬양 — '하나님이 우리를 흠 없이 기쁨으로 세우신다' — 아름다운 결론이에요!" }
+      ]
+    },
+
+    '요한계시록': {
+      '1-3': [
+        { q: "요한계시록은 누가 썼나요?", opts: ["바울","사도 요한 — 밧모 섬에서 환상을 보고 썼어요","베드로","야고보"], a: 1, exp: "사도 요한이 밧모 섬에서 유배 중에 예수님의 환상을 보고 요한계시록을 썼어요!" },
+        { q: "요한계시록 3장 20절은?", opts: ["도망가라","볼지어다 내가 문 밖에 서서 두드리노니 누구든지 내 음성을 듣고 문을 열면 내가 그에게로 들어가겠다","달려라","먹어라"], a: 1, exp: "'볼지어다 내가 문 밖에 서서 두드리노니' — 예수님이 우리 마음 문을 두드리세요!" }
+      ],
+      '4-11': [
+        { q: "요한계시록에서 보좌 앞 생물들이 계속 한 것은?", opts: ["전쟁했어요","거룩하다 거룩하다 거룩하다 주 하나님이여라고 찬양했어요","잠을 잤어요","달렸어요"], a: 1, exp: "네 생물이 밤낮 쉬지 않고 '거룩하다 거룩하다 거룩하다 전능하신 주 하나님'이라고 찬양했어요!" },
+        { q: "어린 양(예수님)이 봉인된 두루마리를 여실 수 있는 이유는?", opts: ["힘이 세서","유다 지파의 사자, 죽임당하신 어린 양으로서 승리하셨기 때문에","왕이여서","오래됐어서"], a: 1, exp: "오직 죽으시고 부활하신 예수님만이 역사를 여실 수 있어요!" }
+      ],
+      '12-19': [
+        { q: "요한계시록에서 짐승의 표는 몇 번인가요?", opts: ["333","444","666","777"], a: 2, exp: "666은 요한계시록에 나오는 짐승의 수로, 하나님을 대적하는 세력을 나타내요!" },
+        { q: "할렐루야 큰 무리의 찬양은 어떤 기쁜 일 때문인가요?", opts: ["전쟁에서 이겨서","어린 양(예수님)의 혼인 잔치가 이르러서","음식이 많아서","날씨가 좋아서"], a: 1, exp: "'할렐루야 주 우리 하나님이 통치하시도다 어린 양의 혼인 잔치가 이르렀도다!' — 기쁜 날이에요!" }
+      ],
+      '20-22': [
+        { q: "요한계시록의 마지막 장면은?", opts: ["전쟁","새 하늘과 새 땅 — 하나님이 함께하시는 완전한 세상이에요","슬픔","끝없는 싸움"], a: 1, exp: "'보라 내가 만물을 새롭게 하노라' — 새 하늘과 새 땅에서 하나님이 영원히 함께 사세요!" },
+        { q: "성경의 마지막 말씀은?", opts: ["끝이야","아멘 주 예수여 오시옵소서","달려라","먹어라"], a: 1, exp: "성경의 마지막 말씀은 '아멘 주 예수여 오시옵소서' — 예수님 다시 오심을 기대해요!" }
+      ]
     }
   };
 
-  // 퀴즈 DB 파싱 함수: "창세기 1 ~ 3장" → 책명, 시작장, 끝장 추출
+  // 자동 퀴즈 로드 (입력 후 0.8초 뒤 자동 실행)
+  let quizLoadTimer = null;
+  function scheduleQuizLoad() {
+    clearTimeout(quizLoadTimer);
+    quizLoadTimer = setTimeout(() => loadTodayQuiz(), 800);
+  }
+
+  // 퀴즈 DB 파싱 함수
   function parseBibleRange(rangeText) {
-    // 지원 형식: "창세기 1 ~ 3장", "출애굽기 4~6장", "창세기 7장" 등
     const bookNames = Object.keys(QUIZ_DB);
     let book = null;
-    for (const b of bookNames) {
+    // 긴 이름 우선 매칭 (열왕기상/열왕기하 구분)
+    const sorted = [...bookNames].sort((a,b) => b.length - a.length);
+    for (const b of sorted) {
       if (rangeText.includes(b)) { book = b; break; }
     }
     if (!book) return null;
@@ -706,11 +1816,16 @@
       if (cloud) {
         familyData = cloud.family || DEFAULT_FAMILY;
         weeklyStamps = cloud.stamps || [false,false,false,false,false,false];
+        initBibleProgress(cloud.bibleProgress || null);
+        initPrayer(cloud.prayerData || null);
         statusTxt.textContent = '✅ 클라우드 연결됨';
       } else {
         familyData = JSON.parse(localStorage.getItem('bible_adventure_family')) || DEFAULT_FAMILY;
         weeklyStamps = JSON.parse(localStorage.getItem('bible_adventure_weekly_stamps')) || [false,false,false,false,false,false];
-        await saveData(); // 로컬 데이터를 Firebase에 올리기
+        const savedProgress = JSON.parse(localStorage.getItem('bible_progress'));
+        initBibleProgress(savedProgress);
+        initPrayer(JSON.parse(localStorage.getItem('bible_prayer')));
+        await saveData();
         statusTxt.textContent = '✅ 첫 업로드 완료';
       }
     } else {
@@ -718,12 +1833,16 @@
       statusTxt.textContent = '📱 오프라인 모드 (Firebase 미설정)';
       familyData = JSON.parse(localStorage.getItem('bible_adventure_family')) || DEFAULT_FAMILY;
       weeklyStamps = JSON.parse(localStorage.getItem('bible_adventure_weekly_stamps')) || [false,false,false,false,false,false];
+      const savedProgress = JSON.parse(localStorage.getItem('bible_progress'));
+      initBibleProgress(savedProgress);
+      initPrayer(JSON.parse(localStorage.getItem('bible_prayer')));
     }
 
     renderFamily();
     renderWeeklyStamps();
     renderRaceTrack();
     updateTimerDisplay();
+    loadTodayQuiz(); // 앱 시작 시 퀴즈 자동 로드
   }
 
   async function saveData() {
@@ -757,12 +1876,14 @@
     familyData.forEach((m, i) => {
       const leftPct = 5 + (m.talents / maxTalents) * 80;
       const laneIdx = i % lanes.length;
+      const carIcon = getCarIcon(m);
+      const poliName = getPoliName(m);
       const carEl = document.createElement('div');
       carEl.className = 'car';
       carEl.style.left = `${leftPct}%`;
       carEl.style.top = `${lanes[laneIdx]}%`;
       carEl.style.animationDelay = `${i * 0.15}s`;
-      carEl.innerHTML = `<div style="font-size:0.5rem;text-align:center;color:#fff;text-shadow:0 1px 2px #000;font-weight:bold;line-height:1;">${m.name}</div>${m.car}`;
+      carEl.innerHTML = `<div style="font-size:0.6rem;text-align:center;color:#fff;text-shadow:0 1px 2px #000;font-weight:900;background:rgba(0,0,0,0.4);border-radius:4px;padding:1px 3px;margin-bottom:1px;">${m.name}(${poliName})</div>${carIcon}`;
       carsDiv.appendChild(carEl);
     });
 
@@ -770,7 +1891,8 @@
     rankDiv.innerHTML = sorted.map((m, rank) => `
       <div class="text-center p-2 rounded-xl ${rank===0?'bg-yellow-100 border-2 border-yellow-400':rank===1?'bg-gray-100 border border-gray-300':rank===2?'bg-orange-50 border border-orange-200':'bg-slate-50 border border-slate-200'}">
         <div class="text-lg">${['🥇','🥈','🥉','4️⃣','5️⃣'][rank]}</div>
-        <div class="text-xs font-bold">${m.car} ${m.name}</div>
+        <div class="text-xs font-bold">${getCarIcon(m)} ${m.name}</div>
+        <div class="text-[10px] text-gray-400">${getPoliName(m)}</div>
         <div class="text-xs text-amber-700 font-bold">${m.talents.toLocaleString()}💰</div>
       </div>
     `).join('');
@@ -790,6 +1912,7 @@
         ? `<img src="${m.photo}" class="w-16 h-16 rounded-full object-cover border-4 border-amber-300">`
         : `<span class="text-4xl">${m.emoji}</span>`;
       const pct = Math.min(100, (weeklyCount/5)*100);
+      const carIcon = getCarIcon(m);
 
       container.innerHTML += `
         <div class="p-4 bg-amber-50 rounded-2xl flex items-center justify-between border-2 border-amber-100 bounce-hover">
@@ -801,11 +1924,14 @@
               </span>
             </div>
             <div>
-              <div class="flex items-baseline space-x-2">
+              <div class="flex items-center space-x-2 flex-wrap">
                 <span class="font-black text-lg title-font">${m.name}</span>
                 <span class="text-xs font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full">${m.age}</span>
                 <span class="text-xs font-bold text-orange-600">Lv.${m.level}</span>
-                <span class="text-xs">${m.car}</span>
+                <button onclick="openCarModal('${m.id}')" title="자동차 바꾸기"
+                  class="text-base leading-none hover:scale-125 transition-transform cursor-pointer bg-sky-50 border border-sky-200 rounded-lg px-1.5 py-0.5">
+                  ${carIcon}
+                </button>
               </div>
               <div class="text-xs text-gray-500 mt-0.5">
                 <i class="fa-solid fa-arrows-up-down text-emerald-600 mr-1"></i>키: <strong>${m.height.toFixed(1)}cm</strong>
@@ -878,7 +2004,20 @@
   // ============================================================
   // 5분 전 방송
   // ============================================================
+  let alertAudio = null;
+
   function triggerFiveMinuteAlert() {
+    // MP3 파일이 삽입된 경우 재생, 없으면 기본 TTS/효과음 사용
+    if (typeof ALERT_AUDIO_SRC !== 'undefined' && ALERT_AUDIO_SRC) {
+      // 이미 재생 중이면 정지
+      if (alertAudio) { alertAudio.pause(); alertAudio.currentTime = 0; }
+      alertAudio = new Audio(ALERT_AUDIO_SRC);
+      alertAudio.play().catch(e => console.warn('오디오 재생 실패:', e));
+      showNotification("🎵 5분전 방송 음악이 재생됩니다!");
+      return;
+    }
+
+    // MP3 없을 때 기본 효과음 + TTS
     const audioCtx = new (window.AudioContext||window.webkitAudioContext)();
     [[523.25,0],[659.25,0.15],[783.99,0.3],[1046.5,0.45]].forEach(([f,d])=>{
       const o=audioCtx.createOscillator(), g=audioCtx.createGain();
@@ -1037,6 +2176,166 @@
   }
 
   // ============================================================
+  // 🙏 가족 기도제목
+  // ============================================================
+  let prayerData = {}; // { "2024-06-04": "기도제목 내용..." }
+
+  function getTodayStr() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function initPrayer(saved) {
+    prayerData = saved || {};
+    // 날짜 기본값: 오늘
+    const dateInput = document.getElementById('prayer-date');
+    if (dateInput) {
+      dateInput.value = getTodayStr();
+      dateInput.addEventListener('change', loadPrayerForDate);
+    }
+    loadPrayerForDate();
+    renderPrayerHistory();
+  }
+
+  function loadPrayerForDate() {
+    const date = document.getElementById('prayer-date')?.value;
+    const textarea = document.getElementById('prayer-text');
+    if (textarea && date) {
+      textarea.value = prayerData[date] || '';
+    }
+  }
+
+  async function savePrayer() {
+    const date = document.getElementById('prayer-date')?.value;
+    const text = document.getElementById('prayer-text')?.value?.trim();
+    if (!date) return;
+
+    if (text) {
+      prayerData[date] = text;
+    } else {
+      delete prayerData[date]; // 내용 없으면 삭제
+    }
+
+    // Firebase 저장
+    localStorage.setItem('bible_prayer', JSON.stringify(prayerData));
+    if (window._firebaseSave) {
+      const current = await window._firebaseLoad() || {};
+      current.prayerData = prayerData;
+      await window._firebaseSave(current);
+    }
+
+    renderPrayerHistory();
+    showNotification(text ? `🙏 ${date} 기도제목이 저장되었습니다!` : `🗑️ ${date} 기도제목이 삭제되었습니다.`);
+  }
+
+  function renderPrayerHistory() {
+    const historyDiv = document.getElementById('prayer-history');
+    const countEl = document.getElementById('prayer-count');
+    if (!historyDiv) return;
+
+    const entries = Object.entries(prayerData)
+      .sort(([a], [b]) => b.localeCompare(a)); // 최신순
+
+    if (countEl) countEl.textContent = `${entries.length}건`;
+
+    if (entries.length === 0) {
+      historyDiv.innerHTML = `<p class="text-xs text-gray-400 text-center py-3">아직 저장된 기도제목이 없어요 🙏</p>`;
+      return;
+    }
+
+    historyDiv.innerHTML = entries.map(([date, text]) => {
+      const isToday = date === getTodayStr();
+      const [year, month, day] = date.split('-');
+      const dayOfWeek = ['일','월','화','수','목','금','토'][new Date(date).getDay()];
+      const preview = text.length > 50 ? text.slice(0, 50) + '...' : text;
+      return `
+        <div class="p-3 rounded-2xl border cursor-pointer hover:shadow-md transition ${isToday ? 'bg-purple-50 border-purple-300' : 'bg-gray-50 border-gray-200'}"
+          onclick="selectPrayerDate('${date}')">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-black ${isToday ? 'text-purple-700' : 'text-gray-600'}">
+              ${month}월 ${day}일 (${dayOfWeek}) ${isToday ? '🌟 오늘' : ''}
+            </span>
+            <button onclick="event.stopPropagation(); deletePrayer('${date}')"
+              class="text-[10px] text-red-400 hover:text-red-600">삭제</button>
+          </div>
+          <p class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">${preview}</p>
+        </div>`;
+    }).join('');
+  }
+
+  function selectPrayerDate(date) {
+    const dateInput = document.getElementById('prayer-date');
+    const textarea = document.getElementById('prayer-text');
+    if (dateInput) dateInput.value = date;
+    if (textarea) textarea.value = prayerData[date] || '';
+    textarea?.focus();
+  }
+
+  async function deletePrayer(date) {
+    if (!confirm(`${date} 기도제목을 삭제할까요?`)) return;
+    delete prayerData[date];
+    localStorage.setItem('bible_prayer', JSON.stringify(prayerData));
+    if (window._firebaseSave) {
+      const current = await window._firebaseLoad() || {};
+      current.prayerData = prayerData;
+      await window._firebaseSave(current);
+    }
+    loadPrayerForDate();
+    renderPrayerHistory();
+    showNotification('🗑️ 기도제목이 삭제되었습니다.');
+  }
+
+  // ============================================================
+  // 🚗 자동차 선택
+  // ============================================================
+  // 로보카폴리 캐릭터 매핑 (이름/ID 둘 다 키로)
+  const POLI_CAR_MAP = {
+    '온유':'🚓', '기쁨':'🚑', '주안':'🚒', '하선':'🚁', '창륜':'🚐'
+  };
+  const POLI_NAME_MAP = {
+    '온유':'폴리', '기쁨':'앰버', '주안':'로이', '하선':'헬리', '창륜':'브루노'
+  };
+  // 하위 호환성 유지
+  const DEFAULT_CARS = POLI_CAR_MAP;
+  const POLI_CHARS   = POLI_NAME_MAP;
+
+  function getCarIcon(m) {
+    // car 값이 유효한 이모지인지 확인 (undefined 문자열 방지)
+    if (m.car && typeof m.car === 'string' && m.car !== 'undefined' && m.car.length > 0) {
+      return m.car;
+    }
+    return POLI_CAR_MAP[m.id] || POLI_CAR_MAP[m.name] || '🚗';
+  }
+  function getPoliName(m) {
+    return POLI_NAME_MAP[m.id] || POLI_NAME_MAP[m.name] || m.name || '';
+  }
+  let carSelectTargetId = null;
+
+  function openCarModal(memberId) {
+    carSelectTargetId = memberId;
+    const m = familyData.find(m => m.id === memberId);
+    document.getElementById('car-select-name').textContent = `${m ? m.name : ''} — 현재: ${m?.car || '미선택'}`;
+    document.getElementById('car-select-modal').classList.remove('hidden');
+  }
+
+  function closeCarModal() {
+    document.getElementById('car-select-modal').classList.add('hidden');
+    carSelectTargetId = null;
+  }
+
+  async function selectCar(carEmoji) {
+    if (!carSelectTargetId) return;
+    const m = familyData.find(m => m.id === carSelectTargetId);
+    if (m) {
+      m.car = carEmoji;
+      await saveData();
+      renderFamily();
+      renderRaceTrack();
+      closeCarModal();
+      showNotification(`${m.name}의 차가 ${carEmoji} 로 바뀌었어요!`);
+    }
+  }
+
+  // ============================================================
   // 알림 & 리셋
   // ============================================================
   function showNotification(text){
@@ -1053,6 +2352,325 @@
       weeklyStamps=[false,false,false,false,false,false];
       await saveData(); renderFamily(); renderWeeklyStamps(); renderRaceTrack();
       showNotification("🔄 전체 초기화 완료!");
+    }
+  }
+
+  // ============================================================
+  // 🎵 5분전 방송 오디오 (MP3_HTML에_삽입.ps1 실행 후 자동 채워짐)
+  // const ALERT_AUDIO_SRC = "data:audio/mp3;base64,..."; ← 스크립트가 여기에 삽입
+  // ============================================================
+
+  // ============================================================
+  // 🔐 관리자 PIN 시스템
+  // ============================================================
+  let currentPin = '';
+  let adminPin = localStorage.getItem('admin_pin') || '0823';
+  let isAdminOpen = false;
+  let adminSelectedBook = null;
+
+  function openAdminLogin() {
+    if (isAdminOpen) { closeAdminPanel(); return; }
+    currentPin = '';
+    updatePinDots();
+    document.getElementById('pin-error').classList.add('hidden');
+    document.getElementById('admin-login-modal').classList.remove('hidden');
+  }
+
+  function closeAdminLogin() {
+    document.getElementById('admin-login-modal').classList.add('hidden');
+    currentPin = '';
+    updatePinDots();
+  }
+
+  function pinInput(digit) {
+    if (currentPin.length >= 4) return;
+    currentPin += digit;
+    updatePinDots();
+    if (currentPin.length === 4) {
+      setTimeout(() => {
+        if (currentPin === adminPin) {
+          closeAdminLogin();
+          openAdminPanel();
+        } else {
+          document.getElementById('pin-error').classList.remove('hidden');
+          currentPin = '';
+          updatePinDots();
+        }
+      }, 200);
+    }
+  }
+
+  function pinClear() {
+    currentPin = currentPin.slice(0, -1);
+    updatePinDots();
+    document.getElementById('pin-error').classList.add('hidden');
+  }
+
+  function updatePinDots() {
+    for (let i = 0; i < 4; i++) {
+      const dot = document.getElementById(`pin-dot-${i}`);
+      if (i < currentPin.length) {
+        dot.className = 'w-4 h-4 rounded-full border-2 border-amber-500 bg-amber-500';
+      } else {
+        dot.className = 'w-4 h-4 rounded-full border-2 border-slate-300 bg-white';
+      }
+    }
+  }
+
+  function openAdminPanel() {
+    isAdminOpen = true;
+    document.getElementById('admin-panel').classList.remove('hidden');
+    document.getElementById('admin-btn-label').textContent = '관리자 ✓';
+    renderAdminBibleMap();
+  }
+
+  function closeAdminPanel() {
+    isAdminOpen = false;
+    document.getElementById('admin-panel').classList.add('hidden');
+    document.getElementById('admin-btn-label').textContent = '관리자';
+    adminSelectedBook = null;
+  }
+
+  function changePin() {
+    const newPin = document.getElementById('new-pin-input').value;
+    if (newPin.length !== 4 || isNaN(newPin)) {
+      alert('4자리 숫자로 입력해주세요!'); return;
+    }
+    adminPin = newPin;
+    localStorage.setItem('admin_pin', adminPin);
+    document.getElementById('new-pin-input').value = '';
+    showNotification('🔑 비밀번호가 변경되었습니다!');
+  }
+
+  // 관리자 패널 내 성경 책 목록
+  function renderAdminBibleMap() {
+    renderAdminBookSection('admin-ot-books', BIBLE_BOOKS.ot);
+    renderAdminBookSection('admin-nt-books', BIBLE_BOOKS.nt);
+  }
+
+  function renderAdminBookSection(containerId, books) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    books.forEach(book => {
+      const progress = bibleProgress[book.name] || {};
+      const readCount = Object.values(progress).filter(Boolean).length;
+      const isComplete = readCount === book.ch;
+      const isInProgress = readCount > 0 && !isComplete;
+
+      const btn = document.createElement('button');
+      btn.className = `text-[10px] font-bold py-1.5 px-1 rounded-lg border transition text-center ${
+        isComplete ? 'bg-emerald-500 border-emerald-600 text-white' :
+        isInProgress ? 'bg-yellow-400 border-yellow-500 text-yellow-900' :
+        'bg-slate-700 border-slate-600 text-slate-300 hover:border-emerald-500'
+      }`;
+      btn.textContent = book.name;
+      btn.onclick = () => openAdminChapterArea(book);
+      container.appendChild(btn);
+    });
+  }
+
+  function openAdminChapterArea(book) {
+    adminSelectedBook = book;
+    const area = document.getElementById('admin-chapter-area');
+    area.classList.remove('hidden');
+    document.getElementById('admin-book-title').textContent = `📖 ${book.name} (${book.ch}장)`;
+    renderAdminChapterGrid(book);
+    area.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+
+  function renderAdminChapterGrid(book) {
+    const grid = document.getElementById('admin-chapter-grid');
+    grid.innerHTML = '';
+    const progress = bibleProgress[book.name] || {};
+    for (let i = 1; i <= book.ch; i++) {
+      const isRead = progress[i] === true;
+      const btn = document.createElement('button');
+      btn.className = `text-xs font-bold py-1.5 rounded-lg border transition ${
+        isRead ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-slate-600 text-slate-300 border-slate-500 hover:border-emerald-400'
+      }`;
+      btn.textContent = i;
+      btn.onclick = async () => {
+        if (!bibleProgress[book.name]) bibleProgress[book.name] = {};
+        bibleProgress[book.name][i] = !bibleProgress[book.name][i];
+        renderAdminChapterGrid(book);
+        renderBibleMap();
+        renderAdminBibleMap();
+        await saveBibleProgress();
+      };
+      grid.appendChild(btn);
+    }
+  }
+
+  async function adminMarkAll(val) {
+    if (!adminSelectedBook) return;
+    if (!bibleProgress[adminSelectedBook.name]) bibleProgress[adminSelectedBook.name] = {};
+    for (let i = 1; i <= adminSelectedBook.ch; i++) bibleProgress[adminSelectedBook.name][i] = val;
+    renderAdminChapterGrid(adminSelectedBook);
+    renderBibleMap();
+    renderAdminBibleMap();
+    await saveBibleProgress();
+    showNotification(`📖 ${adminSelectedBook.name} ${val ? '전체 완독' : '전체 취소'} 처리 완료!`);
+  }
+
+  // ============================================================
+  // 📜 성경 통독 지도
+  // ============================================================
+  const BIBLE_BOOKS = {
+    ot: [
+      {name:'창세기', ch:50}, {name:'출애굽기', ch:40}, {name:'레위기', ch:27},
+      {name:'민수기', ch:36}, {name:'신명기', ch:34}, {name:'여호수아', ch:24},
+      {name:'사사기', ch:21}, {name:'룻기', ch:4}, {name:'사무엘상', ch:31},
+      {name:'사무엘하', ch:24}, {name:'열왕기상', ch:22}, {name:'열왕기하', ch:25},
+      {name:'역대상', ch:29}, {name:'역대하', ch:36}, {name:'에스라', ch:10},
+      {name:'느헤미야', ch:13}, {name:'에스더', ch:10}, {name:'욥기', ch:42},
+      {name:'시편', ch:150}, {name:'잠언', ch:31}, {name:'전도서', ch:12},
+      {name:'아가', ch:8}, {name:'이사야', ch:66}, {name:'예레미야', ch:52},
+      {name:'예레미야애가', ch:5}, {name:'에스겔', ch:48}, {name:'다니엘', ch:12},
+      {name:'호세아', ch:14}, {name:'요엘', ch:3}, {name:'아모스', ch:9},
+      {name:'오바댜', ch:1}, {name:'요나', ch:4}, {name:'미가', ch:7},
+      {name:'나훔', ch:3}, {name:'하박국', ch:3}, {name:'스바냐', ch:3},
+      {name:'학개', ch:2}, {name:'스가랴', ch:14}, {name:'말라기', ch:4}
+    ],
+    nt: [
+      {name:'마태복음', ch:28}, {name:'마가복음', ch:16}, {name:'누가복음', ch:24},
+      {name:'요한복음', ch:21}, {name:'사도행전', ch:28}, {name:'로마서', ch:16},
+      {name:'고린도전서', ch:16}, {name:'고린도후서', ch:13}, {name:'갈라디아서', ch:6},
+      {name:'에베소서', ch:6}, {name:'빌립보서', ch:4}, {name:'골로새서', ch:4},
+      {name:'데살로니가전서', ch:5}, {name:'데살로니가후서', ch:3}, {name:'디모데전서', ch:6},
+      {name:'디모데후서', ch:4}, {name:'디도서', ch:3}, {name:'빌레몬서', ch:1},
+      {name:'히브리서', ch:13}, {name:'야고보서', ch:5}, {name:'베드로전서', ch:5},
+      {name:'베드로후서', ch:3}, {name:'요한일서', ch:5}, {name:'요한이서', ch:1},
+      {name:'요한삼서', ch:1}, {name:'유다서', ch:1}, {name:'요한계시록', ch:22}
+    ]
+  };
+
+  // 초기 완독 데이터 (열왕기상 11장까지)
+  const DEFAULT_BIBLE_PROGRESS = {};
+  const COMPLETED_BOOKS_OT = ['창세기','출애굽기','레위기','민수기','신명기','여호수아','사사기','룻기','사무엘상','사무엘하'];
+  COMPLETED_BOOKS_OT.forEach(b => {
+    const book = BIBLE_BOOKS.ot.find(x => x.name === b);
+    if (book) {
+      DEFAULT_BIBLE_PROGRESS[b] = {};
+      for (let i = 1; i <= book.ch; i++) DEFAULT_BIBLE_PROGRESS[b][i] = true;
+    }
+  });
+  // 열왕기상 1~11장
+  DEFAULT_BIBLE_PROGRESS['열왕기상'] = {};
+  for (let i = 1; i <= 11; i++) DEFAULT_BIBLE_PROGRESS['열왕기상'][i] = true;
+
+  let bibleProgress = {};
+  let selectedBook = null;
+
+  function initBibleProgress(savedProgress) {
+    bibleProgress = savedProgress || JSON.parse(JSON.stringify(DEFAULT_BIBLE_PROGRESS));
+    renderBibleMap();
+  }
+
+  function renderBibleMap() {
+    renderBookSection('ot-books', BIBLE_BOOKS.ot);
+    renderBookSection('nt-books', BIBLE_BOOKS.nt);
+    updateOverallProgress();
+  }
+
+  function renderBookSection(containerId, books) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    books.forEach(book => {
+      const progress = bibleProgress[book.name] || {};
+      const readCount = Object.values(progress).filter(Boolean).length;
+      const isComplete = readCount === book.ch;
+      const isInProgress = readCount > 0 && !isComplete;
+      const pct = Math.round((readCount / book.ch) * 100);
+
+      let bgClass, textClass, borderClass;
+      if (isComplete) {
+        bgClass = 'bg-emerald-500'; textClass = 'text-white'; borderClass = 'border-emerald-600';
+      } else if (isInProgress) {
+        bgClass = 'bg-yellow-100'; textClass = 'text-yellow-800'; borderClass = 'border-yellow-400';
+      } else {
+        bgClass = 'bg-gray-100'; textClass = 'text-gray-500'; borderClass = 'border-gray-200';
+      }
+
+      const div = document.createElement('div');
+      div.className = `relative cursor-pointer rounded-xl border-2 ${borderClass} ${bgClass} p-1.5 text-center hover:scale-105 transition-transform`;
+      div.onclick = () => openBookDetail(book);
+      div.innerHTML = `
+        <div class="text-[10px] font-black ${textClass} leading-tight">${book.name}</div>
+        <div class="text-[9px] ${isComplete ? 'text-emerald-100' : isInProgress ? 'text-yellow-600' : 'text-gray-400'} mt-0.5">
+          ${isComplete ? '✅완독' : isInProgress ? `${readCount}/${book.ch}장` : `${book.ch}장`}
+        </div>
+        ${isInProgress ? `<div class="w-full bg-yellow-200 h-1 rounded-full mt-1 overflow-hidden"><div class="bg-yellow-500 h-full" style="width:${pct}%"></div></div>` : ''}
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  function updateOverallProgress() {
+    const allBooks = [...BIBLE_BOOKS.ot, ...BIBLE_BOOKS.nt];
+    const totalCh = allBooks.reduce((s, b) => s + b.ch, 0);
+    const readCh = allBooks.reduce((s, b) => {
+      const p = bibleProgress[b.name] || {};
+      return s + Object.values(p).filter(Boolean).length;
+    }, 0);
+    const pct = Math.round((readCh / totalCh) * 100);
+    const el = document.getElementById('bible-overall-pct');
+    const bar = document.getElementById('bible-overall-bar');
+    if (el) el.textContent = pct;
+    if (bar) bar.style.width = pct + '%';
+  }
+
+  function openBookDetail(book) {
+    selectedBook = book;
+    document.getElementById('book-detail').classList.remove('hidden');
+    document.getElementById('book-detail-title').textContent = `📖 ${book.name} (총 ${book.ch}장)`;
+    renderChapterGrid(book);
+    document.getElementById('book-detail').scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+
+  function closeBookDetail() {
+    document.getElementById('book-detail').classList.add('hidden');
+    selectedBook = null;
+  }
+
+  function renderChapterGrid(book) {
+    const grid = document.getElementById('chapter-grid');
+    grid.innerHTML = '';
+    const progress = bibleProgress[book.name] || {};
+    for (let i = 1; i <= book.ch; i++) {
+      const isRead = progress[i] === true;
+      const btn = document.createElement('button');
+      btn.className = `text-xs font-bold py-1.5 rounded-lg border transition ${isRead ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white text-gray-500 border-gray-200 hover:border-emerald-400'}`;
+      btn.textContent = i;
+      btn.onclick = () => toggleChapter(book, i);
+      grid.appendChild(btn);
+    }
+  }
+
+  async function toggleChapter(book, chNum) {
+    if (!bibleProgress[book.name]) bibleProgress[book.name] = {};
+    bibleProgress[book.name][chNum] = !bibleProgress[book.name][chNum];
+    renderChapterGrid(book);
+    renderBibleMap();
+    await saveBibleProgress();
+  }
+
+  async function markAllChapters(val) {
+    if (!selectedBook) return;
+    if (!bibleProgress[selectedBook.name]) bibleProgress[selectedBook.name] = {};
+    for (let i = 1; i <= selectedBook.ch; i++) bibleProgress[selectedBook.name][i] = val;
+    renderChapterGrid(selectedBook);
+    renderBibleMap();
+    await saveBibleProgress();
+  }
+
+  async function saveBibleProgress() {
+    localStorage.setItem('bible_progress', JSON.stringify(bibleProgress));
+    if (window._firebaseSave) {
+      const current = await window._firebaseLoad() || {};
+      current.bibleProgress = bibleProgress;
+      await window._firebaseSave(current);
     }
   }
 

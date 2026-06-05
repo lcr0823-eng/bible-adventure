@@ -104,8 +104,12 @@
 
     .car {
       position: absolute;
-      font-size: 2.4rem;
+      transform: translateY(-50%);
       transition: left 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .car-inner {
+      font-size: 2.4rem;
+      line-height: 1;
       filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
       animation: carBounce 0.4s ease-in-out infinite alternate;
     }
@@ -341,8 +345,8 @@
         <!-- 수치 직접 입력 -->
         <div class="bg-slate-700 rounded-xl p-3 mb-3 flex items-center gap-3">
           <span id="admin-amount-label" class="text-slate-300 text-sm flex-1">달란트 지급량</span>
-          <input type="number" id="admin-amount" value="300" min="1" step="50"
-            class="w-28 bg-slate-600 text-white text-right font-bold rounded-lg px-3 py-1.5 text-base border border-slate-500">
+          <input type="text" inputmode="decimal" id="admin-amount" value="300"
+            class="w-28 bg-slate-600 text-white text-right font-bold rounded-lg px-3 py-1.5 text-base border border-slate-500" placeholder="숫자 또는 텍스트">
           <span id="admin-amount-unit" class="text-slate-400 text-sm">💰</span>
         </div>
 
@@ -459,10 +463,34 @@
     </div>
   </div>
 
-  <main class="max-w-7xl mx-auto px-4 mt-6 space-y-6">
+  <!-- ===== 탭 네비게이션 ===== -->
+  <nav class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-1 flex">
+      <button onclick="switchTab('home')"    id="tab-home"    class="tab-btn flex-1 flex flex-col items-center py-2 px-1 transition border-b-4 border-amber-500 text-amber-600">
+        <span class="text-2xl leading-none">🏠</span><span class="text-[12px] font-bold mt-0.5">홈</span>
+      </button>
+      <button onclick="switchTab('reading')" id="tab-reading" class="tab-btn flex-1 flex flex-col items-center py-2 px-1 transition border-b-4 border-transparent text-slate-400">
+        <span class="text-2xl leading-none">📖</span><span class="text-[12px] font-bold mt-0.5">통독</span>
+      </button>
+      <button onclick="switchTab('quiz')"    id="tab-quiz"    class="tab-btn flex-1 flex flex-col items-center py-2 px-1 transition border-b-4 border-transparent text-slate-400">
+        <span class="text-2xl leading-none">🎯</span><span class="text-[12px] font-bold mt-0.5">퀴즈</span>
+      </button>
+      <button onclick="switchTab('store')"   id="tab-store"   class="tab-btn flex-1 flex flex-col items-center py-2 px-1 transition border-b-4 border-transparent text-slate-400">
+        <span class="text-2xl leading-none">🛒</span><span class="text-[12px] font-bold mt-0.5">상점</span>
+      </button>
+      <button onclick="switchTab('prayer')"  id="tab-prayer"  class="tab-btn flex-1 flex flex-col items-center py-2 px-1 transition border-b-4 border-transparent text-slate-400">
+        <span class="text-2xl leading-none">🙏</span><span class="text-[12px] font-bold mt-0.5">기도</span>
+      </button>
+      <button onclick="switchTab('all')"     id="tab-all"     class="tab-btn flex-1 flex flex-col items-center py-2 px-1 transition border-b-4 border-transparent text-slate-400">
+        <span class="text-2xl leading-none">📋</span><span class="text-[12px] font-bold mt-0.5">전체</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="max-w-7xl mx-auto px-4 mt-4 pb-8">
 
     <!-- 알림 박스 -->
-    <div id="system-alert" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-md flex justify-between items-center">
+    <div id="system-alert" class="hidden bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-md flex justify-between items-center mb-4">
       <div class="flex items-center space-x-2">
         <i class="fa-solid fa-circle-info text-xl"></i>
         <span id="system-alert-text" class="font-bold"></span>
@@ -470,263 +498,272 @@
       <button onclick="closeAlert()" class="text-yellow-700 font-bold text-xl">×</button>
     </div>
 
-    <!-- ===== 🏎️ 레이싱 진도판 ===== -->
-    <div class="bg-white rounded-3xl p-5 shadow-xl border-4 border-sky-200">
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="text-xl title-font text-sky-700 flex items-center space-x-2">
-          <span>🏎️ 달란트 레이싱 — 성경통독 그랑프리!</span>
-        </h2>
-        <span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">달란트 많을수록 앞서요</span>
-      </div>
-
+    <!-- ===== 🏠 탭: 홈 ===== -->
+    <div id="tab-panel-home" class="space-y-6">
       <!-- 레이싱 트랙 -->
-      <div class="race-track" style="height: clamp(200px, 40vw, 340px);">
-        <!-- 구름 -->
-        <div class="cloud" style="top:5%; animation-delay:0s;">☁️</div>
-        <div class="cloud" style="top:12%; animation-delay:3s;">☁️</div>
-        <div class="cloud" style="top:3%; animation-delay:6s; font-size:1.2rem;">☁️</div>
-
-        <!-- 나무 -->
-        <div class="tree" style="left:5%; top:91%;">🌲</div>
-        <div class="tree" style="left:20%; top:91%;">🌳</div>
-        <div class="tree" style="left:40%; top:91%;">🌲</div>
-        <div class="tree" style="left:60%; top:91%;">🌳</div>
-        <div class="tree" style="left:80%; top:91%;">🌲</div>
-        <div class="tree" style="right:2%; top:88%;">🏁</div>
-
-        <!-- 레인 구분선 4개 → 5레인 -->
-        <div class="road-lane-line" style="top:44%;"></div>
-        <div class="road-lane-line" style="top:55%;"></div>
-        <div class="road-lane-line" style="top:66%;"></div>
-        <div class="road-lane-line" style="top:77%;"></div>
-
-        <!-- 자동차들 (JS가 위치 계산) -->
-        <div id="race-cars"></div>
-      </div>
-
-      <!-- 순위표 -->
-      <div id="race-ranking" class="mt-3 grid grid-cols-5 gap-2"></div>
-    </div>
-
-    <!-- ===== 📜 성경 통독 지도 ===== -->
-    <div class="bg-white rounded-3xl p-5 shadow-xl border-4 border-emerald-200">
-      <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
-        <h2 class="text-xl title-font text-emerald-700 flex items-center space-x-2">
-          <span>📜 성경 통독 지도</span>
-        </h2>
-        <div class="flex items-center space-x-3">
-          <div class="flex items-center space-x-1 text-xs">
-            <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span><span class="text-gray-500">완독</span>
-            <span class="w-3 h-3 rounded-full bg-yellow-400 inline-block ml-2"></span><span class="text-gray-500">진행중</span>
-            <span class="w-3 h-3 rounded-full bg-gray-200 inline-block ml-2"></span><span class="text-gray-500">미독</span>
-          </div>
-          <div class="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-            전체 진행률: <span id="bible-overall-pct">0</span>%
-          </div>
-        </div>
-      </div>
-
-      <!-- 전체 진행 바 -->
-      <div class="w-full bg-gray-100 h-3 rounded-full overflow-hidden mb-4">
-        <div id="bible-overall-bar" class="bg-gradient-to-r from-emerald-400 to-green-500 h-full rounded-full transition-all duration-700" style="width:0%"></div>
-      </div>
-
-      <!-- 구약 -->
-      <div class="mb-4">
-        <h3 class="text-sm font-black text-slate-600 mb-2">📖 구약성경</h3>
-        <div id="ot-books" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1.5"></div>
-      </div>
-
-      <!-- 신약 -->
-      <div>
-        <h3 class="text-sm font-black text-slate-600 mb-2">✝️ 신약성경</h3>
-        <div id="nt-books" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1.5"></div>
-      </div>
-
-      <!-- 책 클릭 시 장별 현황 팝업 -->
-      <div id="book-detail" class="hidden mt-4 p-4 bg-emerald-50 rounded-2xl border border-emerald-200">
+      <div class="bg-white rounded-3xl p-5 shadow-xl border-4 border-sky-200">
         <div class="flex justify-between items-center mb-3">
-          <h4 id="book-detail-title" class="font-black text-emerald-800 text-base"></h4>
-          <div class="flex space-x-2">
-            <button onclick="markAllChapters(true)" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg">전체 완독✅</button>
-            <button onclick="markAllChapters(false)" class="text-xs bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded-lg">전체 취소</button>
-            <button onclick="closeBookDetail()" class="text-xs bg-slate-300 hover:bg-slate-400 text-slate-700 px-3 py-1 rounded-lg">닫기</button>
-          </div>
+          <h2 class="text-xl title-font text-sky-700 flex items-center space-x-2">
+            <span>🏎️ 달란트 레이싱 — 성경통독 그랑프리!</span>
+          </h2>
+          <span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">달란트 많을수록 앞서요</span>
         </div>
-        <div id="chapter-grid" class="grid grid-cols-10 gap-1"></div>
+        <div class="race-track" style="height: clamp(200px, 40vw, 340px);">
+          <div class="cloud" style="top:5%; animation-delay:0s;">☁️</div>
+          <div class="cloud" style="top:12%; animation-delay:3s;">☁️</div>
+          <div class="cloud" style="top:3%; animation-delay:6s; font-size:1.2rem;">☁️</div>
+          <div class="tree" style="left:5%; top:91%;">🌲</div>
+          <div class="tree" style="left:20%; top:91%;">🌳</div>
+          <div class="tree" style="left:40%; top:91%;">🌲</div>
+          <div class="tree" style="left:60%; top:91%;">🌳</div>
+          <div class="tree" style="left:80%; top:91%;">🌲</div>
+          <div class="tree" style="right:2%; top:88%;">🏁</div>
+          <div class="road-lane-line" style="top:44%;"></div>
+          <div class="road-lane-line" style="top:55%;"></div>
+          <div class="road-lane-line" style="top:66%;"></div>
+          <div class="road-lane-line" style="top:77%;"></div>
+          <div id="race-cars"></div>
+        </div>
+        <div id="race-ranking" class="mt-3 grid grid-cols-5 gap-2"></div>
+      </div>
+
+      <!-- 가족 상태판 -->
+      <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-amber-200">
+        <h2 class="text-xl title-font text-amber-800 mb-4 flex justify-between items-center">
+          <span>✨ 모험가 상태판</span>
+          <span class="text-xs text-amber-500 font-normal">사진 클릭 시 업로드</span>
+        </h2>
+        <div id="family-container" class="space-y-4"></div>
       </div>
     </div>
 
-    <!-- ===== 메인 그리드 ===== -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-      <!-- 왼쪽: 가족 상태판 -->
-      <section class="lg:col-span-5 space-y-6">
-        <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-amber-200">
-          <h2 class="text-xl title-font text-amber-800 mb-4 flex justify-between items-center">
-            <span>✨ 모험가 상태판</span>
-            <span class="text-xs text-amber-500 font-normal">사진 클릭 시 업로드</span>
-          </h2>
-          <div id="family-container" class="space-y-4"></div>
-        </div>
-
-        <!-- 🙏 가족 기도제목 -->
-        <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-purple-200">
-          <h2 class="text-xl title-font text-purple-800 mb-4 flex items-center justify-between">
-            <span>🙏 가족 기도제목</span>
-            <span class="text-xs text-purple-400 font-normal">날짜별 저장</span>
-          </h2>
-
-          <!-- 날짜 선택 & 저장 -->
-          <div class="flex items-center space-x-2 mb-3">
-            <input type="date" id="prayer-date"
-              class="border border-purple-300 rounded-xl px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-300 flex-1">
-            <button onclick="savePrayer()"
-              class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-1.5 rounded-xl text-sm transition">
-              저장
-            </button>
-          </div>
-
-          <textarea id="prayer-text" rows="4"
-            placeholder="오늘 우리 가족의 기도제목을 적어주세요...&#10;예) 온유의 학교 생활, 기쁨의 건강, 주안이의 신앙 등"
-            class="w-full border border-purple-200 rounded-2xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-300 bg-purple-50 placeholder-gray-400 leading-relaxed"></textarea>
-
-          <!-- 지난 기도제목 목록 -->
-          <div class="mt-4">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-purple-700">📋 지난 기도제목</span>
-              <span class="text-xs text-gray-400" id="prayer-count">0건</span>
+    <!-- ===== 📖 탭: 통독 ===== -->
+    <div id="tab-panel-reading" class="hidden space-y-6 pt-4 border-t-4 border-dashed border-amber-200 mt-4">
+      <!-- 챌린지 컨트롤 -->
+      <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+        <div class="absolute -right-8 -bottom-8 opacity-10 text-9xl">📖</div>
+        <h2 class="text-2xl title-font mb-4">🔥 오늘 성경 3장 읽기 챌린지!</h2>
+        <div class="flex flex-col sm:flex-row gap-4 mb-6">
+          <div class="bg-white/20 p-3 rounded-2xl flex-1">
+            <label class="block text-xs text-amber-100 font-bold mb-1">📖 오늘 읽을 범위</label>
+            <div class="flex gap-1">
+              <input type="text" id="bible-range" value="열왕기상 11-14장" placeholder="예: 열왕기상 11-14장"
+                class="bg-white text-slate-800 font-bold py-1 px-3 rounded-lg flex-1 outline-none text-sm focus:ring-2 focus:ring-amber-300"
+                onkeydown="if(event.key==='Enter'){applyBibleRange();}">
+              <button onclick="applyBibleRange()" class="bg-amber-300 hover:bg-amber-200 text-amber-900 font-black text-xs px-2 py-1 rounded-lg whitespace-nowrap transition">
+                ✅ 적용
+              </button>
             </div>
-            <div id="prayer-history" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+            <p id="bible-range-applied" class="text-[10px] text-amber-200 mt-1 hidden">✔ 범위 적용됨 — 아래 퀴즈와 연동됩니다</p>
+          </div>
+          <div class="bg-white/20 p-3 rounded-2xl flex flex-col justify-center shrink-0">
+            <span class="text-xs text-amber-100 font-bold">🎯 완독 기본 보상</span>
+            <span class="font-bold text-sm text-yellow-200">전원 💰 300 달란트</span>
           </div>
         </div>
-
-      </section>
-
-      <!-- 오른쪽: 메인 컨트롤 -->
-      <section class="lg:col-span-7 space-y-6">
-
-        <!-- 챌린지 컨트롤 -->
-        <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
-          <div class="absolute -right-8 -bottom-8 opacity-10 text-9xl">📖</div>
-          <h2 class="text-2xl title-font mb-4">🔥 오늘 성경 3장 읽기 챌린지!</h2>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-white/20 p-3 rounded-2xl">
-              <label class="block text-xs text-amber-100 font-bold mb-1">📖 오늘 읽을 범위</label>
-              <div class="flex gap-1">
-                <input type="text" id="bible-range" value="열왕기하 11-13장" placeholder="예: 열왕기하 11-13장"
-                  class="bg-white text-slate-800 font-bold py-1 px-3 rounded-lg flex-1 outline-none text-sm focus:ring-2 focus:ring-amber-300"
-                  onkeydown="if(event.key==='Enter'){applyBibleRange();}">
-                <button onclick="applyBibleRange()" class="bg-amber-300 hover:bg-amber-200 text-amber-900 font-black text-xs px-2 py-1 rounded-lg whitespace-nowrap transition">
-                  ✅ 적용
-                </button>
-              </div>
-              <p id="bible-range-applied" class="text-[10px] text-amber-200 mt-1 hidden">✔ 범위 적용됨 — 아래 퀴즈와 연동됩니다</p>
-            </div>
-            <div class="bg-white/20 p-3 rounded-2xl">
-              <label class="block text-xs text-amber-100 font-bold mb-1">⏱️ 타이머 (20분)</label>
-              <div class="flex items-center justify-between">
-                <span id="timer-display" class="font-bold text-lg">20:00</span>
-                <div class="space-x-1">
-                  <button id="timer-btn" onclick="toggleTimer()" class="bg-white text-amber-700 text-xs font-bold py-1 px-2 rounded">시작</button>
-                  <button onclick="resetTimer()" class="bg-slate-600 text-white text-xs font-bold py-1 px-2 rounded">리셋</button>
-                </div>
-              </div>
-            </div>
-            <div class="bg-white/20 p-3 rounded-2xl flex flex-col justify-center">
-              <span class="text-xs text-amber-100 font-bold">🎯 완독 기본 보상</span>
-              <span class="font-bold text-sm text-yellow-200">전원 💰 300 달란트</span>
+        <!-- 주간 스탬프 -->
+        <div class="bg-black/20 p-4 rounded-2xl mb-6">
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-sm font-bold text-amber-50 flex items-center space-x-2">
+              <span>🗓️</span><span>이번 주 완독 스탬프 (목표: 5일 이상!)</span>
+            </span>
+            <div class="flex gap-1">
+              <button onclick="cancelLastStamp()" class="text-[10px] bg-red-700/70 hover:bg-red-700 text-red-100 py-0.5 px-2 rounded">
+                <i class="fa-solid fa-rotate-left mr-1"></i>마지막 취소
+              </button>
+              <button onclick="resetWeeklyStamps()" class="text-[10px] bg-amber-800/60 hover:bg-amber-800 text-amber-100 py-0.5 px-2 rounded">
+                <i class="fa-solid fa-redo mr-1"></i>새 주 시작
+              </button>
             </div>
           </div>
+          <div class="grid grid-cols-6 gap-2" id="stamp-container"></div>
+          <p class="text-[11px] text-amber-100/90 mt-2 text-center">
+            💡 <strong>5일 이상 성공 시</strong> 온 가족 레벨업 + 키 <strong>0.5cm</strong> 성장!
+          </p>
+        </div>
+        <button onclick="triggerFanfareCelebration()"
+          class="w-full bg-yellow-400 hover:bg-yellow-300 text-amber-950 font-black text-xl py-4 px-6 rounded-2xl shadow-lg border-b-8 border-yellow-600 active:border-b-2 active:translate-y-1 transition-all flex items-center justify-center space-x-3">
+          <span class="text-2xl">🎺</span>
+          <span>성경 읽기 끝! 빵빠레 울려라!!</span>
+          <span class="text-2xl">🎉</span>
+        </button>
+      </div>
 
-          <!-- 주간 스탬프 -->
-          <div class="bg-black/20 p-4 rounded-2xl mb-6">
-            <div class="flex justify-between items-center mb-3">
-              <span class="text-sm font-bold text-amber-50 flex items-center space-x-2">
-                <span>🗓️</span><span>이번 주 완독 스탬프 (목표: 5일 이상!)</span>
-              </span>
-              <div class="flex gap-1">
-                <button onclick="cancelLastStamp()" class="text-[10px] bg-red-700/70 hover:bg-red-700 text-red-100 py-0.5 px-2 rounded">
-                  <i class="fa-solid fa-rotate-left mr-1"></i>마지막 취소
-                </button>
-                <button onclick="resetWeeklyStamps()" class="text-[10px] bg-amber-800/60 hover:bg-amber-800 text-amber-100 py-0.5 px-2 rounded">
-                  <i class="fa-solid fa-redo mr-1"></i>새 주 시작
-                </button>
-              </div>
+      <!-- 성경 통독 지도 -->
+      <div class="bg-white rounded-3xl p-5 shadow-xl border-4 border-emerald-200">
+        <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
+          <h2 class="text-xl title-font text-emerald-700 flex items-center space-x-2">
+            <span>📜 성경 통독 지도</span>
+          </h2>
+          <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-1 text-xs">
+              <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span><span class="text-gray-500">완독</span>
+              <span class="w-3 h-3 rounded-full bg-yellow-400 inline-block ml-2"></span><span class="text-gray-500">진행중</span>
+              <span class="w-3 h-3 rounded-full bg-gray-200 inline-block ml-2"></span><span class="text-gray-500">미독</span>
             </div>
-            <div class="grid grid-cols-6 gap-2" id="stamp-container"></div>
-            <p class="text-[11px] text-amber-100/90 mt-2 text-center">
-              💡 <strong>5일 이상 성공 시</strong> 온 가족 레벨업 + 키 <strong>0.5cm</strong> 성장!
-            </p>
+            <div class="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+              전체 진행률: <span id="bible-overall-pct">0</span>%
+            </div>
           </div>
+        </div>
+        <div class="w-full bg-gray-100 h-3 rounded-full overflow-hidden mb-4">
+          <div id="bible-overall-bar" class="bg-gradient-to-r from-emerald-400 to-green-500 h-full rounded-full transition-all duration-700" style="width:0%"></div>
+        </div>
+        <div class="mb-4">
+          <h3 class="text-sm font-black text-slate-600 mb-2">📖 구약성경</h3>
+          <div id="ot-books" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1.5"></div>
+        </div>
+        <div>
+          <h3 class="text-sm font-black text-slate-600 mb-2">✝️ 신약성경</h3>
+          <div id="nt-books" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1.5"></div>
+        </div>
+        <div id="book-detail" class="hidden mt-4 p-4 bg-emerald-50 rounded-2xl border border-emerald-200">
+          <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
+            <h4 id="book-detail-title" class="font-black text-emerald-800 text-base"></h4>
+            <div class="flex flex-wrap gap-1.5">
+              <button id="book-online-read-btn" class="hidden text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg flex items-center gap-1">
+                📖 온라인 성경 읽기
+              </button>
+              <button onclick="markAllChapters(true)" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg">전체 완독✅</button>
+              <button onclick="markAllChapters(false)" class="text-xs bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded-lg">전체 취소</button>
+              <button onclick="closeBookDetail()" class="text-xs bg-slate-300 hover:bg-slate-400 text-slate-700 px-3 py-1 rounded-lg">닫기</button>
+            </div>
+          </div>
+          <p class="text-[10px] text-emerald-600 mb-2">• 장 번호 클릭: 완독 표시/취소 &nbsp;|&nbsp; 📖읽기 클릭: 온라인 성경(YouVersion 개역개정) 열기</p>
+          <div id="chapter-grid" class="grid grid-cols-10 gap-1"></div>
+        </div>
+      </div>
+    </div>
 
-          <button onclick="triggerFanfareCelebration()"
-            class="w-full bg-yellow-400 hover:bg-yellow-300 text-amber-950 font-black text-xl py-4 px-6 rounded-2xl shadow-lg border-b-8 border-yellow-600 active:border-b-2 active:translate-y-1 transition-all flex items-center justify-center space-x-3">
-            <span class="text-2xl">🎺</span>
-            <span>성경 읽기 끝! 빵빠레 울려라!!</span>
-            <span class="text-2xl">🎉</span>
+    <!-- ===== 🎯 탭: 퀴즈 ===== -->
+    <div id="tab-panel-quiz" class="hidden pt-4 border-t-4 border-dashed border-orange-200 mt-4">
+      <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-orange-200">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="text-xl title-font text-orange-800 flex items-center space-x-2">
+            <span>🎯 오늘의 성경 퀴즈</span>
+            <span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-bold">무료 내장 DB</span>
+          </h3>
+          <button id="quiz-load-btn" onclick="loadTodayQuizWithFeedback()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-1.5 px-4 rounded-xl text-sm transition flex items-center space-x-2 shadow">
+            <i class="fa-solid fa-rotate" id="quiz-btn-icon"></i>
+            <span id="quiz-btn-text">오늘 퀴즈 불러오기</span>
           </button>
         </div>
-
-        <!-- ===== 📖 성경 퀴즈 섹션 (API 불필요 — 내장 DB) ===== -->
-        <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-orange-200">
-          <div class="flex justify-between items-center mb-3">
-            <h3 class="text-xl title-font text-orange-800 flex items-center space-x-2">
-              <span>🎯 오늘의 성경 퀴즈</span>
-              <span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-bold">무료 내장 DB</span>
-            </h3>
-            <button id="quiz-load-btn" onclick="loadTodayQuizWithFeedback()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-1.5 px-4 rounded-xl text-sm transition flex items-center space-x-2 shadow">
-              <i class="fa-solid fa-rotate" id="quiz-btn-icon"></i>
-              <span id="quiz-btn-text">오늘 퀴즈 불러오기</span>
-            </button>
-          </div>
-          <p class="text-xs text-gray-400 mb-4">읽은 범위를 입력하면 해당 장의 퀴즈가 자동으로 나타납니다. 정답 맞추면 부모님이 100달란트 지급!</p>
-          <div id="quiz-content">
-            <div class="bg-amber-50 p-6 rounded-2xl border border-dashed border-amber-300 text-center text-gray-500">
-              <p class="font-bold text-lg mb-1">👉 위의 "오늘 퀴즈 불러오기" 버튼을 눌러보세요!</p>
-              <p class="text-xs">읽은 성경 범위에 맞는 퀴즈가 자동으로 나와요 (창세기~출애굽기 내장)</p>
-            </div>
+        <p class="text-xs text-gray-400 mb-4">읽은 범위를 입력하면 해당 장의 퀴즈가 자동으로 나타납니다. 정답 맞추면 부모님이 100달란트 지급!</p>
+        <div id="quiz-content">
+          <div class="bg-amber-50 p-6 rounded-2xl border border-dashed border-amber-300 text-center text-gray-500">
+            <p class="font-bold text-lg mb-1">👉 위의 "오늘 퀴즈 불러오기" 버튼을 눌러보세요!</p>
+            <p class="text-xs">읽은 성경 범위에 맞는 퀴즈가 자동으로 나와요</p>
           </div>
         </div>
-
-        <!-- 달란트 백화점 -->
-        <div class="grid grid-cols-1 gap-6">
-
-          <!-- 달란트 백화점 -->
-          <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-amber-200">
-            <h3 class="text-lg title-font text-amber-800 mb-4">🛒 달란트 백화점</h3>
-            <div class="space-y-2" id="store-list"></div>
-          </div>
-
-        </div>
-      </section>
+      </div>
     </div>
+
+    <!-- ===== 🛒 탭: 상점 ===== -->
+    <div id="tab-panel-store" class="hidden pt-4 border-t-4 border-dashed border-amber-200 mt-4">
+      <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-amber-200">
+        <h3 class="text-lg title-font text-amber-800 mb-4">🛒 달란트 백화점</h3>
+        <div class="space-y-2" id="store-list"></div>
+      </div>
+    </div>
+
+    <!-- ===== 🙏 탭: 기도 ===== -->
+    <div id="tab-panel-prayer" class="hidden pt-4 border-t-4 border-dashed border-purple-200 mt-4">
+      <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-purple-200">
+        <h2 class="text-xl title-font text-purple-800 mb-4 flex items-center justify-between">
+          <span>🙏 가족 기도제목</span>
+          <span class="text-xs text-purple-400 font-normal">날짜별 저장</span>
+        </h2>
+        <div class="flex items-center space-x-2 mb-3">
+          <input type="date" id="prayer-date"
+            class="border border-purple-300 rounded-xl px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-purple-300 flex-1">
+          <button onclick="savePrayer()"
+            class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-4 py-1.5 rounded-xl text-sm transition">
+            저장
+          </button>
+        </div>
+        <textarea id="prayer-text" rows="5"
+          placeholder="오늘 우리 가족의 기도제목을 적어주세요...&#10;예) 온유의 학교 생활, 기쁨의 건강, 주안이의 신앙 등"
+          class="w-full border border-purple-200 rounded-2xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-300 bg-purple-50 placeholder-gray-400 leading-relaxed"></textarea>
+        <div class="mt-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-purple-700">📋 지난 기도제목</span>
+            <span class="text-xs text-gray-400" id="prayer-count">0건</span>
+          </div>
+          <div id="prayer-history" class="space-y-2 max-h-96 overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+    </div>
+
   </main>
 
-  <!-- 🚗 자동차 선택 모달 -->
+  <!-- 🚗 이동수단 선택 모달 -->
   <div id="car-select-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-4 border-sky-300">
-      <h3 class="text-xl title-font text-sky-700 mb-1 text-center">🏎️ 내 자동차 고르기</h3>
-      <p id="car-select-name" class="text-center text-sm text-gray-400 mb-1"></p>
-      <p class="text-center text-xs text-sky-400 mb-4">🚓폴리 🚑앰버 🚒로이 🚁헬리 🚐브루노</p>
-      <div class="grid grid-cols-5 gap-3 mb-5">
-        <button onclick="selectCar('🏎️')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🏎️</button>
-        <button onclick="selectCar('🚗')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚗</button>
-        <button onclick="selectCar('🚙')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚙</button>
-        <button onclick="selectCar('🚕')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚕</button>
-        <button onclick="selectCar('🚐')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚐</button>
-        <button onclick="selectCar('🚌')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚌</button>
-        <button onclick="selectCar('🚑')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚑</button>
-        <button onclick="selectCar('🚒')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚒</button>
-        <button onclick="selectCar('🚓')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚓</button>
-        <button onclick="selectCar('🛻')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🛻</button>
-        <button onclick="selectCar('🏍️')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🏍️</button>
-        <button onclick="selectCar('🚲')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚲</button>
-        <button onclick="selectCar('🛵')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🛵</button>
-        <button onclick="selectCar('✈️')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">✈️</button>
-        <button onclick="selectCar('🚀')" class="car-opt text-3xl py-2 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚀</button>
+    <div class="bg-white rounded-3xl p-5 max-w-md w-full shadow-2xl border-4 border-sky-300 max-h-[90vh] overflow-y-auto">
+      <h3 class="text-xl title-font text-sky-700 mb-1 text-center">🏎️ 내 이동수단 고르기</h3>
+      <p id="car-select-name" class="text-center text-sm text-gray-400 mb-3"></p>
+
+      <p class="text-xs font-bold text-slate-500 mb-1">🚗 자동차</p>
+      <div class="grid grid-cols-6 gap-2 mb-3">
+        <button onclick="selectCar('🏎️')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🏎️</button>
+        <button onclick="selectCar('🚗')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚗</button>
+        <button onclick="selectCar('🚙')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚙</button>
+        <button onclick="selectCar('🚕')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚕</button>
+        <button onclick="selectCar('🛻')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🛻</button>
+        <button onclick="selectCar('🚐')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚐</button>
+        <button onclick="selectCar('🚌')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚌</button>
+        <button onclick="selectCar('🚑')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚑</button>
+        <button onclick="selectCar('🚒')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚒</button>
+        <button onclick="selectCar('🚓')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚓</button>
+        <button onclick="selectCar('🚚')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚚</button>
+        <button onclick="selectCar('🚛')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚛</button>
       </div>
+
+      <p class="text-xs font-bold text-slate-500 mb-1">🏍️ 오토바이 · 자전거</p>
+      <div class="grid grid-cols-6 gap-2 mb-3">
+        <button onclick="selectCar('🏍️')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🏍️</button>
+        <button onclick="selectCar('🛵')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🛵</button>
+        <button onclick="selectCar('🚲')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚲</button>
+        <button onclick="selectCar('🛴')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🛴</button>
+        <button onclick="selectCar('🛹')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🛹</button>
+        <button onclick="selectCar('🦽')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🦽</button>
+      </div>
+
+      <p class="text-xs font-bold text-slate-500 mb-1">✈️ 하늘 · 우주</p>
+      <div class="grid grid-cols-6 gap-2 mb-3">
+        <button onclick="selectCar('✈️')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">✈️</button>
+        <button onclick="selectCar('🚀')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚀</button>
+        <button onclick="selectCar('🛸')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🛸</button>
+        <button onclick="selectCar('🚁')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚁</button>
+        <button onclick="selectCar('🛩️')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🛩️</button>
+        <button onclick="selectCar('🪂')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🪂</button>
+      </div>
+
+      <p class="text-xs font-bold text-slate-500 mb-1">🚢 바다</p>
+      <div class="grid grid-cols-6 gap-2 mb-3">
+        <button onclick="selectCar('🚢')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚢</button>
+        <button onclick="selectCar('⛵')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">⛵</button>
+        <button onclick="selectCar('🚤')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🚤</button>
+        <button onclick="selectCar('🛥️')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🛥️</button>
+        <button onclick="selectCar('🛶')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🛶</button>
+        <button onclick="selectCar('🏄')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🏄</button>
+      </div>
+
+      <p class="text-xs font-bold text-slate-500 mb-1">🐎 동물</p>
+      <div class="grid grid-cols-6 gap-2 mb-4">
+        <button onclick="selectCar('🐎')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🐎</button>
+        <button onclick="selectCar('🦁')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🦁</button>
+        <button onclick="selectCar('🐯')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🐯</button>
+        <button onclick="selectCar('🦊')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🦊</button>
+        <button onclick="selectCar('🐻')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🐻</button>
+        <button onclick="selectCar('🐧')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🐧</button>
+        <button onclick="selectCar('🦋')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🦋</button>
+        <button onclick="selectCar('🐬')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🐬</button>
+        <button onclick="selectCar('🦄')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🦄</button>
+        <button onclick="selectCar('🐲')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🐲</button>
+        <button onclick="selectCar('🦅')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🦅</button>
+        <button onclick="selectCar('🐊')" class="car-opt text-3xl py-1.5 rounded-xl hover:bg-sky-100 border-2 border-transparent hover:border-sky-400 transition">🐊</button>
+      </div>
+
       <button onclick="closeCarModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 rounded-xl">취소</button>
     </div>
   </div>
@@ -901,6 +938,21 @@
         { q: "제사장의 역할은 무엇인가요?", opts: ["왕의 명령을 전달하는 것","백성을 대신해서 하나님께 제사 드리는 것","군사를 이끄는 것","세금을 거두는 것"], a: 1, exp: "제사장은 백성들을 대신해서 하나님 앞에 나아가 제사를 드리는 거룩한 역할이에요!" },
         { q: "이스라엘의 첫 번째 대제사장은 누구인가요?", opts: ["모세","아론","여호수아","갈렙"], a: 1, exp: "모세의 형 아론이 이스라엘의 첫 번째 대제사장이 되었어요!" },
         { q: "제사장이 가슴에 달았던 특별한 것은?", opts: ["금 목걸이","12지파를 상징하는 12보석이 달린 판(흉패)","은팔찌","왕관"], a: 1, exp: "제사장은 이스라엘 12지파를 상징하는 12개의 보석이 달린 흉패를 가슴에 달았어요!" }
+      ],
+      '31-33': [
+        { q: "모세가 산에서 오래 내려오지 않자 이스라엘 백성이 만든 것은?", opts: ["나무 집","금송아지","돌 성전","은 왕관"], a: 1, exp: "모세가 40일이나 오지 않자 아론이 금송아지를 만들어 백성들이 우상 숭배를 했어요. 큰 죄였어요!(32장)" },
+        { q: "금송아지 사건을 보고 화가 난 모세가 한 행동은?", opts: ["하나님께 기도만 했어요","돌판 두 개를 던져 깨뜨렸어요","금송아지를 그냥 두었어요","도망쳤어요"], a: 1, exp: "모세는 분노하여 하나님이 쓰신 돌판을 던져 깨뜨렸고, 금송아지를 불태워 부수었어요!(32장)" },
+        { q: "하나님이 안식일을 지키라고 명하신 이유는?", opts: ["피곤하기 때문에","하나님도 엿새 일하고 일곱째 날 쉬셨기 때문에","모세가 그렇게 정해서","먹고 자야 하기 때문에"], a: 1, exp: "하나님이 천지를 6일 만에 만드시고 7일째 쉬신 것처럼, 우리도 안식일에 쉬며 하나님을 기억해야 해요!(31장)" }
+      ],
+      '34-36': [
+        { q: "모세가 시내산에서 내려왔을 때 얼굴이 어떻게 됐나요?", opts: ["까매졌어요","빛이 나서 수건으로 가려야 했어요","부었어요","상처가 났어요"], a: 1, exp: "하나님과 함께 있었던 모세의 얼굴에서 빛이 나서, 백성들이 무서워했어요!(34장)" },
+        { q: "성막을 짓도록 하나님이 특별히 선택한 장인은?", opts: ["모세","아론","브살렐","여호수아"], a: 2, exp: "하나님이 유다 지파 브살렐에게 지혜와 재능을 주셔서 성막의 모든 것을 만들게 하셨어요!(35장)" },
+        { q: "백성들이 성막 재료를 가져온 결과는?", opts: ["부족해서 더 가져오라고 했어요","딱 맞았어요","너무 많아서 그만 가져오라고 했어요","아무도 안 가져왔어요"], a: 2, exp: "백성들이 기쁜 마음으로 너무 많이 가져와서 모세가 그만 가져와도 된다고 선포했어요! 얼마나 아름다운 헌신인가요?(36장)" }
+      ],
+      '37-40': [
+        { q: "성막이 완성됐을 때 어떤 일이 일어났나요?", opts: ["아무 일도 없었어요","하나님의 영광스러운 구름이 성막을 가득 채웠어요","비가 내렸어요","천사들이 내려왔어요"], a: 1, exp: "성막이 완성되자 하나님의 영광이 구름으로 성막을 가득 채웠어요! 하나님이 백성들과 함께하신다는 표시예요!(40장)" },
+        { q: "법궤(언약궤) 뚜껑 위에 있는 것은?", opts: ["왕관","두 그룹(천사) 조각상","꽃 장식","금 접시"], a: 1, exp: "법궤 뚜껑인 속죄소 위에 두 그룹(천사) 조각상이 서로 마주보며 날개를 펼치고 있었어요!(37장)" },
+        { q: "이스라엘 백성이 이동할 때 언제 출발하고 언제 멈췄나요?", opts: ["아침마다 출발했어요","구름이 떠오르면 출발, 구름이 머물면 멈췄어요","모세가 말하면 움직였어요","매일 10km씩 이동했어요"], a: 1, exp: "하나님의 구름이 성막 위에서 떠오르면 출발하고, 내려앉으면 그 자리에 머물렀어요!(40장)" }
       ]
     },
 
@@ -1171,6 +1223,11 @@
         { q: "솔로몬 이후 나라가 어떻게 나뉘었나요?", opts: ["3개로","동서로","남북으로(유다/이스라엘)","없어졌어요"], a: 2, exp: "솔로몬 아들 르호보암 때 나라가 남쪽 유다와 북쪽 이스라엘로 나뉘었어요!" },
         { q: "북이스라엘의 첫 번째 왕은 누구인가요?", opts: ["여로보암","르호보암","아합","예후"], a: 0, exp: "여로보암이 북이스라엘의 첫 번째 왕이 되었어요!" }
       ],
+      '11-14': [
+        { q: "솔로몬이 많은 외국 아내들 때문에 결국 섬기게 된 것은 무엇인가요?", opts: ["금은보화","우상(다른 신들)","군사력","땅"], a: 1, exp: "솔로몬은 외국 아내들의 영향으로 아스다롯, 밀곰 등 우상을 섬겨 하나님을 슬프게 했어요!(11장)" },
+        { q: "솔로몬이 죽은 뒤 르호보암이 백성의 세금을 줄여달라는 부탁을 거절하자 어떤 일이 벌어졌나요?", opts: ["백성들이 떠났어요","나라가 남북으로 나뉘었어요","전쟁이 났어요","다 위 세 가지 모두"], a: 1, exp: "르호보암의 강경한 대답으로 나라가 남유다(르호보암)와 북이스라엘(여로보암)로 갈라졌어요!(12장)" },
+        { q: "여로보암이 북이스라엘 백성들이 예루살렘 성전으로 가지 못하도록 만든 것은 무엇인가요?", opts: ["큰 담장","금송아지 두 개","군사 검문소","새 성전"], a: 1, exp: "여로보암은 벧엘과 단에 금송아지를 세우고 '이것이 너희를 애굽에서 인도한 신이라'고 했어요. 큰 죄였어요!(12장)" }
+      ],
       '13-15': [
         { q: "여로보암이 백성들이 예루살렘에 가지 못하도록 만든 것은?", opts: ["높은 벽","금송아지 두 개","큰 강","군사들"], a: 1, exp: "여로보암은 금송아지 두 개를 만들어 백성들이 하나님 대신 섬기게 했어요. 큰 죄였어요!" },
         { q: "아사 왕은 어떤 왕이었나요?", opts: ["우상을 많이 섬긴 악한 왕","하나님 보시기에 선한 왕","전쟁만 한 왕","어린 왕"], a: 1, exp: "유다 왕 아사는 하나님 보시기에 선한 일을 행한 왕이에요!" },
@@ -1311,6 +1368,11 @@
         { q: "욥의 친구들이 한 말은?", opts: ["힘내세요","네가 죄를 지어서 벌을 받는 것이다","하나님이 잘못하셨어요","도망가세요"], a: 1, exp: "욥의 세 친구가 '네가 죄를 지었기 때문에 고난을 당한다'고 비난했어요 — 틀린 말이었어요!" },
         { q: "욥이 고난 중에도 한 말은?", opts: ["하나님이 나쁘다","내 구속자가 살아 계시다는 것을 알아요","포기할래요","도망갈래요"], a: 1, exp: "'내 구속자가 살아 계심을 나는 알아요' — 욥은 고난 중에도 믿음을 지켰어요!" }
       ],
+      '32-37': [
+        { q: "엘리후가 처음에 말하지 않은 이유는?", opts: ["관심이 없어서","나이 많은 어른들이 먼저 말해야 한다고 생각했기 때문에","몰라서","무서워서"], a: 1, exp: "엘리후는 가장 젊었기에 어른들이 먼저 다 말할 때까지 기다렸어요 — 그러다 더 이상 참을 수 없어 말했어요!(32장)" },
+        { q: "엘리후가 욥의 세 친구를 비판한 이유는?", opts: ["나이가 많아서","욥에게 제대로 된 대답을 해주지 못했기 때문에","거짓말해서","도망가서"], a: 1, exp: "엘리후는 세 친구가 욥에게 답을 못 해주면서도 욥을 정죄만 한다고 비판했어요!(32장)" },
+        { q: "엘리후가 말한 하나님의 위대하심을 보여주는 것들은?", opts: ["왕과 군대","천둥, 번개, 비, 눈 같은 자연 현상","음식과 음악","책과 글"],  a: 1, exp: "엘리후는 폭풍, 번개, 천둥을 통해 하나님의 위대하심이 드러난다고 말했어요!(36~37장)" }
+      ],
       '38-42': [
         { q: "하나님이 욥에게 말씀하실 때 어디서 나타나셨나요?", opts: ["구름에서","회오리바람 속에서","불 속에서","꿈에서"], a: 1, exp: "하나님이 회오리바람 속에서 욥에게 말씀하셨어요!" },
         { q: "욥의 고난이 끝난 후 어떻게 됐나요?", opts: ["아무것도 안 돌아왔어요","처음보다 갑절로 복을 받았어요","그냥 회복됐어요","왕이 됐어요"], a: 1, exp: "욥이 믿음을 지키고 기도하자 하나님이 처음보다 갑절의 복을 주셨어요!" }
@@ -1390,9 +1452,29 @@
         { q: "이사야 9장의 유명한 예언은?", opts: ["전쟁이 온다","한 아이가 태어날 것이다 — 기묘자, 모사, 전능하신 하나님, 영존하시는 아버지, 평강의 왕","비가 온다","왕이 온다"], a: 1, exp: "'한 아이가 우리에게 태어났고' — 이것은 예수님에 대한 예언이에요!" },
         { q: "이사야 11장의 예언에서 평화로운 세상은?", opts: ["전쟁이 많은 세상","이리와 어린 양이 함께 살고 어린 아이가 뱀의 굴에 손을 넣어도 안전한 세상","더운 세상","추운 세상"], a: 1, exp: "이사야 11장은 예수님이 오셔서 다스리실 평화로운 세상을 예언해요!" }
       ],
+      '13-20': [
+        { q: "이사야 13~14장은 어느 나라의 멸망을 예언했나요?", opts: ["이스라엘","앗수르","바벨론","이집트"], a: 2, exp: "이사야는 강대국 바벨론도 결국 하나님의 심판으로 멸망할 것을 미리 예언했어요!(13~14장)" },
+        { q: "이사야 14장에서 교만하여 하늘에서 떨어진 존재는 무엇으로 불렸나요?", opts: ["큰 별","새벽별(루시퍼)","달","구름"], a: 1, exp: "'너 아침의 아들 새벽별이여 어찌 그리 하늘에서 떨어졌는가!' — 교만의 결과를 보여줘요!(14장)" },
+        { q: "이사야가 3년 동안 벗고 맨발로 다닌 것은 무엇을 예언한 것인가요?", opts: ["이스라엘이 가난해진다","이집트와 에티오피아가 앗수르에게 포로로 끌려간다","비가 온다","왕이 죽는다"], a: 1, exp: "이사야는 몸으로 표적을 보여주며 이집트를 믿지 말고 하나님만 신뢰하라고 경고했어요!(20장)" }
+      ],
+      '21-30': [
+        { q: "이사야 28장에서 술 취한 자로 비유된 나라는?", opts: ["유다","에브라임(북이스라엘)","바벨론","이집트"], a: 1, exp: "북이스라엘이 술 취한 사람처럼 비틀거리며 하나님을 떠났어요 — 결국 앗수르에 망했어요!(28장)" },
+        { q: "이사야 29장에서 하나님이 예루살렘 백성을 책망하신 이유는?", opts: ["제사를 안 드려서","입으로는 가까이하고 마음은 멀리 있는 위선 때문에","성전을 부숴서","왕에게 반역해서"], a: 1, exp: "'이 백성이 입으로는 나를 가까이하나 마음은 내게서 멀리 떠났다' — 예수님도 이 말씀을 인용하셨어요!(29장)" },
+        { q: "이사야 26장의 유명한 믿음의 고백은?", opts: ["우리가 강하다","주께서 심지가 견고한 자를 평강에 평강으로 지키시리니","우리가 이겼다","하나님 어디 계세요"], a: 1, exp: "'심지가 견고한 자를 평강에 평강으로 지키시리니' — 하나님을 신뢰하면 완전한 평화를 주세요!(26장)" }
+      ],
+      '31-39': [
+        { q: "앗수르 왕 산헤립이 예루살렘을 위협했을 때 히스기야 왕이 한 행동은?", opts: ["항복했어요","적군에게 돈을 줬어요","성전에 가서 하나님께 기도했어요","도망쳤어요"], a: 2, exp: "히스기야는 적의 협박 편지를 성전에 펼쳐놓고 하나님께 기도했어요 — 하나님이 응답하셨어요!(37장)" },
+        { q: "하나님이 히스기야의 기도에 응답하여 앗수르 군대에게 하신 일은?", opts: ["전쟁에서 지게 하셨어요","하룻밤에 18만 5천 명을 죽이셨어요","홍수를 보내셨어요","번개를 치셨어요"], a: 1, exp: "하나님의 천사가 하룻밤에 앗수르 군사 18만 5천 명을 쳐서 예루살렘이 구원받았어요!(37장)" },
+        { q: "히스기야가 병들어 죽게 됐을 때 기도하자 하나님이 주신 표적은?", opts: ["꽃이 피었어요","해시계 그림자가 10도 뒤로 물러났어요","비가 내렸어요","음식이 생겼어요"], a: 1, exp: "하나님이 히스기야에게 15년을 더 살게 해주시며 해시계를 10도 뒤로 돌리는 표적을 주셨어요!(38장)" }
+      ],
       '40-45': [
         { q: "이사야 40장의 유명한 말씀은?", opts: ["달려라","오직 여호와를 앙망하는 자는 새 힘을 얻으리니 독수리처럼 날개를 칠 것이요","먹어라","자라"], a: 1, exp: "'오직 여호와를 앙망하는 자는 새 힘을 얻으리니!' — 힘들 때 기억하면 좋은 말씀이에요!" },
         { q: "이사야 53장은 누구에 대한 예언인가요?", opts: ["이사야","이스라엘","예수님 — '그가 찔림은 우리의 허물 때문이라'","다윗"], a: 2, exp: "이사야 53장은 예수님의 고난을 미리 예언했어요 — '그가 찔림은 우리의 허물 때문이라'!" }
+      ],
+      '46-54': [
+        { q: "이사야 49장에서 하나님이 우리를 절대 잊지 않으신다는 표현은?", opts: ["강이 흘러도 잊지 않겠다","어머니가 자기 아이를 잊어도 나는 너를 잊지 않겠다","산이 무너져도 잊지 않겠다","별이 떨어져도 잊지 않겠다"], a: 1, exp: "'여인이 어찌 자기 젖 먹는 자식을 잊겠느냐… 내가 너를 잊지 아니하리라' — 하나님의 변함없는 사랑이에요!(49장)" },
+        { q: "이사야 53장에서 고난받는 종(예수님)은 어떻게 묘사됐나요?", opts: ["화려하고 아름답게","찔리고 상하고 징계를 받아 고난당하는 모습으로","강하고 용감하게","왕처럼 당당하게"], a: 1, exp: "'그가 찔림은 우리의 허물 때문이요 그가 상함은 우리의 죄악 때문이라' — 예수님의 십자가를 700년 전에 예언했어요!(53장)" },
+        { q: "이사야 54장에서 하나님이 이스라엘에게 하신 약속은?", opts: ["더 큰 고난이 온다","잠깐 버렸지만 큰 긍휼로 다시 모으겠다","기다려라","떠나겠다"], a: 1, exp: "'내가 잠깐 너를 버렸으나 큰 긍휼로 너를 모을 것이며' — 하나님의 회복 약속이에요!(54장)" }
       ],
       '55-66': [
         { q: "이사야 55장의 초대는?", opts: ["전쟁하러 와라","오호라 목마른 자들아 물로 나아오라 — 하나님께 오라는 초대","달리기 대회 초대","잔치 초대"], a: 1, exp: "'목마른 자들아 물로 나아오라' — 하나님은 모든 사람을 구원으로 초대하세요!" },
@@ -1405,13 +1487,33 @@
         { q: "예레미야는 왜 '눈물의 선지자'라고 불리나요?", opts: ["눈이 아파서","이스라엘의 죄와 멸망을 슬퍼하며 많이 울어서","비가 와서","양파를 먹어서"], a: 1, exp: "예레미야는 이스라엘이 하나님을 떠난 것과 다가올 심판을 슬퍼하며 많이 울었어요!" },
         { q: "예레미야가 선지자로 부름받았을 때 한 말은?", opts: ["좋아요","나는 아이라 말할 줄 모르나이다","제가 잘 할게요","달려갈게요"], a: 1, exp: "예레미야는 어려서 '말할 줄 모른다'고 했지만 하나님이 함께하겠다고 약속하셨어요!" }
       ],
+      '6-11': [
+        { q: "예레미야가 성전 문 앞에서 외친 경고는?", opts: ["성전이 있으니 안전해!","성전이 있다고 안전하지 않아, 행동을 바꿔라!","전쟁이 온다!","제사를 더 드려라!"], a: 1, exp: "예레미야는 '성전, 성전' 하면서 죄를 짓는 이스라엘에게 행동이 바뀌어야 한다고 외쳤어요!(7장)" },
+        { q: "하나님이 토기장이 집에서 예레미야에게 보여주신 교훈은?", opts: ["도자기는 예쁘다","토기장이가 마음대로 그릇을 다시 빚듯 하나님도 이스라엘을 다시 빚을 수 있다","도자기는 비싸다","도자기를 만들어라"], a: 1, exp: "토기장이가 잘못된 그릇을 부수고 다시 만들듯 하나님도 이스라엘을 다시 빚을 수 있어요!(18장보다 앞인 '11장' 범위 포함)" },
+        { q: "예레미야가 선지자 일을 포기하려 했을 때 어떻게 됐나요?", opts: ["포기하고 집에 갔어요","하나님 말씀이 마음에 불처럼 타올라 말하지 않을 수 없었어요","친구들이 도와줬어요","왕이 시켰어요"], a: 1, exp: "'내가 다시는 여호와를 선포하지 않겠다' 했지만 '말씀이 불처럼 타올라 참을 수 없었다'고 했어요!(20장)" }
+      ],
+      '12-17': [
+        { q: "예레미야 17장에서 하나님을 신뢰하는 사람은 무엇에 비유됐나요?", opts: ["마른 광야의 나무","물가에 심겨 뿌리가 깊은 나무","높은 산의 바위","빠른 독수리"], a: 1, exp: "'그는 물가에 심겨진 나무 같아서 가뭄이 와도 걱정하지 않는다' — 하나님을 의지하는 사람의 복이에요!(17장)" },
+        { q: "예레미야 15장에서 예레미야가 하나님 말씀에 대해 한 고백은?", opts: ["말씀이 무서워요","주의 말씀이 내게 기쁨과 즐거움이 됐어요","말씀이 어려워요","말씀이 길어요"], a: 1, exp: "'주의 말씀을 만날 때에 내가 그것을 먹었사오며 주의 말씀은 내 기쁨과 마음의 즐거움이라!' — 예레미야의 아름다운 고백이에요!(15장)" },
+        { q: "예레미야 17장 9절의 말씀은?", opts: ["마음은 선하다","만물보다 거짓되고 심히 부패한 것은 마음이라","마음이 아프다","마음을 지켜라"], a: 1, exp: "'만물보다 거짓되고 심히 부패한 것은 마음이라' — 그래서 우리에게 새 마음이 필요해요!(17장)" }
+      ],
       '18-24': [
-        { q: "토기장이 비유에서 하나님은 무엇에 비교됐나요?", opts: ["도자기","흙을 마음대로 빚는 토기장이","물","불"], a: 1, exp: "하나님은 토기장이처럼 이스라엘을 마음대로 빚을 수 있는 분이세요!" },
+        { q: "토기장이 비유에서 하나님은 무엇에 비교됐나요?", opts: ["도자기","흙을 마음대로 빚는 토기장이","물","불"], a: 1, exp: "하나님은 토기장이처럼 이스라엘을 마음대로 빚을 수 있는 분이세요!(18장)" },
         { q: "예레미야 23장의 예언은?", opts: ["전쟁이 온다","의로운 가지(예수님)를 보내겠다","비가 온다","왕이 바뀐다"], a: 1, exp: "예레미야 23장은 다윗의 후손에서 의로운 왕(예수님)을 보내시겠다는 예언이에요!" }
+      ],
+      '25-28': [
+        { q: "예레미야가 예언한 바벨론 포로 기간은 몇 년인가요?", opts: ["7년","40년","70년","100년"], a: 2, exp: "하나님이 예레미야를 통해 '70년 후에 바벨론 포로에서 돌아오게 하겠다'고 약속하셨어요!(25장)" },
+        { q: "예레미야가 목에 나무 멍에를 메고 다닌 이유는?", opts: ["벌을 받아서","바벨론에 항복하는 것이 하나님의 뜻임을 몸으로 보여주기 위해","운동하려고","왕의 명령으로"], a: 1, exp: "예레미야는 멍에를 메고 다니며 '바벨론에 복종하는 것이 하나님의 뜻'이라고 선포했어요!(27장)" },
+        { q: "거짓 선지자 하나냐가 예레미야의 멍에를 꺾자 어떻게 됐나요?", opts: ["예레미야가 도망쳤어요","하나냐가 그해에 죽었어요","전쟁이 났어요","왕이 화냈어요"], a: 1, exp: "하나냐가 거짓 예언을 하며 멍에를 꺾자 하나님이 그해에 하나냐를 죽이셨어요!(28장)" }
       ],
       '29-33': [
         { q: "바벨론에 잡혀간 사람들에게 예레미야가 전한 말은?", opts: ["도망쳐라","그 성에 정착하여 평안을 구하라 — 70년 후 돌아온다","싸워라","포기해라"], a: 1, exp: "하나님은 바벨론에서도 '거기서 평안히 살고 70년 후에 돌아오게 하겠다'고 하셨어요!" },
         { q: "예레미야 33장의 유명한 약속은?", opts: ["전쟁이 끝난다","내게 부르짖으라 내가 크고 은밀한 일을 알게 하리라","비가 온다","집을 지어라"], a: 1, exp: "'내게 부르짖으라 내가 네게 응답하겠고 크고 은밀한 일을 알게 하리라' — 기도의 초대예요!" }
+      ],
+      '34-35': [
+        { q: "르갑 자손들이 대대로 지켜온 것은?", opts: ["매일 성전에 가기","포도주를 마시지 않기로 한 조상의 명령","금 모으기","왕 섬기기"], a: 1, exp: "르갑의 후손들은 조상 요나답의 명령대로 포도주를 마시지 않고 집도 짓지 않았어요 — 수백 년 동안!(35장)" },
+        { q: "하나님이 르갑 자손을 칭찬하신 이유는?", opts: ["강해서","부자여서","조상의 명령을 끝까지 지켰기 때문에","왕의 친척이어서"], a: 2, exp: "하나님은 조상의 말을 지킨 르갑 자손을 칭찬하시며 이스라엘이 하나님 말씀을 안 지키는 것과 대비하셨어요!(35장)" },
+        { q: "예레미야 34장에서 시드기야 왕과 백성이 한 약속을 어긴 것은?", opts: ["성전을 지으마고 했다가 안 지은 것","종들을 해방해주었다가 다시 잡아온 것","전쟁을 안 한다고 했다가 한 것","세금을 낮추겠다고 했다가 올린 것"], a: 1, exp: "백성들이 히브리 종들을 해방시켰다가 다시 잡아왔어요 — 하나님은 이 약속 파기를 엄하게 심판하셨어요!(34장)" }
       ],
       '36-52': [
         { q: "예레미야가 우물에 던져진 이유는?", opts: ["전쟁 때문에","백성을 약하게 한다는 이유로 죽이려고 해서","밥을 못 먹어서","자신이 원해서"], a: 1, exp: "예레미야가 항복하라는 말을 전하자 적들이 그를 우물에 던졌어요. 에벳멜렉이 구해줬어요!" },
@@ -1430,6 +1532,21 @@
       '1-3': [
         { q: "에스겔이 처음 본 환상은?", opts: ["아름다운 정원","네 생물과 바퀴가 있는 신비로운 환상","전쟁 장면","바다 장면"], a: 1, exp: "에스겔은 바벨론 강가에서 네 생물과 불과 바퀴가 있는 하나님의 영광스러운 환상을 보았어요!" },
         { q: "에스겔이 선지자로 부름받은 특별한 방법은?", opts: ["꿈에서","책(두루마리)을 받아 먹으라는 명령을 받았어요","바람으로","노래로"], a: 1, exp: "하나님이 에스겔에게 두루마리를 주시며 먹으라 하셨어요 — 말씀을 삶에 받아들이는 것이에요!" }
+      ],
+      '4-12': [
+        { q: "에스겔이 390일 동안 한쪽으로 누워있어야 했던 이유는?", opts: ["아파서","이스라엘의 죄를 짊어지는 징조를 보여주기 위해","쉬려고","하나님이 그렇게 만들어서"], a: 1, exp: "하나님이 에스겔에게 이스라엘의 죄의 수만큼 날 수를 정해 누워 있게 하셨어요 — 하나님의 슬픔을 몸으로 표현한 거예요!(4~5장)" },
+        { q: "에스겔이 환상에서 본 예루살렘 성전 안의 충격적인 모습은?", opts: ["아름다운 예배","70명의 장로들이 몰래 우상에 절하고 있었어요","비어있었어요","아이들이 놀고 있었어요"], a: 1, exp: "에스겔이 환상 속에서 보니 이스라엘 장로들이 성전 안에서 우상을 섬기고 있었어요! 하나님이 왜 심판하시는지 알 수 있었어요.(8장)" },
+        { q: "에스겔 9장에서 하나님이 표를 남기신 대상은?", opts: ["악한 자들","죄를 슬퍼하고 탄식하는 자들","강한 군사들","왕들"], a: 1, exp: "하나님은 예루살렘의 죄를 슬퍼하고 탄식하는 사람들의 이마에 표를 남겨 지키셨어요!(9장)" }
+      ],
+      '13-24': [
+        { q: "하나님이 거짓 선지자들을 뭐라고 비유하셨나요?", opts: ["좋은 목자","무너진 담을 회로만 발라 가리는 사람들","용감한 군인","현명한 의사"], a: 1, exp: "거짓 선지자들은 진짜 문제를 고치지 않고 겉만 그럴듯하게 꾸몄어요 — '평화롭다'고 거짓말했어요!(13장)" },
+        { q: "에스겔 18장에서 하나님이 말씀하신 책임 원칙은?", opts: ["아버지 죄는 아들이 같이 받는다","각자 자신의 죄로만 벌을 받는다","강한 자가 약한 자를 벌한다","왕이 다 책임진다"], a: 1, exp: "'아들은 아버지의 죄를 담당하지 않는다' — 각자가 하나님 앞에 책임을 지는 거예요!(18장)" },
+        { q: "에스겔 36장에서 하나님이 이스라엘에게 약속하신 놀라운 것은?", opts: ["더 많은 땅","새 마음과 새 영을 주겠다","금은보화","강한 군대"], a: 1, exp: "'내가 새 마음을 주고 새 영을 넣어주겠다' — 이것은 성령님을 통한 변화의 약속이에요!(36장)" }
+      ],
+      '25-36': [
+        { q: "에스겔이 이스라엘을 위해 맡은 역할은?", opts: ["왕","파수꾼(경비병)","제사장","군사령관"], a: 1, exp: "하나님이 에스겔을 이스라엘의 파수꾼으로 세우셔서 경고를 전하게 하셨어요!(33장)" },
+        { q: "에스겔 34장에서 하나님이 꾸짖으신 이스라엘의 나쁜 목자들은 어떤 모습이었나요?", opts: ["양을 잘 돌봤어요","자기 배만 불리고 약한 양은 돌보지 않았어요","양과 함께 살았어요","양을 위해 싸웠어요"], a: 1, exp: "나쁜 목자들은 양 대신 자기만 챙겼어요 — 하나님이 친히 좋은 목자가 되어 양을 찾겠다고 하셨어요!(34장)" },
+        { q: "에스겔 36장에서 하나님이 이스라엘을 회복하시는 이유는?", opts: ["이스라엘이 착해서","이스라엘이 하나님의 이름을 더럽혔으니 하나님의 이름을 위해서","이스라엘이 강해서","왕이 부탁해서"], a: 1, exp: "하나님은 이스라엘의 행동 때문이 아니라 '내 거룩한 이름을 위하여' 회복하신다고 하셨어요!(36장)" }
       ],
       '37-39': [
         { q: "에스겔 37장의 마른 뼈 환상은 무슨 뜻인가요?", opts: ["공동묘지 이야기","죽은 것 같은 이스라엘이 하나님의 영으로 다시 살아나는 예언이에요","무서운 이야기","게임 이야기"], a: 1, exp: "마른 뼈들이 살아나는 환상은 이스라엘이 포로에서 돌아와 다시 살아날 것을 예언해요!" },
@@ -1686,6 +1803,19 @@
       ]
     },
 
+    '고린도후서': {
+      '1-7': [
+        { q: "바울이 '질그릇 같은 우리 안에 보배가 있다'고 한 이유는?", opts: ["우리가 약하고 보잘것없어 보여도 하나님의 능력이 안에 있기 때문에","질그릇이 예뻐서","바울이 도자기를 좋아해서","질그릇이 비싸서"], a: 0, exp: "'우리가 이 보배를 질그릇에 가졌으니 이는 심히 큰 능력이 하나님께 있고 우리에게 있지 아니함이라' — 우리는 약해도 하나님의 능력이 함께해요!(4장)" },
+        { q: "고린도후서 5장 17절은?", opts: ["강해져라","누구든지 그리스도 안에 있으면 새로운 피조물이라 이전 것은 지나갔으니 보라 새 것이 되었도다","달려라","공부해라"], a: 1, exp: "'그리스도 안에 있으면 새로운 피조물!' — 예수님을 믿으면 완전히 새로운 사람이 돼요!(5장)" },
+        { q: "바울이 보이는 것과 보이지 않는 것에 대해 한 말은?", opts: ["보이는 것이 더 중요해","보이는 것은 잠깐이고 보이지 않는 영원한 것을 바라봐야 해","둘 다 중요해","모르겠어"], a: 1, exp: "'보이는 것은 잠깐이요 보이지 않는 것은 영원함이라' — 영원한 것에 집중하는 믿음이에요!(4장)" }
+      ],
+      '8-13': [
+        { q: "바울이 가르친 헌금의 원칙은?", opts: ["억지로 많이 내야 해","자원하는 마음으로 즐겨 내는 자를 하나님이 사랑하신다","돈이 많을수록 좋아","적게 내도 돼"], a: 1, exp: "'하나님은 즐겨 내는 자를 사랑하신다' — 억지가 아닌 기쁜 마음으로 드리는 헌금이에요!(9장)" },
+        { q: "바울이 말한 자신의 '육체의 가시'는 어떤 역할을 했나요?", opts: ["고통만 줬어요","교만하지 않도록 하나님이 허락하신 약함이었어요","사탄이 준 것이에요","아무 의미 없어요"], a: 1, exp: "바울은 '가시'가 자신을 교만하지 않게 해준다는 것을 깨달았어요 — 약함 속에 은혜가 있어요!(12장)" },
+        { q: "하나님이 바울에게 하신 말씀은?", opts: ["강해져라","내 은혜가 네게 족하도다 이는 내 능력이 약한 데서 온전해짐이라","달려라","공부해라"], a: 1, exp: "'내 은혜가 네게 족하다, 내 능력이 약한 데서 온전해진다' — 약할 때 하나님이 더 강하게 일하세요!(12장)" }
+      ]
+    },
+
     '갈라디아서': {
       '1-6': [
         { q: "갈라디아서 2장 20절은?", opts: ["달려라","내가 그리스도와 함께 십자가에 못 박혔나니 이제 사는 것은 내가 아니요 오직 내 안에 그리스도께서 사시는 것이라","먹어라","공부해라"], a: 1, exp: "'내 안에 그리스도께서 사신다' — 예수님을 믿으면 예수님이 우리 안에 사세요!" },
@@ -1938,7 +2068,7 @@
 
     quizDiv.innerHTML = `
       <div class="mb-3 flex items-center space-x-2">
-        <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded-full">📖 ${parsed.book} ${key.replace('-','~')}장 퀴즈</span>
+        <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded-full">📖 ${rangeText} 퀴즈</span>
         <span class="text-xs text-gray-400">정답 맞추면 부모님이 100달란트 지급!</span>
       </div>
       <div class="space-y-4">${quizHTML}</div>`;
@@ -2078,10 +2208,10 @@
     renderWeeklyStamps();
     renderRaceTrack();
     renderStoreList();
-    updateTimerDisplay();
     loadTodayQuiz();
     initLogin();
     scheduleNotifTimer();
+    initTabs();
   }
 
   async function saveData() {
@@ -2112,7 +2242,7 @@
     const sorted = [...familyData].sort((a,b) => b.talents - a.talents);
 
     // 레인 높이 배분 (5명 → 5 레인, 트랙 60~70% 영역에 배치)
-    const lanes = [36, 47, 58, 69, 80]; // top % — 5개 레인 (도로 33~90% 영역)
+    const lanes = [40, 50, 61, 72, 83]; // top % 중심 — 도로 33~90%, 이모지 높이 여유 포함
 
     carsDiv.innerHTML = '';
     familyData.forEach((m, i) => {
@@ -2125,7 +2255,7 @@
       carEl.style.left = `${leftPct}%`;
       carEl.style.top = `${lanes[laneIdx]}%`;
       carEl.style.animationDelay = `${i * 0.15}s`;
-      carEl.innerHTML = `<div style="font-size:0.6rem;text-align:center;color:#fff;text-shadow:0 1px 2px #000;font-weight:900;background:rgba(0,0,0,0.4);border-radius:4px;padding:1px 3px;margin-bottom:1px;">${m.name}(${poliName})</div>${carIcon}`;
+      carEl.innerHTML = `<div style="position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:0.6rem;white-space:nowrap;color:#fff;text-shadow:0 1px 2px #000;font-weight:900;background:rgba(0,0,0,0.45);border-radius:4px;padding:1px 4px;margin-bottom:2px;">${m.name}(${poliName})</div><div class="car-inner">${carIcon}</div>`;
       carsDiv.appendChild(carEl);
     });
 
@@ -2138,6 +2268,46 @@
         <div class="text-xs text-amber-700 font-bold">${m.talents.toLocaleString()}💰</div>
       </div>
     `).join('');
+  }
+
+  // ============================================================
+  // ============================================================
+  // 탭 전환
+  // ============================================================
+  const TAB_NAMES = ['home','reading','quiz','store','prayer'];
+  function switchTab(name) {
+    const isAll = name === 'all';
+
+    // 패널 표시/숨김
+    TAB_NAMES.forEach(t => {
+      const panel = document.getElementById(`tab-panel-${t}`);
+      if (!panel) return;
+      panel.classList.toggle('hidden', !isAll && t !== name);
+    });
+
+    // 탭 버튼 활성/비활성
+    [...TAB_NAMES, 'all'].forEach(t => {
+      const btn = document.getElementById(`tab-${t}`);
+      if (!btn) return;
+      const active = t === name;
+      btn.classList.toggle('border-amber-500', active);
+      btn.classList.toggle('text-amber-600', active);
+      btn.classList.toggle('border-transparent', !active);
+      btn.classList.toggle('text-slate-400', !active);
+    });
+
+    // 탭 전환 후 렌더 갱신
+    if (isAll || name === 'home') { renderRaceTrack(); renderFamily(); }
+    if (isAll || name === 'reading') { renderBibleMap(); renderWeeklyStamps(); }
+    if (isAll || name === 'quiz') { loadTodayQuiz(); }
+    if (isAll || name === 'store') { renderStoreList(); }
+    sessionStorage.setItem('activeTab', name);
+  }
+
+  // 앱 시작 시 마지막 탭 복원
+  function initTabs() {
+    const saved = sessionStorage.getItem('activeTab') || 'home';
+    switchTab(saved);
   }
 
   // ============================================================
@@ -2704,18 +2874,28 @@
   let isAdminOpen = false;
   let adminSelectedBook = null;
 
+  let _pinKeyHandler = null;
+
   function openAdminLogin() {
     if (isAdminOpen) { closeAdminPanel(); return; }
     currentPin = '';
     updatePinDots();
     document.getElementById('pin-error').classList.add('hidden');
     document.getElementById('admin-login-modal').classList.remove('hidden');
+    // 키보드 입력 지원
+    _pinKeyHandler = (e) => {
+      if (e.key >= '0' && e.key <= '9') { pinInput(e.key); }
+      else if (e.key === 'Backspace') { pinClear(); }
+      else if (e.key === 'Escape') { closeAdminLogin(); }
+    };
+    document.addEventListener('keydown', _pinKeyHandler);
   }
 
   function closeAdminLogin() {
     document.getElementById('admin-login-modal').classList.add('hidden');
     currentPin = '';
     updatePinDots();
+    if (_pinKeyHandler) { document.removeEventListener('keydown', _pinKeyHandler); _pinKeyHandler = null; }
   }
 
   function pinInput(digit) {
@@ -2962,10 +3142,44 @@
     if (bar) bar.style.width = pct + '%';
   }
 
+  // ── YouVersion 한국어 성경 URL 생성 ──────────────────────────
+  const BIBLE_CODE_MAP = {
+    '창세기':'GEN','출애굽기':'EXO','레위기':'LEV','민수기':'NUM','신명기':'DEU',
+    '여호수아':'JOS','사사기':'JDG','룻기':'RUT','사무엘상':'1SA','사무엘하':'2SA',
+    '열왕기상':'1KI','열왕기하':'2KI','역대상':'1CH','역대하':'2CH',
+    '에스라':'EZR','느헤미야':'NEH','에스더':'EST','욥기':'JOB',
+    '시편':'PSA','잠언':'PRO','전도서':'ECC','아가':'SNG',
+    '이사야':'ISA','예레미야':'JER','예레미야애가':'LAM','에스겔':'EZK',
+    '다니엘':'DAN','호세아':'HOS','요엘':'JOL','아모스':'AMO','오바댜':'OBA',
+    '요나':'JON','미가':'MIC','나훔':'NAM','하박국':'HAB','스바냐':'ZEP',
+    '학개':'HAG','스가랴':'ZEC','말라기':'MAL',
+    '마태복음':'MAT','마가복음':'MRK','누가복음':'LUK','요한복음':'JHN',
+    '사도행전':'ACT','로마서':'ROM','고린도전서':'1CO','고린도후서':'2CO',
+    '갈라디아서':'GAL','에베소서':'EPH','빌립보서':'PHP','골로새서':'COL',
+    '데살로니가전서':'1TH','데살로니가후서':'2TH','디모데전서':'1TI','디모데후서':'2TI',
+    '디도서':'TIT','빌레몬서':'PHM','히브리서':'HEB','야고보서':'JAS',
+    '베드로전서':'1PE','베드로후서':'2PE','요한일서':'1JN','요한이서':'2JN',
+    '요한삼서':'3JN','유다서':'JUD','요한계시록':'REV'
+  };
+
+  function openBibleOnline(bookName, chapter) {
+    const code = BIBLE_CODE_MAP[bookName];
+    if (!code) { alert('온라인 링크를 찾을 수 없습니다.'); return; }
+    // YouVersion 한국어 개역개정 (version 1)
+    const url = `https://www.bible.com/bible/1/${code}.${chapter}.KRV`;
+    window.open(url, '_blank');
+  }
+
   function openBookDetail(book) {
     selectedBook = book;
     document.getElementById('book-detail').classList.remove('hidden');
     document.getElementById('book-detail-title').textContent = `📖 ${book.name} (총 ${book.ch}장)`;
+    // 온라인 읽기 버튼 갱신
+    const onlineBtn = document.getElementById('book-online-read-btn');
+    if (onlineBtn) {
+      onlineBtn.onclick = () => openBibleOnline(book.name, 1);
+      onlineBtn.classList.remove('hidden');
+    }
     renderChapterGrid(book);
     document.getElementById('book-detail').scrollIntoView({behavior:'smooth', block:'nearest'});
   }
@@ -2987,9 +3201,21 @@
         .map(([mid]) => mid);
 
       const btn = document.createElement('div');
-      btn.className = `relative text-xs font-bold py-1.5 rounded-lg border transition cursor-pointer text-center ${isRead ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white text-gray-500 border-gray-200 hover:border-emerald-400'}`;
-      btn.innerHTML = `${i}${readers.length ? `<div class="flex justify-center gap-0.5 mt-0.5">${readers.map(id=>`<span class="member-dot member-dot-${id}" title="${id}"></span>`).join('')}</div>` : ''}`;
-      btn.onclick = () => toggleChapter(book, i);
+      btn.className = `relative text-xs font-bold pt-1.5 pb-4 rounded-lg border transition cursor-pointer text-center ${isRead ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white text-gray-500 border-gray-200 hover:border-emerald-400'}`;
+      const readerDots = readers.length
+        ? `<div class="flex justify-center gap-0.5 mt-0.5">${readers.map(id=>`<span class="member-dot member-dot-${id}" title="${id}"></span>`).join('')}</div>`
+        : '';
+      btn.innerHTML = `
+        <span class="select-none">${i}${readerDots}</span>
+        <span data-read-btn class="absolute bottom-0.5 left-0 right-0 text-center text-[8px] ${isRead ? 'text-emerald-100' : 'text-blue-400'} leading-none">📖읽기</span>
+      `;
+      // 장 전체 클릭 → 완독 토글
+      btn.addEventListener('click', () => toggleChapter(book, i));
+      // "📖읽기" 클릭 → 온라인 성경 (이벤트 버블 차단)
+      btn.querySelector('[data-read-btn]').addEventListener('click', (e) => {
+        e.stopPropagation();
+        openBibleOnline(book.name, i);
+      });
       grid.appendChild(btn);
     }
   }

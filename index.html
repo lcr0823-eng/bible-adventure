@@ -463,6 +463,33 @@
     </div>
   </div>
 
+  <!-- ===== 📖 성경 본문 모달 ===== -->
+  <div id="bible-text-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.6)">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl flex flex-col" style="max-height:90vh">
+      <!-- 헤더 -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 flex-shrink-0">
+        <div>
+          <h3 id="bible-modal-title" class="text-xl font-black text-emerald-800 title-font"></h3>
+          <p class="text-xs text-slate-400 mt-0.5">개역개정 · 장 번호를 눌러 이동</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="prevBibleChapter()" class="w-9 h-9 rounded-full bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold text-lg flex items-center justify-center">‹</button>
+          <button onclick="nextBibleChapter()" class="w-9 h-9 rounded-full bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold text-lg flex items-center justify-center">›</button>
+          <button onclick="closeBibleModal()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xl flex items-center justify-center">×</button>
+        </div>
+      </div>
+      <!-- 본문 -->
+      <div id="bible-modal-body" class="overflow-y-auto px-6 py-4 text-[15px] leading-8 text-slate-700 space-y-1"></div>
+      <!-- 하단 완독 버튼 -->
+      <div class="px-6 py-3 border-t border-slate-100 flex-shrink-0 flex justify-between items-center">
+        <span id="bible-modal-progress" class="text-xs text-slate-400"></span>
+        <button id="bible-modal-done-btn" onclick="markCurrentChapterRead()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-2 rounded-xl text-sm transition">
+          ✅ 이 장 완독 표시
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== 탭 네비게이션 ===== -->
   <nav class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
     <div class="max-w-7xl mx-auto px-1 flex">
@@ -2212,6 +2239,7 @@
     initLogin();
     scheduleNotifTimer();
     initTabs();
+    loadBibleData(); // 📖 성경 JSON 백그라운드 미리 로딩
   }
 
   async function saveData() {
@@ -3142,6 +3170,119 @@
     if (bar) bar.style.width = pct + '%';
   }
 
+  // ── 개역개정 로컬 JSON 성경 ──────────────────────────────────
+  let BIBLE_DATA = null;
+  let bibleModalBook = null;
+  let bibleModalChapter = 1;
+
+  async function loadBibleData() {
+    if (BIBLE_DATA) return BIBLE_DATA;
+    try {
+      const res = await fetch('./ko_rev.json');
+      if (!res.ok) throw new Error('파일 없음');
+      BIBLE_DATA = await res.json();
+      console.log('✅ 성경 JSON 로딩 성공! 총', BIBLE_DATA.length, '권');
+      return BIBLE_DATA;
+    } catch(e) {
+      console.warn('⚠️ ko_rev.json 로딩 실패:', e.message);
+      return null;
+    }
+  }
+
+  function getBibleBook(bookName) {
+    if (!BIBLE_DATA) return null;
+    return BIBLE_DATA.find(b => b.name === bookName) || null;
+  }
+
+  async function openBibleModal(bookName, chapter) {
+    const data = await loadBibleData();
+    if (!data) {
+      // JSON 없으면 대한성서공회로 fallback
+      openBibleOnline(bookName, chapter);
+      return;
+    }
+    const book = getBibleBook(bookName);
+    if (!book) { openBibleOnline(bookName, chapter); return; }
+
+    bibleModalBook = book;
+    bibleModalChapter = chapter;
+    renderBibleModal();
+    document.getElementById('bible-text-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function renderBibleModal() {
+    if (!bibleModalBook) return;
+    const chIdx = bibleModalChapter - 1;
+    const verses = bibleModalBook.chapters[chIdx];
+    const totalCh = bibleModalBook.chapters.length;
+
+    document.getElementById('bible-modal-title').textContent =
+      `📖 ${bibleModalBook.name} ${bibleModalChapter}장`;
+
+    // 완독 여부 확인
+    const isRead = bibleProgress[bibleModalBook.name]?.[bibleModalChapter] === true;
+    const doneBtn = document.getElementById('bible-modal-done-btn');
+    if (isRead) {
+      doneBtn.textContent = '✅ 완독됨';
+      doneBtn.className = 'bg-slate-300 text-slate-500 font-bold px-5 py-2 rounded-xl text-sm cursor-default';
+    } else {
+      doneBtn.textContent = '✅ 이 장 완독 표시';
+      doneBtn.className = 'bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-2 rounded-xl text-sm transition';
+    }
+
+    document.getElementById('bible-modal-progress').textContent =
+      `${bibleModalChapter} / ${totalCh}장`;
+
+    // 본문 렌더링
+    const body = document.getElementById('bible-modal-body');
+    if (!verses) { body.innerHTML = '<p class="text-gray-400">본문을 불러올 수 없습니다.</p>'; return; }
+    body.innerHTML = verses.map((v, i) =>
+      `<p><span class="text-emerald-500 font-bold text-sm mr-1">${i+1}</span>${v}</p>`
+    ).join('');
+    body.scrollTop = 0;
+  }
+
+  function closeBibleModal() {
+    document.getElementById('bible-text-modal').classList.add('hidden');
+    document.body.style.overflow = '';
+    bibleModalBook = null;
+  }
+
+  function prevBibleChapter() {
+    if (!bibleModalBook || bibleModalChapter <= 1) return;
+    bibleModalChapter--;
+    renderBibleModal();
+  }
+
+  function nextBibleChapter() {
+    if (!bibleModalBook) return;
+    if (bibleModalChapter >= bibleModalBook.chapters.length) return;
+    bibleModalChapter++;
+    renderBibleModal();
+  }
+
+  async function markCurrentChapterRead() {
+    if (!bibleModalBook) return;
+    const bookName = bibleModalBook.name;
+    const ch = bibleModalChapter;
+    if (!bibleProgress[bookName]) bibleProgress[bookName] = {};
+    bibleProgress[bookName][ch] = true;
+    if (currentUser) {
+      if (!memberProgress[currentUser.id]) memberProgress[currentUser.id] = {};
+      if (!memberProgress[currentUser.id][bookName]) memberProgress[currentUser.id][bookName] = {};
+      memberProgress[currentUser.id][bookName][ch] = true;
+    }
+    renderBibleModal();
+    renderBibleMap();
+    await saveBibleProgress();
+  }
+
+  // ESC 키로 모달 닫기
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeBibleModal();
+  });
+
   // ── 개역개정 온라인 성경 URL 생성 (대한성서공회 공식) ──────────
   // version=GAE = 개역개정 | 대한성서공회(bskorea.or.kr) 공식 제공
   const BIBLE_CODE_MAP = {
@@ -3178,7 +3319,7 @@
     // 온라인 읽기 버튼 갱신
     const onlineBtn = document.getElementById('book-online-read-btn');
     if (onlineBtn) {
-      onlineBtn.onclick = () => openBibleOnline(book.name, 1);
+      onlineBtn.onclick = () => openBibleModal(book.name, 1);
       onlineBtn.classList.remove('hidden');
     }
     renderChapterGrid(book);
@@ -3212,10 +3353,10 @@
       `;
       // 장 전체 클릭 → 완독 토글
       btn.addEventListener('click', () => toggleChapter(book, i));
-      // "📖읽기" 클릭 → 온라인 성경 (이벤트 버블 차단)
+      // "📖읽기" 클릭 → 성경 본문 모달 (이벤트 버블 차단)
       btn.querySelector('[data-read-btn]').addEventListener('click', (e) => {
         e.stopPropagation();
-        openBibleOnline(book.name, i);
+        openBibleModal(book.name, i);
       });
       grid.appendChild(btn);
     }

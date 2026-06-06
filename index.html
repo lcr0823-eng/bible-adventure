@@ -10,6 +10,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- 📖 개역개정 성경 데이터 (로컬 파일) -->
+  <script src="./bible_data.js"></script>
 
   <!-- =====================================================
        🔥 FIREBASE 설정
@@ -3178,52 +3180,25 @@
   async function loadBibleData() {
     if (BIBLE_DATA) return BIBLE_DATA;
 
-    // fetch로 시도 (로컬 서버 or 같은 origin)
-    const tryFetch = async (url) => {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
-    };
-
-    // 시도할 경로 목록 (순서대로)
-    const paths = [
-      './ko_rev.json',
-      '/ko_rev.json',
-      'ko_rev.json',
-    ];
-
-    for (const path of paths) {
-      try {
-        BIBLE_DATA = await tryFetch(path);
-        console.log('✅ 성경 JSON 로딩 성공!', path, '총', BIBLE_DATA.length, '권');
-        return BIBLE_DATA;
-      } catch(e) {
-        console.warn(`⚠️ ${path} 실패:`, e.message);
-      }
+    // ✅ 1순위: bible_data.js 로 미리 로드된 데이터 (file:// 에서도 동작)
+    if (window.BIBLE_JSON_DATA && Array.isArray(window.BIBLE_JSON_DATA)) {
+      BIBLE_DATA = window.BIBLE_JSON_DATA;
+      console.log('✅ 성경 데이터 로딩 성공! (bible_data.js) 총', BIBLE_DATA.length, '권');
+      return BIBLE_DATA;
     }
 
-    // XHR fallback (일부 브라우저 file:// 환경)
+    // 2순위: fetch (로컬 서버 환경)
     try {
-      BIBLE_DATA = await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', './ko_rev.json');
-        xhr.onload = () => {
-          if (xhr.status === 200 || xhr.status === 0) {
-            resolve(JSON.parse(xhr.responseText));
-          } else {
-            reject(new Error(`XHR ${xhr.status}`));
-          }
-        };
-        xhr.onerror = () => reject(new Error('XHR 오류'));
-        xhr.send();
-      });
-      console.log('✅ 성경 JSON 로딩 성공! (XHR) 총', BIBLE_DATA.length, '권');
+      const res = await fetch('./ko_rev.json');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      BIBLE_DATA = await res.json();
+      console.log('✅ 성경 JSON 로딩 성공! (fetch) 총', BIBLE_DATA.length, '권');
       return BIBLE_DATA;
     } catch(e) {
-      console.warn('⚠️ XHR fallback도 실패:', e.message);
+      console.warn('⚠️ fetch 실패:', e.message);
     }
 
-    console.error('❌ ko_rev.json 로딩 실패 — 로컬 서버(http://localhost:3000)로 접속해주세요');
+    console.error('❌ 성경 데이터 로딩 실패');
     return null;
   }
 

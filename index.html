@@ -149,8 +149,10 @@
       .tree { font-size: 1rem !important; }
 
       /* 순위표 */
-      #race-ranking { grid-template-columns: repeat(5, 1fr) !important; gap: 4px !important; }
-      #race-ranking > div { padding: 4px 2px !important; font-size: 0.65rem !important; }
+      #race-ranking { grid-template-columns: repeat(5, 1fr) !important; gap: 6px !important; }
+      @media (max-width: 480px) {
+        #race-ranking { grid-template-columns: repeat(3, 1fr) !important; }
+      }
 
       /* 메인 여백 */
       main { padding-left: 8px !important; padding-right: 8px !important; }
@@ -202,6 +204,11 @@
     .member-dot-창륜  { background:#f97316; }
     .member-dot { width:7px; height:7px; border-radius:50%; display:inline-block; }
 
+    /* 달력 멤버 도트 */
+    .cal-dot { width:6px; height:6px; border-radius:50%; display:inline-block; flex-shrink:0; }
+    .cal-dot-read  { opacity:1; }
+    .cal-dot-empty { opacity:0.2; background:#fff !important; border:1px solid rgba(255,255,255,0.4); }
+
     /* 터치 타겟 최소 크기 */
     @media (max-width: 768px) {
       button { min-height: 36px; }
@@ -233,6 +240,10 @@
           <span id="current-user-emoji">👤</span>
           <span id="current-user-name" class="hidden sm:inline">로그인</span>
         </button>
+        <button onclick="openShareModal()" class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-2 px-3 rounded-full shadow-md flex items-center space-x-1 transition text-sm" title="앱 공유하기">
+          <i class="fa-solid fa-share-nodes"></i>
+          <span class="hidden sm:inline">공유</span>
+        </button>
         <button onclick="triggerFiveMinuteAlert()" class="bg-amber-500 hover:bg-amber-400 text-white font-bold py-2 px-3 rounded-full shadow-md flex items-center space-x-1 transition text-sm">
           <i class="fa-solid fa-bell animate-bounce"></i>
           <span class="hidden sm:inline">🔔 5분전 방송!</span>
@@ -245,6 +256,57 @@
       </div>
     </div>
   </header>
+
+  <!-- ===== 🔗 공유 모달 ===== -->
+  <div id="share-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-4 border-emerald-300">
+      <div class="text-center mb-4">
+        <div class="text-4xl mb-1">🔗</div>
+        <h2 class="text-xl font-black text-emerald-700">앱 공유하기</h2>
+        <p class="text-xs text-slate-400 mt-1">가족에게 이 앱을 공유해 보세요!</p>
+      </div>
+
+      <!-- URL 표시 + 복사 -->
+      <div class="bg-slate-100 rounded-2xl p-3 mb-3 flex items-center gap-2">
+        <span id="share-url-text" class="text-xs text-slate-600 flex-1 break-all leading-relaxed"></span>
+        <button onclick="copyShareUrl()" id="copy-url-btn"
+          class="flex-shrink-0 bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-2 px-3 rounded-xl text-xs transition flex items-center gap-1">
+          <i class="fa-solid fa-copy"></i>
+          <span>복사</span>
+        </button>
+      </div>
+
+      <!-- QR 코드 -->
+      <div class="bg-slate-50 rounded-2xl p-4 mb-3 flex flex-col items-center">
+        <p class="text-xs text-slate-500 mb-2 font-bold">📱 QR코드로 바로 접속</p>
+        <div id="share-qr-container" class="flex items-center justify-center">
+          <canvas id="share-qr-canvas" width="160" height="160" class="rounded-xl shadow"></canvas>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-2">카메라로 스캔하면 바로 열려요!</p>
+      </div>
+
+      <!-- 공유 버튼들 -->
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <button onclick="nativeShare()" id="native-share-btn"
+          class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-share"></i> 공유하기
+        </button>
+        <button onclick="downloadQR()"
+          class="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-download"></i> QR 저장
+        </button>
+      </div>
+
+      <!-- 카카오/기타 안내 -->
+      <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-3 mb-3 text-xs text-yellow-800 text-center">
+        💡 <strong>Tip:</strong> URL을 복사해서 카카오톡 가족 채팅방에 붙여넣으면 돼요!
+      </div>
+
+      <button onclick="closeShareModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-2xl text-sm transition">
+        닫기
+      </button>
+    </div>
+  </div>
 
   <!-- ===== 🔐 관리자 로그인 모달 ===== -->
   <div id="admin-login-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -529,13 +591,32 @@
 
     <!-- ===== 🏠 탭: 홈 ===== -->
     <div id="tab-panel-home" class="space-y-6">
-      <!-- 레이싱 트랙 -->
+
+      <!-- 👤 나는 누구? 멤버 빠른 선택 -->
+      <div class="bg-white rounded-3xl px-5 py-4 shadow-xl border-4 border-amber-200">
+        <p class="text-xs text-gray-400 mb-3 text-center font-bold tracking-wide">👇 나를 선택해줘!</p>
+        <div id="quick-member-btns" class="flex gap-2 justify-center flex-wrap"></div>
+        <div id="personal-greeting" class="hidden mt-3 text-center py-3 px-4 rounded-2xl border-2 transition-all">
+          <div class="flex items-center justify-center gap-3">
+            <span class="text-3xl" id="greeting-emoji">👦</span>
+            <div>
+              <div class="font-black text-base" id="greeting-text">오늘 성경 읽었어?</div>
+              <div class="text-xs text-gray-400 mt-0.5" id="greeting-sub"></div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-3 flex justify-center">
+          <button onclick="showWeeklySummary()" class="text-xs text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200 font-bold px-4 py-1.5 rounded-full transition flex items-center gap-1">
+            🏆 이번 주 가족 결산 보기
+          </button>
+        </div>
+      </div>
+
+      <!-- 레이싱 트랙 + 모험가 통합 카드 -->
       <div class="bg-white rounded-3xl p-5 shadow-xl border-4 border-sky-200">
         <div class="flex justify-between items-center mb-3">
-          <h2 class="text-xl title-font text-sky-700 flex items-center space-x-2">
-            <span>🏎️ 달란트 레이싱 — 성경통독 그랑프리!</span>
-          </h2>
-          <span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">달란트 많을수록 앞서요</span>
+          <h2 class="text-xl title-font text-sky-700">🏎️ 달란트 레이싱 — 성경통독 그랑프리!</h2>
+          <span class="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">사진 클릭 시 업로드</span>
         </div>
         <div class="race-track" style="height: clamp(200px, 40vw, 340px);">
           <div class="cloud" style="top:5%; animation-delay:0s;">☁️</div>
@@ -553,72 +634,32 @@
           <div class="road-lane-line" style="top:77%;"></div>
           <div id="race-cars"></div>
         </div>
-        <div id="race-ranking" class="mt-3 grid grid-cols-5 gap-2"></div>
+        <!-- 통합 멤버 카드 -->
+        <div id="race-ranking" class="mt-4 grid grid-cols-5 gap-3"></div>
+        <!-- hidden family-container for compatibility -->
+        <div id="family-container" class="hidden"></div>
       </div>
 
-      <!-- 가족 상태판 -->
-      <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-amber-200">
-        <h2 class="text-xl title-font text-amber-800 mb-4 flex justify-between items-center">
-          <span>✨ 모험가 상태판</span>
-          <span class="text-xs text-amber-500 font-normal">사진 클릭 시 업로드</span>
-        </h2>
-        <div id="family-container" class="space-y-4"></div>
+      <!-- 📣 가족 활동 피드 -->
+      <div class="bg-white rounded-3xl p-5 shadow-xl border-4 border-sky-100">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-base font-black text-sky-700 flex items-center gap-2">
+            📣 가족 활동 피드
+          </h3>
+          <span class="text-[10px] text-gray-400 bg-gray-100 px-2 py-1 rounded-full">완독하면 자동 기록돼요</span>
+        </div>
+        <div id="activity-feed" class="space-y-2 max-h-52 overflow-y-auto">
+          <div class="text-center text-xs text-gray-400 py-4">
+            아직 활동이 없어요. 성경을 읽고 빵빠레를 눌러보세요! 🎺
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- ===== 📖 탭: 통독 ===== -->
     <div id="tab-panel-reading" class="hidden space-y-6 pt-4 border-t-4 border-dashed border-amber-200 mt-4">
-      <!-- 챌린지 컨트롤 -->
-      <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
-        <div class="absolute -right-8 -bottom-8 opacity-10 text-9xl">📖</div>
-        <h2 class="text-2xl title-font mb-4">🔥 오늘 성경 3장 읽기 챌린지!</h2>
-        <div class="flex flex-col sm:flex-row gap-4 mb-6">
-          <div class="bg-white/20 p-3 rounded-2xl flex-1">
-            <label class="block text-xs text-amber-100 font-bold mb-1">📖 오늘 읽을 범위</label>
-            <div class="flex gap-1">
-              <input type="text" id="bible-range" value="열왕기상 11-14장" placeholder="예: 열왕기상 11-14장"
-                class="bg-white text-slate-800 font-bold py-1 px-3 rounded-lg flex-1 outline-none text-sm focus:ring-2 focus:ring-amber-300"
-                onkeydown="if(event.key==='Enter'){applyBibleRange();}">
-              <button onclick="applyBibleRange()" class="bg-amber-300 hover:bg-amber-200 text-amber-900 font-black text-xs px-2 py-1 rounded-lg whitespace-nowrap transition">
-                ✅ 적용
-              </button>
-            </div>
-            <p id="bible-range-applied" class="text-[10px] text-amber-200 mt-1 hidden">✔ 범위 적용됨 — 아래 퀴즈와 연동됩니다</p>
-          </div>
-          <div class="bg-white/20 p-3 rounded-2xl flex flex-col justify-center shrink-0">
-            <span class="text-xs text-amber-100 font-bold">🎯 완독 기본 보상</span>
-            <span class="font-bold text-sm text-yellow-200">전원 💰 300 달란트</span>
-          </div>
-        </div>
-        <!-- 주간 스탬프 -->
-        <div class="bg-black/20 p-4 rounded-2xl mb-6">
-          <div class="flex justify-between items-center mb-3">
-            <span class="text-sm font-bold text-amber-50 flex items-center space-x-2">
-              <span>🗓️</span><span>이번 주 완독 스탬프 (목표: 5일 이상!)</span>
-            </span>
-            <div class="flex gap-1">
-              <button onclick="cancelLastStamp()" class="text-[10px] bg-red-700/70 hover:bg-red-700 text-red-100 py-0.5 px-2 rounded">
-                <i class="fa-solid fa-rotate-left mr-1"></i>마지막 취소
-              </button>
-              <button onclick="resetWeeklyStamps()" class="text-[10px] bg-amber-800/60 hover:bg-amber-800 text-amber-100 py-0.5 px-2 rounded">
-                <i class="fa-solid fa-redo mr-1"></i>새 주 시작
-              </button>
-            </div>
-          </div>
-          <div class="grid grid-cols-6 gap-2" id="stamp-container"></div>
-          <p class="text-[11px] text-amber-100/90 mt-2 text-center">
-            💡 <strong>5일 이상 성공 시</strong> 온 가족 레벨업 + 키 <strong>0.5cm</strong> 성장!
-          </p>
-        </div>
-        <button onclick="triggerFanfareCelebration()"
-          class="w-full bg-yellow-400 hover:bg-yellow-300 text-amber-950 font-black text-xl py-4 px-6 rounded-2xl shadow-lg border-b-8 border-yellow-600 active:border-b-2 active:translate-y-1 transition-all flex items-center justify-center space-x-3">
-          <span class="text-2xl">🎺</span>
-          <span>성경 읽기 끝! 빵빠레 울려라!!</span>
-          <span class="text-2xl">🎉</span>
-        </button>
-      </div>
 
-      <!-- 성경 통독 지도 -->
+      <!-- 성경 통독 지도 (먼저) -->
       <div class="bg-white rounded-3xl p-5 shadow-xl border-4 border-emerald-200">
         <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
           <h2 class="text-xl title-font text-emerald-700 flex items-center space-x-2">
@@ -651,17 +692,123 @@
             <h4 id="book-detail-title" class="font-black text-emerald-800 text-base"></h4>
             <div class="flex flex-wrap gap-1.5">
               <button id="book-online-read-btn" class="hidden text-xs bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg flex items-center gap-1">
-                📖 온라인 성경 읽기
+                📖 성경 읽기
               </button>
               <button onclick="markAllChapters(true)" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg">전체 완독✅</button>
               <button onclick="markAllChapters(false)" class="text-xs bg-gray-400 hover:bg-gray-500 text-white px-3 py-1 rounded-lg">전체 취소</button>
               <button onclick="closeBookDetail()" class="text-xs bg-slate-300 hover:bg-slate-400 text-slate-700 px-3 py-1 rounded-lg">닫기</button>
             </div>
           </div>
-          <p class="text-[10px] text-emerald-600 mb-2">• 장 번호 클릭: 완독 표시/취소 &nbsp;|&nbsp; 📖읽기 클릭: 온라인 성경(YouVersion 개역개정) 열기</p>
+          <p class="text-[10px] text-emerald-600 mb-2">• 장 번호 클릭: 완독 표시/취소 &nbsp;|&nbsp; 📖읽기 클릭: 개역개정 본문 열기</p>
           <div id="chapter-grid" class="grid grid-cols-10 gap-1"></div>
         </div>
       </div>
+
+      <!-- 챌린지 (그 다음) -->
+      <div class="bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
+        <div class="absolute -right-8 -bottom-8 opacity-10 text-9xl">📖</div>
+
+        <!-- 오늘의 통독 계획 자동 표시 -->
+        <div class="text-center mb-5">
+          <div class="text-amber-100 text-xs mb-1 tracking-widest font-bold">📅 오늘의 통독 계획 · 개역개정</div>
+          <div id="today-plan-label" class="text-2xl font-black text-white title-font mb-1 leading-tight">계산 중...</div>
+          <div id="today-plan-day" class="text-amber-200 text-xs mb-3"></div>
+          <div class="flex justify-center gap-2">
+            <button onclick="openTodayReading()"
+              class="bg-white text-amber-600 hover:bg-amber-50 font-black px-5 py-2.5 rounded-2xl shadow-md text-sm transition-all active:scale-95 flex items-center gap-1.5">
+              📖 바로 읽기
+            </button>
+            <button onclick="document.getElementById('manual-range-section').classList.toggle('hidden')"
+              class="bg-white/20 hover:bg-white/30 text-white font-bold px-3 py-2.5 rounded-2xl text-xs transition">
+              ✏️ 직접 입력
+            </button>
+          </div>
+        </div>
+
+        <!-- 수동 입력 (접을 수 있음) -->
+        <div id="manual-range-section" class="hidden mb-4">
+          <div class="flex flex-col sm:flex-row gap-3">
+            <div class="bg-white/20 p-3 rounded-2xl flex-1">
+              <label class="block text-xs text-amber-100 font-bold mb-1">✏️ 직접 범위 입력</label>
+              <div class="flex gap-1">
+                <input type="text" id="bible-range" placeholder="예: 창세기 1-3장"
+                  class="bg-white text-slate-800 font-bold py-1 px-3 rounded-lg flex-1 outline-none text-sm focus:ring-2 focus:ring-amber-300"
+                  onkeydown="if(event.key==='Enter'){applyBibleRange();}">
+                <button onclick="applyBibleRange()" class="bg-amber-300 hover:bg-amber-200 text-amber-900 font-black text-xs px-2 py-1 rounded-lg whitespace-nowrap transition">
+                  ✅ 적용
+                </button>
+              </div>
+              <p id="bible-range-applied" class="text-[10px] text-amber-200 mt-1 hidden">✔ 범위 적용됨</p>
+            </div>
+            <div class="bg-white/20 p-3 rounded-2xl flex flex-col justify-center shrink-0">
+              <span class="text-xs text-amber-100 font-bold">🎯 완독 보상</span>
+              <span class="font-bold text-sm text-yellow-200">전원 💰 300 달란트</span>
+            </div>
+          </div>
+        </div>
+        <!-- 완독 달력 -->
+        <div class="bg-black/20 p-4 rounded-2xl mb-6">
+          <div class="flex justify-between items-center mb-3">
+            <span class="text-sm font-bold text-amber-50 flex items-center gap-2">
+              🗓️ 완독 달력
+              <span id="cal-month-label" class="text-amber-200 text-xs font-bold"></span>
+            </span>
+            <div class="flex items-center gap-1">
+              <button onclick="calPrevMonth()" class="w-7 h-7 rounded-full bg-amber-800/60 hover:bg-amber-700 text-amber-100 text-sm font-bold flex items-center justify-center">‹</button>
+              <button onclick="calToday()" class="text-[10px] bg-amber-800/60 hover:bg-amber-700 text-amber-100 px-2 py-1 rounded">오늘</button>
+              <button onclick="calNextMonth()" class="w-7 h-7 rounded-full bg-amber-800/60 hover:bg-amber-700 text-amber-100 text-sm font-bold flex items-center justify-center">›</button>
+            </div>
+          </div>
+          <!-- 요일 헤더 -->
+          <div class="grid grid-cols-7 gap-1 mb-1">
+            <div class="text-center text-[10px] font-bold text-red-300">일</div>
+            <div class="text-center text-[10px] font-bold text-amber-200">월</div>
+            <div class="text-center text-[10px] font-bold text-amber-200">화</div>
+            <div class="text-center text-[10px] font-bold text-amber-200">수</div>
+            <div class="text-center text-[10px] font-bold text-amber-200">목</div>
+            <div class="text-center text-[10px] font-bold text-amber-200">금</div>
+            <div class="text-center text-[10px] font-bold text-blue-300">토</div>
+          </div>
+          <div id="reading-calendar-grid" class="grid grid-cols-7 gap-1"></div>
+          <div class="flex items-center gap-3 mt-3 justify-center text-[10px] text-amber-100/80 flex-wrap">
+            <span><span class="inline-block w-3 h-3 rounded-sm bg-emerald-400 mr-1"></span>전원 완독</span>
+            <span><span class="inline-block w-3 h-3 rounded-sm bg-yellow-400/80 mr-1"></span>부분 완독</span>
+            <span><span class="inline-block w-3 h-3 rounded-sm bg-red-400/60 mr-1"></span>미완독</span>
+            <span><span class="inline-block w-3 h-3 rounded-sm border border-amber-300 mr-1"></span>미래</span>
+          </div>
+          <div class="flex items-center gap-3 mt-1.5 justify-center text-[10px] text-amber-100/80">
+            <span>🌟 전원: <strong id="cal-month-count" class="text-yellow-300">0</strong>일</span>
+            <span>⚡ 부분: <strong id="cal-month-partial" class="text-yellow-300">0</strong>일</span>
+            <span class="text-amber-200">📅 날짜 클릭 → 개인별 체크</span>
+          </div>
+          <p class="text-[11px] text-amber-100/90 mt-2 text-center">
+            💡 날짜 클릭으로 완독 표시 · <strong>한 달 20일 이상</strong> 완독 시 온 가족 레벨업!
+          </p>
+        </div>
+
+        <!-- 🔥 스트릭 배지 -->
+        <div id="streak-display" class="flex items-center justify-between bg-black/20 rounded-2xl px-4 py-3 mb-4">
+          <div class="flex items-center gap-3">
+            <span class="text-3xl leading-none" id="streak-fire-emoji">🕯️</span>
+            <div>
+              <div class="text-white font-black text-lg leading-tight" id="streak-count-text">0일 연속</div>
+              <div class="text-amber-200 text-xs mt-0.5" id="streak-sub-text">오늘 읽으면 첫 불꽃 시작!</div>
+            </div>
+          </div>
+          <div class="text-right">
+            <div id="streak-milestone-badge" class="hidden bg-yellow-400 text-amber-900 font-black text-xs px-3 py-1.5 rounded-full mb-1"></div>
+            <div class="text-[10px] text-amber-300">🔥3일+100 ⚡7일+300 🏆30일+1000</div>
+          </div>
+        </div>
+
+        <button onclick="triggerFanfareCelebration()"
+          class="w-full bg-yellow-400 hover:bg-yellow-300 text-amber-950 font-black text-xl py-4 px-6 rounded-2xl shadow-lg border-b-8 border-yellow-600 active:border-b-2 active:translate-y-1 transition-all flex items-center justify-center space-x-3">
+          <span class="text-2xl">🎺</span>
+          <span id="fanfare-btn-text">성경 읽기 끝! 빵빠레 울려라!!</span>
+          <span class="text-2xl">🎉</span>
+        </button>
+      </div>
+
     </div>
 
     <!-- ===== 🎯 탭: 퀴즈 ===== -->
@@ -794,6 +941,44 @@
       </div>
 
       <button onclick="closeCarModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 rounded-xl">취소</button>
+    </div>
+  </div>
+
+  <!-- 🏆 주간 가족 결산 모달 -->
+  <div id="weekly-summary-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm border-4 border-yellow-400 overflow-hidden">
+      <div class="bg-gradient-to-r from-amber-400 to-orange-500 px-6 py-5 text-center">
+        <div class="text-4xl mb-2">🏆</div>
+        <h2 class="text-xl font-black text-white title-font">이번 주 가족 결산!</h2>
+        <p id="weekly-summary-dates" class="text-amber-100 text-xs mt-1"></p>
+      </div>
+      <div id="weekly-summary-body" class="px-5 py-4 max-h-72 overflow-y-auto"></div>
+      <div class="px-5 pb-3 text-center">
+        <div id="weekly-family-avg" class="text-sm font-bold text-slate-500 mb-3"></div>
+        <div id="weekly-summary-cheer" class="text-base font-black text-amber-600 mb-4"></div>
+        <div class="flex gap-2">
+          <button onclick="closeWeeklySummary()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-white font-black py-3 rounded-2xl text-sm transition">✅ 확인!</button>
+          <button onclick="closeWeeklySummary()" class="bg-slate-100 hover:bg-slate-200 text-slate-500 font-bold py-3 px-4 rounded-2xl text-sm transition">나중에</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📅 날짜별 멤버 완독 모달 -->
+  <div id="day-member-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm border-4 border-emerald-300">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+        <div>
+          <h3 id="day-modal-title" class="text-lg font-black text-emerald-800 title-font"></h3>
+          <p class="text-xs text-slate-400 mt-0.5">누가 읽었는지 체크해 주세요</p>
+        </div>
+        <button onclick="closeDayModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-black flex items-center justify-center text-lg transition">×</button>
+      </div>
+      <div id="day-modal-body" class="px-5 py-3 space-y-1 max-h-72 overflow-y-auto"></div>
+      <div class="px-5 py-4 border-t border-slate-100 flex gap-2">
+        <button onclick="setAllMembersDay(true)" class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-white font-black py-2.5 rounded-xl text-sm transition">✅ 전원 완독</button>
+        <button onclick="setAllMembersDay(false)" class="flex-1 bg-red-100 hover:bg-red-200 text-red-600 font-black py-2.5 rounded-xl text-sm transition">✗ 전원 취소</button>
+      </div>
     </div>
   </div>
 
@@ -2137,6 +2322,11 @@
 
   let familyData = [];
   let weeklyStamps = [false,false,false,false,false,false];
+  let readingCalendar = {}; // { "2026-06-01": true, ... }
+  let calendarViewYear = new Date().getFullYear();
+  let calendarViewMonth = new Date().getMonth(); // 0-indexed
+  let activityLog = []; // [{ time: ISO, text: '...', streak: N }]
+  let _lastActivityCount = 0; // Firebase 새 활동 감지용
   let timerInterval = null;
   let timerSeconds = 1200;
   let pendingPurchase = null;
@@ -2144,6 +2334,240 @@
   // ── 개인 로그인 ──
   let currentUser = null; // { id, name, emoji }
   const MEMBER_COLORS = { 온유:'#3b82f6', 기쁨:'#ec4899', 주안:'#22c55e', 하선:'#a855f7', 창륜:'#f97316' };
+
+  // ── 멤버 빠른 선택 ──
+  let quickMember = null; // { name, emoji, talents, ... }
+
+  // ============================================================
+  // 📅 연간 성경 통독 계획 (창세기~요한계시록, 1일 3장)
+  // ============================================================
+  const BIBLE_READING_PLAN = [
+    {name:'창세기',chapters:50},{name:'출애굽기',chapters:40},{name:'레위기',chapters:27},
+    {name:'민수기',chapters:36},{name:'신명기',chapters:34},{name:'여호수아',chapters:24},
+    {name:'사사기',chapters:21},{name:'룻기',chapters:4},{name:'사무엘상',chapters:31},
+    {name:'사무엘하',chapters:24},{name:'열왕기상',chapters:22},{name:'열왕기하',chapters:25},
+    {name:'역대상',chapters:29},{name:'역대하',chapters:36},{name:'에스라',chapters:10},
+    {name:'느헤미야',chapters:13},{name:'에스더',chapters:10},{name:'욥기',chapters:42},
+    {name:'시편',chapters:150},{name:'잠언',chapters:31},{name:'전도서',chapters:12},
+    {name:'아가',chapters:8},{name:'이사야',chapters:66},{name:'예레미야',chapters:52},
+    {name:'예레미야애가',chapters:5},{name:'에스겔',chapters:48},{name:'다니엘',chapters:12},
+    {name:'호세아',chapters:14},{name:'요엘',chapters:3},{name:'아모스',chapters:9},
+    {name:'오바댜',chapters:1},{name:'요나',chapters:4},{name:'미가',chapters:7},
+    {name:'나훔',chapters:3},{name:'하박국',chapters:3},{name:'스바냐',chapters:3},
+    {name:'학개',chapters:2},{name:'스가랴',chapters:14},{name:'말라기',chapters:4},
+    {name:'마태복음',chapters:28},{name:'마가복음',chapters:16},{name:'누가복음',chapters:24},
+    {name:'요한복음',chapters:21},{name:'사도행전',chapters:28},{name:'로마서',chapters:16},
+    {name:'고린도전서',chapters:16},{name:'고린도후서',chapters:13},{name:'갈라디아서',chapters:6},
+    {name:'에베소서',chapters:6},{name:'빌립보서',chapters:4},{name:'골로새서',chapters:4},
+    {name:'데살로니가전서',chapters:5},{name:'데살로니가후서',chapters:3},{name:'디모데전서',chapters:6},
+    {name:'디모데후서',chapters:4},{name:'디도서',chapters:3},{name:'빌레몬서',chapters:1},
+    {name:'히브리서',chapters:13},{name:'야고보서',chapters:5},{name:'베드로전서',chapters:5},
+    {name:'베드로후서',chapters:3},{name:'요한일서',chapters:5},{name:'요한이서',chapters:1},
+    {name:'요한삼서',chapters:1},{name:'유다서',chapters:1},{name:'요한계시록',chapters:22}
+  ]; // 총 1189장 ÷ 3장/일 = 약 396일(1년 1개월)
+
+  const CHAPTERS_PER_DAY = 3;
+  const TOTAL_BIBLE_CHAPTERS = BIBLE_READING_PLAN.reduce((s,b) => s+b.chapters, 0); // 1189
+
+  function getTodayReadingPlan() {
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+    startOfYear.setHours(0,0,0,0);
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dayNum = Math.floor((today - startOfYear) / 86400000); // 0-indexed
+    const startAbs = (dayNum * CHAPTERS_PER_DAY) % TOTAL_BIBLE_CHAPTERS; // 0-indexed
+    const result = [];
+    let cumulative = 0;
+    for (const book of BIBLE_READING_PLAN) {
+      const bStart = cumulative, bEnd = cumulative + book.chapters - 1;
+      const rStart = startAbs, rEnd = startAbs + CHAPTERS_PER_DAY - 1;
+      if (rEnd >= bStart && rStart <= bEnd) {
+        const chStart = Math.max(rStart - bStart, 0) + 1;
+        const chEnd = Math.min(rEnd - bStart, book.chapters - 1) + 1;
+        result.push({ bookName: book.name, startChapter: chStart, endChapter: chEnd });
+      }
+      cumulative += book.chapters;
+      if (cumulative > startAbs + CHAPTERS_PER_DAY - 1) break;
+    }
+    return result; // [{ bookName, startChapter, endChapter }, ...]
+  }
+
+  function getTodayPlanLabel() {
+    const plan = getTodayReadingPlan();
+    if (!plan.length) return '성경을 읽어보세요!';
+    return plan.map(p =>
+      p.startChapter === p.endChapter
+        ? `${p.bookName} ${p.startChapter}장`
+        : `${p.bookName} ${p.startChapter}-${p.endChapter}장`
+    ).join(' · ');
+  }
+
+  function renderTodayPlan() {
+    const labelEl = document.getElementById('today-plan-label');
+    const dayEl = document.getElementById('today-plan-day');
+    if (!labelEl) return;
+    const label = getTodayPlanLabel();
+    labelEl.textContent = label;
+    // 연간 몇 일차인지 표시
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+    startOfYear.setHours(0,0,0,0);
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dayNum = Math.floor((today - startOfYear) / 86400000) + 1;
+    if (dayEl) dayEl.textContent = `올해 ${dayNum}일째 · 전체 ${TOTAL_BIBLE_CHAPTERS}장 중 ${Math.min((dayNum-1)*CHAPTERS_PER_DAY + CHAPTERS_PER_DAY, TOTAL_BIBLE_CHAPTERS)}장 완주 구간`;
+    // bible-range 자동 입력 (수동 편집 안 된 경우)
+    const rangeInput = document.getElementById('bible-range');
+    if (rangeInput && !rangeInput._manualEdit) rangeInput.value = label;
+  }
+
+  function openTodayReading() {
+    const plan = getTodayReadingPlan();
+    if (!plan.length) { showNotification('📖 오늘의 통독 계획을 불러올 수 없어요!'); return; }
+    const first = plan[0];
+    openBibleModal(first.bookName, first.startChapter);
+  }
+
+  // ============================================================
+  // 👤 멤버 빠른 선택
+  // ============================================================
+  function renderMemberQuickSelect() {
+    const container = document.getElementById('quick-member-btns');
+    if (!container || !familyData.length) return;
+    container.innerHTML = familyData.map(m => {
+      const isSelected = quickMember && quickMember.name === m.name;
+      const color = MEMBER_COLORS[m.name] || '#f97316';
+      return `
+        <button onclick="setQuickMember('${m.name}')"
+          class="flex flex-col items-center gap-1 px-3 py-2.5 rounded-2xl transition-all ${isSelected ? 'scale-110 shadow-lg' : 'opacity-60 hover:opacity-90'}"
+          style="background:${isSelected ? color+'25' : '#f9fafb'}; border: 2.5px solid ${isSelected ? color : '#e5e7eb'}">
+          <span class="text-2xl leading-none">${m.emoji}</span>
+          <span class="text-[11px] font-black" style="color:${isSelected ? color : '#6b7280'}">${m.name}</span>
+        </button>`;
+    }).join('');
+    updatePersonalGreeting();
+    updateFanfareBtn();
+  }
+
+  function setQuickMember(name) {
+    const m = familyData.find(m => m.name === name);
+    if (!m) return;
+    quickMember = (quickMember && quickMember.name === name) ? null : m;
+    renderMemberQuickSelect();
+  }
+
+  function updatePersonalGreeting() {
+    const el = document.getElementById('personal-greeting');
+    const emojiEl = document.getElementById('greeting-emoji');
+    const textEl = document.getElementById('greeting-text');
+    const subEl = document.getElementById('greeting-sub');
+    if (!el) return;
+    if (!quickMember) { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    const color = MEMBER_COLORS[quickMember.name] || '#f97316';
+    el.style.borderColor = color;
+    emojiEl.textContent = quickMember.emoji;
+    const today = new Date();
+    const key = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+    const alreadyRead = !!(getMemberStatus(key)[quickMember.name]);
+    if (alreadyRead) {
+      el.style.background = '#d1fae5';
+      textEl.innerHTML = `<span style="color:${color}">${quickMember.name}</span>, 오늘 완독 완료! 🎉`;
+      subEl.textContent = `💰 ${(familyData.find(m=>m.name===quickMember.name)?.talents||0).toLocaleString()}달란트 보유`;
+    } else {
+      el.style.background = '#fffbeb';
+      textEl.innerHTML = `<span style="color:${color}">${quickMember.name}</span>, 오늘 성경 읽었어? 📖`;
+      subEl.textContent = '아래 빵빠레 버튼으로 완독 표시!';
+    }
+  }
+
+  function updateFanfareBtn() {
+    const btn = document.getElementById('fanfare-btn-text');
+    if (!btn) return;
+    if (quickMember) {
+      btn.textContent = `${quickMember.name} 완독! 빵빠레 울려라!!`;
+    } else {
+      btn.textContent = '성경 읽기 끝! 빵빠레 울려라!!';
+    }
+  }
+
+  // ============================================================
+  // 🏆 주간 가족 결산
+  // ============================================================
+  function getISOWeekKey() {
+    const d = new Date();
+    const day = d.getDay() || 7;
+    d.setDate(d.getDate() + 4 - day);
+    const yearStart = new Date(d.getFullYear(), 0, 1);
+    return `${d.getFullYear()}-W${Math.ceil(((d - yearStart) / 86400000 + 1) / 7)}`;
+  }
+
+  function getWeekRange() {
+    const today = new Date();
+    const mon = new Date(today);
+    mon.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    return { mon, sun };
+  }
+
+  function getWeekStats() {
+    const { mon } = getWeekRange();
+    return familyData.map(m => {
+      let days = 0;
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(mon); d.setDate(mon.getDate() + i);
+        const k = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+        if (getMemberStatus(k)[m.name]) days++;
+      }
+      return { ...m, weekDays: days };
+    });
+  }
+
+  function showWeeklySummary() {
+    const stats = getWeekStats();
+    const modal = document.getElementById('weekly-summary-modal');
+    if (!modal) return;
+    const { mon, sun } = getWeekRange();
+    const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
+    document.getElementById('weekly-summary-dates').textContent = `${fmt(mon)} ~ ${fmt(sun)}`;
+    const maxDays = Math.max(...stats.map(s => s.weekDays), 0);
+    const sorted = [...stats].sort((a,b) => b.weekDays - a.weekDays);
+    document.getElementById('weekly-summary-body').innerHTML = sorted.map((s, rank) => {
+      const color = MEMBER_COLORS[s.name] || '#888';
+      const bars = Array.from({length:7}, (_,i) => i < s.weekDays ? '🟩' : '⬜').join('');
+      const isMVP = s.weekDays === maxDays && maxDays > 0;
+      const medals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+      return `
+        <div class="flex items-center gap-3 py-2.5 border-b border-slate-100 last:border-0">
+          <span class="text-xl w-7 text-center">${medals[rank]||'·'}</span>
+          <span class="text-2xl">${s.emoji}</span>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="font-black text-sm" style="color:${color}">${s.name}</span>
+              ${isMVP ? '<span class="text-[10px] bg-yellow-100 text-yellow-600 font-black px-1.5 py-0.5 rounded-full">⭐MVP</span>' : ''}
+            </div>
+            <div class="text-[13px] mt-0.5 leading-none">${bars}</div>
+          </div>
+          <div class="font-black text-xl" style="color:${color}">${s.weekDays}<span class="text-xs text-gray-400 font-normal">/7</span></div>
+        </div>`;
+    }).join('');
+    const totalDays = stats.reduce((s,m) => s+m.weekDays, 0);
+    const avg = stats.length ? (totalDays/stats.length).toFixed(1) : 0;
+    document.getElementById('weekly-family-avg').textContent = `가족 평균 ${avg}일 / 총 ${totalDays}일 완독`;
+    const cheerMsgs = ['🔥 이번 주도 하나님 말씀과 함께!', '✨ 꾸준함이 믿음을 자라게 해요!', '💪 다음 주는 더 잘 할 수 있어요!', '🙏 말씀을 읽는 우리 가족 최고!'];
+    document.getElementById('weekly-summary-cheer').textContent = cheerMsgs[Math.floor(Math.random()*cheerMsgs.length)];
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeWeeklySummary() {
+    document.getElementById('weekly-summary-modal').classList.add('hidden');
+    document.body.style.overflow = '';
+    localStorage.setItem('last_summary_week', getISOWeekKey());
+  }
+
+  function checkSundaySummary() {
+    if (new Date().getDay() !== 0) return; // 일요일만
+    if (localStorage.getItem('last_summary_week') === getISOWeekKey()) return; // 이미 봤으면 skip
+    setTimeout(showWeeklySummary, 1800);
+  }
 
   // ── 개인 진도 (A안: 공통 진도 + 누가 읽었는지 개인 기록) ──
   let memberProgress = {}; // { memberId: { bookName: { ch: true } } }
@@ -2184,9 +2608,21 @@
       window._firebaseListen((data) => {
         if (data.family) familyData = data.family;
         if (data.stamps) weeklyStamps = data.stamps;
+        if (data.readingCalendar) readingCalendar = data.readingCalendar;
         if (data.memberProgress) memberProgress = data.memberProgress;
         if (data.storeItems) storeItems = data.storeItems;
         if (data.rewardConfig) rewardConfig = data.rewardConfig;
+        // 📣 새 활동 감지 — 내가 올린 것 빼고 다른 기기 변경 시 알림
+        if (data.activityLog && Array.isArray(data.activityLog)) {
+          const newCount = data.activityLog.length;
+          if (_lastActivityCount > 0 && newCount > _lastActivityCount) {
+            const latest = data.activityLog[0];
+            if (latest) showNotification(`📣 새 활동: ${latest.text}`);
+          }
+          activityLog = data.activityLog;
+          _lastActivityCount = newCount;
+          renderActivityFeed();
+        }
         renderFamily();
         renderWeeklyStamps();
         renderRaceTrack();
@@ -2198,16 +2634,21 @@
       if (cloud) {
         familyData = cloud.family || DEFAULT_FAMILY;
         weeklyStamps = cloud.stamps || [false,false,false,false,false,false];
+        if (cloud.readingCalendar) readingCalendar = cloud.readingCalendar;
         memberProgress = cloud.memberProgress || {};
         if (cloud.storeItems) storeItems = cloud.storeItems;
         if (cloud.rewardConfig) rewardConfig = cloud.rewardConfig;
+        if (cloud.activityLog) { activityLog = cloud.activityLog; _lastActivityCount = activityLog.length; }
         initBibleProgress(cloud.bibleProgress || null);
         initPrayer(cloud.prayerData || null);
         statusTxt.textContent = '✅ 클라우드 연결됨';
       } else {
         familyData = JSON.parse(localStorage.getItem('bible_adventure_family')) || DEFAULT_FAMILY;
         weeklyStamps = JSON.parse(localStorage.getItem('bible_adventure_weekly_stamps')) || [false,false,false,false,false,false];
+        readingCalendar = JSON.parse(localStorage.getItem('bible_reading_calendar')) || {};
         memberProgress = JSON.parse(localStorage.getItem('member_progress')) || {};
+        activityLog = JSON.parse(localStorage.getItem('activity_log')) || [];
+        _lastActivityCount = activityLog.length;
         const savedStore = JSON.parse(localStorage.getItem('store_items'));
         if (savedStore) storeItems = savedStore;
         const savedReward = JSON.parse(localStorage.getItem('reward_config'));
@@ -2223,6 +2664,9 @@
       statusTxt.textContent = '📱 오프라인 모드 (Firebase 미설정)';
       familyData = JSON.parse(localStorage.getItem('bible_adventure_family')) || DEFAULT_FAMILY;
       weeklyStamps = JSON.parse(localStorage.getItem('bible_adventure_weekly_stamps')) || [false,false,false,false,false,false];
+      readingCalendar = JSON.parse(localStorage.getItem('bible_reading_calendar')) || {};
+      activityLog = JSON.parse(localStorage.getItem('activity_log')) || [];
+      _lastActivityCount = activityLog.length;
       memberProgress = JSON.parse(localStorage.getItem('member_progress')) || {};
       const savedStore2 = JSON.parse(localStorage.getItem('store_items'));
       if (savedStore2) storeItems = savedStore2;
@@ -2233,27 +2677,42 @@
       initPrayer(JSON.parse(localStorage.getItem('bible_prayer')));
     }
 
+    // 구 포맷(boolean) → 신 포맷(object) 마이그레이션
+    Object.keys(readingCalendar).forEach(key => {
+      if (typeof readingCalendar[key] === 'boolean') {
+        const wasTrue = readingCalendar[key];
+        readingCalendar[key] = {};
+        if (wasTrue) familyData.forEach(m => { readingCalendar[key][m.name] = true; });
+      }
+    });
+
     renderFamily();
     renderWeeklyStamps();
     renderRaceTrack();
     renderStoreList();
+    renderActivityFeed();
+    renderTodayPlan();
+    renderMemberQuickSelect();
     loadTodayQuiz();
     initLogin();
     scheduleNotifTimer();
     initTabs();
     loadBibleData(); // 📖 성경 JSON 백그라운드 미리 로딩
+    checkSundaySummary(); // 일요일이면 주간 결산 자동 표시
   }
 
   async function saveData() {
     localStorage.setItem('bible_adventure_family', JSON.stringify(familyData));
     localStorage.setItem('bible_adventure_weekly_stamps', JSON.stringify(weeklyStamps));
+    localStorage.setItem('bible_reading_calendar', JSON.stringify(readingCalendar));
     localStorage.setItem('member_progress', JSON.stringify(memberProgress));
     localStorage.setItem('store_items', JSON.stringify(storeItems));
     localStorage.setItem('reward_config', JSON.stringify(rewardConfig));
+    localStorage.setItem('activity_log', JSON.stringify(activityLog));
 
     if (window._firebaseSave) {
       const current = await (window._firebaseLoad ? window._firebaseLoad() : null) || {};
-      Object.assign(current, { family: familyData, stamps: weeklyStamps, memberProgress, storeItems, rewardConfig });
+      Object.assign(current, { family: familyData, stamps: weeklyStamps, readingCalendar, memberProgress, storeItems, rewardConfig, activityLog });
       await window._firebaseSave(current);
     }
   }
@@ -2285,19 +2744,79 @@
       carEl.style.left = `${leftPct}%`;
       carEl.style.top = `${lanes[laneIdx]}%`;
       carEl.style.animationDelay = `${i * 0.15}s`;
-      carEl.innerHTML = `<div style="position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:0.6rem;white-space:nowrap;color:#fff;text-shadow:0 1px 2px #000;font-weight:900;background:rgba(0,0,0,0.45);border-radius:4px;padding:1px 4px;margin-bottom:2px;">${m.name}(${poliName})</div><div class="car-inner">${carIcon}</div>`;
+      const memberColor = MEMBER_COLORS[m.name] || '#f97316';
+      const avatarEl = m.photo
+        ? `<img src="${m.photo}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:2.5px solid ${memberColor};box-shadow:0 1px 4px rgba(0,0,0,0.4);">`
+        : `<div style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.92);border:2.5px solid ${memberColor};display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 1px 4px rgba(0,0,0,0.35);">${m.emoji}</div>`;
+      carEl.innerHTML = `
+        <div style="position:absolute;bottom:100%;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:1px;margin-bottom:2px;">
+          ${avatarEl}
+          <span style="font-size:0.5rem;color:#fff;font-weight:900;text-shadow:0 1px 3px #000;white-space:nowrap;background:rgba(0,0,0,0.5);border-radius:3px;padding:0 3px;line-height:1.4;">${m.name}</span>
+        </div>
+        <div class="car-inner">${carIcon}</div>`;
       carsDiv.appendChild(carEl);
     });
 
-    // 순위표
-    rankDiv.innerHTML = sorted.map((m, rank) => `
-      <div class="text-center p-2 rounded-xl ${rank===0?'bg-yellow-100 border-2 border-yellow-400':rank===1?'bg-gray-100 border border-gray-300':rank===2?'bg-orange-50 border border-orange-200':'bg-slate-50 border border-slate-200'}">
-        <div class="text-lg">${['🥇','🥈','🥉','4️⃣','5️⃣'][rank]}</div>
-        <div class="text-xs font-bold">${getCarIcon(m)} ${m.name}</div>
-        <div class="text-[10px] text-gray-400">${getPoliName(m)}</div>
-        <div class="text-xs text-amber-700 font-bold">${m.talents.toLocaleString()}💰</div>
-      </div>
-    `).join('');
+    // ── 통합 멤버 카드 ──────────────────────────────────────────
+    const weeklyCount = getCompletedWeeklyCount();
+    const rankColors = [
+      'bg-yellow-50 border-2 border-yellow-400',
+      'bg-gray-50 border-2 border-gray-300',
+      'bg-orange-50 border-2 border-orange-300',
+      'bg-slate-50 border border-slate-200',
+      'bg-slate-50 border border-slate-200'
+    ];
+    const rankMedals = ['🥇','🥈','🥉','4️⃣','5️⃣'];
+
+    rankDiv.innerHTML = sorted.map((m, rank) => {
+      const photoEl = m.photo
+        ? `<img src="${m.photo}" class="w-14 h-14 rounded-full object-cover border-3 border-amber-300 mx-auto">`
+        : `<div class="w-14 h-14 rounded-full bg-amber-100 border-2 border-dashed border-amber-300 flex items-center justify-center text-3xl mx-auto">${m.emoji}</div>`;
+      const pct = Math.min(100, (weeklyCount / 5) * 100);
+      const carIcon = getCarIcon(m);
+      const poliName = getPoliName(m);
+
+      return `
+        <div class="rounded-2xl p-3 ${rankColors[rank]} flex flex-col items-center gap-1.5 relative">
+          <!-- 순위 뱃지 -->
+          <div class="absolute -top-2 -left-1 text-lg leading-none">${rankMedals[rank]}</div>
+
+          <!-- 사진 (클릭 시 업로드) -->
+          <div onclick="triggerPhotoUpload('${m.id}')" class="cursor-pointer relative mt-1">
+            ${photoEl}
+            <span class="absolute -bottom-1 -right-1 bg-amber-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[9px]">
+              <i class="fa-solid fa-camera"></i>
+            </span>
+          </div>
+
+          <!-- 이름 + 나이 -->
+          <div class="text-center">
+            <div class="font-black text-sm title-font leading-tight">${m.name}</div>
+            <div class="text-[10px] text-gray-400">${m.age} · Lv.${m.level}</div>
+          </div>
+
+          <!-- 이동수단 (클릭 시 변경) -->
+          <button onclick="openCarModal('${m.id}')" title="이동수단 변경"
+            class="text-xl leading-none hover:scale-125 transition-transform bg-white border border-sky-200 rounded-lg px-2 py-0.5">
+            ${carIcon}
+          </button>
+          <div class="text-[9px] text-gray-400">${poliName}</div>
+
+          <!-- 주간 진행바 -->
+          <div class="w-full">
+            <div class="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+              <div class="bg-gradient-to-r from-orange-400 to-yellow-400 h-full transition-all" style="width:${pct}%"></div>
+            </div>
+            <div class="text-[9px] text-center text-orange-500 font-bold mt-0.5">${weeklyCount}/5일</div>
+          </div>
+
+          <!-- 달란트 -->
+          <div class="text-center">
+            <div class="text-base font-extrabold text-amber-700 title-font leading-tight">${m.talents.toLocaleString()}</div>
+            <div class="text-[9px] text-amber-500">달란트 💰</div>
+          </div>
+        </div>`;
+    }).join('');
   }
 
   // ============================================================
@@ -2327,7 +2846,7 @@
     });
 
     // 탭 전환 후 렌더 갱신
-    if (isAll || name === 'home') { renderRaceTrack(); renderFamily(); }
+    if (isAll || name === 'home') { renderRaceTrack(); renderActivityFeed(); renderMemberQuickSelect(); }
     if (isAll || name === 'reading') { renderBibleMap(); renderWeeklyStamps(); }
     if (isAll || name === 'quiz') { loadTodayQuiz(); }
     if (isAll || name === 'store') { renderStoreList(); }
@@ -2398,21 +2917,361 @@
     });
   }
 
-  function renderWeeklyStamps() {
-    const c = document.getElementById('stamp-container');
-    if (!c) return;
-    c.innerHTML = '';
-    for (let i = 0; i < 6; i++) {
-      const on = weeklyStamps[i];
-      c.innerHTML += `
-        <div class="flex flex-col items-center p-2 rounded-xl border ${on?'bg-yellow-400/30 border-yellow-300':'bg-black/10 border-white/10 text-white/50'}">
-          <span class="text-xs font-bold mb-1">${i+1}일차</span>
-          <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm ${on?'bg-yellow-400 text-amber-950':'bg-white/10'}">${on?'⭐':'📖'}</div>
+  // ── 완독 달력 ─────────────────────────────────────────────
+  function dateKey(y, m, d) {
+    return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+
+  function renderWeeklyStamps() { renderReadingCalendar(); renderStreakBadge(); renderActivityFeed(); }
+
+  // ============================================================
+  // 🔥 스트릭 (연속 완독) 시스템
+  // ============================================================
+  function calculateStreak() {
+    // 1명이라도 읽은 날을 연속 기준으로 (가족 중 누군가라도)
+    const today = new Date();
+    today.setHours(23, 59, 59, 0);
+    let streak = 0;
+    let d = new Date(today);
+    while (true) {
+      const k = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+      if (getDayReadCount(k) > 0) {
+        streak++;
+        d.setDate(d.getDate() - 1);
+      } else { break; }
+    }
+    return streak;
+  }
+
+  function renderStreakBadge() {
+    const streak = calculateStreak();
+    const countEl = document.getElementById('streak-count-text');
+    const subEl   = document.getElementById('streak-sub-text');
+    const fireEl  = document.getElementById('streak-fire-emoji');
+    const badgeEl = document.getElementById('streak-milestone-badge');
+    if (!countEl) return;
+
+    countEl.textContent = streak > 0 ? `${streak}일 연속 🔥` : '0일 연속';
+
+    if (streak === 0) {
+      fireEl.textContent = '🕯️';
+      subEl.textContent = '오늘 읽으면 첫 불꽃 시작!';
+      badgeEl.classList.add('hidden');
+    } else if (streak >= 30) {
+      fireEl.textContent = '🌟';
+      subEl.textContent = '30일 연속 달성! 전설의 독자! 🏆';
+      badgeEl.classList.remove('hidden');
+      badgeEl.textContent = '🏆 30일 달성!';
+    } else if (streak >= 7) {
+      fireEl.textContent = '⚡';
+      subEl.textContent = `${30 - streak}일 더 읽으면 30일 달성 +1000달란트!`;
+      badgeEl.classList.remove('hidden');
+      badgeEl.textContent = '⚡ 7일 돌파!';
+    } else if (streak >= 3) {
+      fireEl.textContent = '🔥';
+      subEl.textContent = `${7 - streak}일 더 읽으면 7일 달성 +300달란트!`;
+      badgeEl.classList.remove('hidden');
+      badgeEl.textContent = '🔥 3일 연속!';
+    } else {
+      fireEl.textContent = '🔥';
+      subEl.textContent = `${3 - streak}일 더 읽으면 3일 달성 +100달란트!`;
+      badgeEl.classList.add('hidden');
+    }
+  }
+
+  function checkStreakBonus(streak) {
+    // 마일스톤 정확히 도달 시 보너스
+    if (streak === 3)  return { bonus: 100,  label: '🔥 3일 연속 달성! 전원 +100달란트 보너스!' };
+    if (streak === 7)  return { bonus: 300,  label: '⚡ 7일 연속 달성! 전원 +300달란트 보너스!' };
+    if (streak === 30) return { bonus: 1000, label: '🏆 30일 연속 달성! 전원 +1000달란트 보너스!' };
+    return null;
+  }
+
+  // ============================================================
+  // 📣 가족 활동 피드
+  // ============================================================
+  function addActivityLog(text, streak) {
+    activityLog.unshift({ time: new Date().toISOString(), text, streak: streak || 0 });
+    if (activityLog.length > 30) activityLog = activityLog.slice(0, 30);
+    _lastActivityCount = activityLog.length;
+  }
+
+  function renderActivityFeed() {
+    const el = document.getElementById('activity-feed');
+    if (!el) return;
+    if (!activityLog.length) {
+      el.innerHTML = '<div class="text-center text-xs text-gray-400 py-4">아직 활동이 없어요. 성경을 읽고 빵빠레를 눌러보세요! 🎺</div>';
+      return;
+    }
+    el.innerHTML = activityLog.slice(0, 10).map(entry => {
+      const d = new Date(entry.time);
+      const timeStr = `${d.getMonth()+1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      const streakBadge = entry.streak >= 3
+        ? `<span class="ml-1 text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full font-bold">🔥 ${entry.streak}일 연속</span>`
+        : (entry.streak > 0 ? `<span class="ml-1 text-[10px] bg-amber-50 text-amber-500 px-1.5 py-0.5 rounded-full">${entry.streak}일째</span>` : '');
+      return `
+        <div class="flex items-start gap-2 bg-sky-50 rounded-xl px-3 py-2 border border-sky-100">
+          <span class="text-lg leading-none mt-0.5">🎺</span>
+          <div class="flex-1 min-w-0">
+            <div class="text-xs font-bold text-sky-800 flex flex-wrap items-center gap-1">${entry.text}${streakBadge}</div>
+            <div class="text-[10px] text-gray-400 mt-0.5">${timeStr}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ============================================================
+  // 📅 날짜별 멤버 완독 헬퍼
+  // ============================================================
+  // 새 포맷: readingCalendar[key] = { "온유": true, "기쁨": false, ... }
+  // 구 포맷 마이그레이션: boolean → object
+
+  // MEMBER_COLORS 는 위에 이미 선언됨 (객체형) — 배열 접근용 헬퍼
+  const MEMBER_COLORS_ARR = ['#3b82f6','#ec4899','#22c55e','#a855f7','#f97316'];
+
+  function getMemberStatus(key) {
+    const val = readingCalendar[key];
+    if (!val) return {};
+    if (typeof val === 'boolean') {
+      // 구 포맷 마이그레이션
+      const obj = {};
+      if (val) familyData.forEach(m => { obj[m.name] = true; });
+      return obj;
+    }
+    return val;
+  }
+
+  function isDayComplete(key) {
+    if (!familyData.length) return false;
+    const s = getMemberStatus(key);
+    return familyData.every(m => !!s[m.name]);
+  }
+
+  function isDayPartial(key) {
+    const s = getMemberStatus(key);
+    const readCount = familyData.filter(m => !!s[m.name]).length;
+    return readCount > 0 && readCount < familyData.length;
+  }
+
+  function getDayReadCount(key) {
+    const s = getMemberStatus(key);
+    return familyData.filter(m => !!s[m.name]).length;
+  }
+
+  // ============================================================
+  // 📅 달력 렌더링 (멤버 도트 표시)
+  // ============================================================
+  function renderReadingCalendar() {
+    const grid = document.getElementById('reading-calendar-grid');
+    const label = document.getElementById('cal-month-label');
+    const countEl = document.getElementById('cal-month-count');
+    const partialEl = document.getElementById('cal-month-partial');
+    if (!grid) return;
+
+    const y = calendarViewYear, m = calendarViewMonth;
+    const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+    if (label) label.textContent = `${y}년 ${monthNames[m]}`;
+
+    const today = new Date();
+    today.setHours(23,59,59,0);
+    const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+
+    const firstDay = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+
+    // 이번 달 전원/부분 완독 수
+    let monthFull = 0, monthPartial = 0;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const k = dateKey(y, m, d);
+      if (isDayComplete(k)) monthFull++;
+      else if (isDayPartial(k)) monthPartial++;
+    }
+    if (countEl) countEl.textContent = monthFull;
+    if (partialEl) partialEl.textContent = monthPartial;
+
+    grid.innerHTML = '';
+
+    // 빈 칸 (월 시작 전)
+    for (let i = 0; i < firstDay; i++) {
+      grid.innerHTML += `<div></div>`;
+    }
+
+    // 날짜 셀
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = dateKey(y, m, d);
+      const isComplete = isDayComplete(key);
+      const isPartial = isDayPartial(key);
+      const isToday = key === todayKey;
+      const isFuture = new Date(y, m, d) > today;
+      const isSun = new Date(y, m, d).getDay() === 0;
+      const isSat = new Date(y, m, d).getDay() === 6;
+      const status = getMemberStatus(key);
+      const readCount = getDayReadCount(key);
+
+      let bg, textCol;
+      if (isComplete) {
+        bg = 'bg-emerald-400 hover:bg-emerald-300';
+        textCol = 'text-white font-black';
+      } else if (isPartial) {
+        bg = 'bg-yellow-400/90 hover:bg-yellow-300';
+        textCol = 'text-amber-900 font-black';
+      } else if (isFuture) {
+        bg = 'bg-white/10 hover:bg-white/20';
+        textCol = 'text-white/40';
+      } else {
+        bg = 'bg-red-400/50 hover:bg-red-400/70';
+        textCol = isSun ? 'text-red-200' : isSat ? 'text-blue-200' : 'text-white/80';
+      }
+
+      const todayRing = isToday ? 'ring-2 ring-yellow-300 ring-offset-1 ring-offset-transparent' : '';
+
+      // 멤버 도트 생성 (미래 제외)
+      let dotsHtml = '';
+      if (!isFuture && familyData.length) {
+        dotsHtml = `<div class="flex items-center justify-center gap-[2px] mt-0.5 flex-wrap" style="max-width:100%">` +
+          familyData.map((member, idx) => {
+            const isRead = !!status[member.name];
+            const color = MEMBER_COLORS[member.name] || MEMBER_COLORS_ARR[idx % MEMBER_COLORS_ARR.length];
+            return `<span class="cal-dot ${isRead ? 'cal-dot-read' : 'cal-dot-empty'}" style="background:${color}" title="${member.name}${isRead ? ' ✅' : ' ✗'}"></span>`;
+          }).join('') +
+        `</div>`;
+      }
+
+      // 완독 수 표시
+      const countLabel = !isFuture && familyData.length
+        ? `<span class="text-[8px] leading-none ${isComplete ? 'text-emerald-100' : isPartial ? 'text-amber-700' : 'text-white/50'}">${readCount}/${familyData.length}</span>`
+        : '';
+
+      grid.innerHTML += `
+        <div onclick="openDayModal('${key}')"
+          class="relative cursor-pointer rounded-lg ${bg} ${todayRing} flex flex-col items-center justify-center py-1 transition-all select-none"
+          style="min-height:44px">
+          <span class="text-[11px] font-bold ${textCol} leading-none">${d}</span>
+          ${dotsHtml}
+          ${countLabel}
+          ${isToday ? `<span class="absolute -top-1 -right-1 w-2 h-2 bg-yellow-300 rounded-full"></span>` : ''}
         </div>`;
     }
   }
 
-  function getCompletedWeeklyCount() { return weeklyStamps.filter(Boolean).length; }
+  // ============================================================
+  // 📅 날짜 클릭 → 멤버 체크 모달
+  // ============================================================
+  let _dayModalKey = null;
+
+  function openDayModal(key) {
+    const isFuture = new Date(key + 'T23:59:59') > new Date();
+    if (isFuture) { showNotification('⏰ 미래 날짜는 체크할 수 없어요!'); return; }
+    _dayModalKey = key;
+    const [ky, km, kd] = key.split('-').map(Number);
+    document.getElementById('day-modal-title').textContent = `${km}월 ${kd}일 완독 현황`;
+    renderDayModalBody();
+    document.getElementById('day-member-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function renderDayModalBody() {
+    if (!_dayModalKey) return;
+    const status = getMemberStatus(_dayModalKey);
+    const body = document.getElementById('day-modal-body');
+    body.innerHTML = familyData.map((member, idx) => {
+      const isRead = !!status[member.name];
+      const color = MEMBER_COLORS[idx % MEMBER_COLORS.length];
+      return `
+        <div class="flex items-center justify-between py-2.5 border-b border-slate-100 last:border-0">
+          <div class="flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full flex-shrink-0" style="background:${color}"></span>
+            <span class="text-xl leading-none">${member.emoji}</span>
+            <div>
+              <div class="font-bold text-sm text-slate-800">${member.name}</div>
+              <div class="text-xs text-gray-400">${member.age}</div>
+            </div>
+          </div>
+          <button onclick="toggleMemberDay('${_dayModalKey}', '${member.name}')"
+            class="font-black text-sm px-4 py-2 rounded-xl transition-all ${isRead
+              ? 'bg-emerald-400 text-white shadow-sm'
+              : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}">
+            ${isRead ? '✅ 완독' : '미완독'}
+          </button>
+        </div>`;
+    }).join('');
+  }
+
+  async function toggleMemberDay(key, memberName) {
+    if (!readingCalendar[key] || typeof readingCalendar[key] === 'boolean') {
+      // 마이그레이션
+      const old = readingCalendar[key];
+      readingCalendar[key] = {};
+      if (old === true) familyData.forEach(m => { readingCalendar[key][m.name] = true; });
+    }
+    readingCalendar[key][memberName] = !readingCalendar[key][memberName];
+    renderDayModalBody();
+    renderReadingCalendar();
+    syncWeeklyStampsFromCalendar();
+    await saveData();
+  }
+
+  async function setAllMembersDay(value) {
+    if (!_dayModalKey) return;
+    if (!readingCalendar[_dayModalKey] || typeof readingCalendar[_dayModalKey] === 'boolean') {
+      readingCalendar[_dayModalKey] = {};
+    }
+    familyData.forEach(m => { readingCalendar[_dayModalKey][m.name] = value; });
+    renderDayModalBody();
+    renderReadingCalendar();
+    syncWeeklyStampsFromCalendar();
+    await saveData();
+  }
+
+  function closeDayModal() {
+    document.getElementById('day-member-modal').classList.add('hidden');
+    document.body.style.overflow = '';
+    _dayModalKey = null;
+  }
+
+  function syncWeeklyStampsFromCalendar() {
+    // 이번 주 월~일 기준 완독 여부를 weeklyStamps 배열로 동기화 (1명이라도 읽으면 true)
+    const today = new Date();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const k = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+      weeklyStamps[i] = getDayReadCount(k) > 0;
+    }
+  }
+
+  function calPrevMonth() {
+    calendarViewMonth--;
+    if (calendarViewMonth < 0) { calendarViewMonth = 11; calendarViewYear--; }
+    renderReadingCalendar();
+  }
+  function calNextMonth() {
+    calendarViewMonth++;
+    if (calendarViewMonth > 11) { calendarViewMonth = 0; calendarViewYear++; }
+    renderReadingCalendar();
+  }
+  function calToday() {
+    calendarViewYear = new Date().getFullYear();
+    calendarViewMonth = new Date().getMonth();
+    renderReadingCalendar();
+  }
+
+  function getCompletedWeeklyCount() {
+    // 이번 주 완독 수 (누군가 1명이라도 읽은 날 기준)
+    const today = new Date();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+    let count = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const k = dateKey(d.getFullYear(), d.getMonth(), d.getDate());
+      if (getDayReadCount(k) > 0) count++;
+    }
+    return count;
+  }
 
   async function cancelLastStamp() {
     const lastTrue = weeklyStamps.lastIndexOf(true);
@@ -2520,23 +3379,66 @@
   // 빵빠레 & 보상
   // ============================================================
   async function triggerFanfareCelebration() {
-    const firstEmpty = weeklyStamps.indexOf(false);
-    if (firstEmpty === -1) {
-      showNotification("📢 이번 주 도장판이 꽉 찼어요! '새 주 시작' 버튼을 눌러주세요.");
-      return;
+    const today = new Date();
+    const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+
+    // 선택된 멤버가 있으면 개인 스탬프, 없으면 전원 스탬프
+    const targetMember = quickMember;
+    const status = getMemberStatus(todayKey);
+
+    if (targetMember) {
+      // 개인 스탬프 모드
+      if (status[targetMember.name]) {
+        showNotification(`📢 ${targetMember.name}는 오늘 이미 완독 표시가 되어 있어요! 🎉`);
+        return;
+      }
+      const rangeText = getTodayPlanLabel();
+      const confirmed = confirm(`📖 ${targetMember.name} 성경 읽기 완료!\n\n오늘 범위: ${rangeText}\n\n✅ 확인하면 ${targetMember.name}에게 ${rewardConfig.readComplete}달란트가 지급됩니다!`);
+      if (!confirmed) return;
+      if (!readingCalendar[todayKey] || typeof readingCalendar[todayKey] === 'boolean') readingCalendar[todayKey] = {};
+      readingCalendar[todayKey][targetMember.name] = true;
+      const member = familyData.find(m => m.name === targetMember.name);
+      if (member) member.talents += rewardConfig.readComplete;
+    } else {
+      // 전원 스탬프 모드
+      if (isDayComplete(todayKey)) {
+        showNotification("📢 오늘은 이미 전원 완독 스탬프가 찍혀 있어요! 🎉");
+        return;
+      }
+      const rangeText = getTodayPlanLabel();
+      const confirmed = confirm(`📖 온 가족 성경 읽기 완료!\n\n오늘 범위: ${rangeText}\n\n✅ 확인하면 전원에게 ${rewardConfig.readComplete}달란트가 지급됩니다.\n\n💡 개인 스탬프는 홈에서 이름 선택 후 누르세요!`);
+      if (!confirmed) return;
+      readingCalendar[todayKey] = {};
+      familyData.forEach(m => { readingCalendar[todayKey][m.name] = true; });
     }
-    const rangeText = document.getElementById('bible-range')?.value || '오늘 범위';
-    const confirmed = confirm(`📖 오늘 성경 읽기를 완료했나요?\n\n범위: ${rangeText}\n\n✅ 확인을 누르면 스탬프가 찍히고 전원 300달란트가 지급됩니다.`);
-    if (!confirmed) return;
-    weeklyStamps[firstEmpty] = true;
-    familyData.forEach(m => m.talents += rewardConfig.readComplete);
+    syncWeeklyStampsFromCalendar();
+
+    // 기존 weeklyStamps 호환용
+    const firstEmpty = weeklyStamps.indexOf(false);
+    if (firstEmpty !== -1) weeklyStamps[firstEmpty] = true;
+    // 달란트 지급 (개인 모드면 이미 위에서 지급됨)
+    if (!targetMember) familyData.forEach(m => m.talents += rewardConfig.readComplete);
 
     const count = getCompletedWeeklyCount();
     let weeklyBonus = false;
-    if (count === 5 && firstEmpty === 4) {
+    if (count === 5 && firstEmpty === 4 && !targetMember) {
       weeklyBonus = true;
       familyData.forEach(m => { m.level++; m.height += 0.5; });
     }
+
+    // 🔥 스트릭 계산 & 마일스톤 보너스
+    const streak = calculateStreak();
+    const streakBonus = checkStreakBonus(streak);
+    if (streakBonus) {
+      familyData.forEach(m => m.talents += streakBonus.bonus);
+    }
+
+    // 📣 활동 피드에 기록
+    const rangeForLog = getTodayPlanLabel();
+    const logText = targetMember
+      ? `${targetMember.name}이(가) 오늘 성경을 완독했어요! (${rangeForLog})`
+      : `온 가족이 성경을 완독했어요! (${rangeForLog})`;
+    addActivityLog(logText, streak);
 
     await saveData();
     renderFamily();
@@ -2566,12 +3468,18 @@
       t+=dur[i]*0.8;
     });
 
-    let msg = `🎺 빵빠레! 전원 ${rewardConfig.readComplete}달란트 지급! 이번 주 ${count}일 완독!`;
+    // 알림 메시지 조합
+    let msg = `🎺 빵빠레! 전원 ${rewardConfig.readComplete}달란트 지급! 이번 주 ${count}일 완독! 🔥 ${streak}일 연속`;
+    if (streakBonus) msg += ` &nbsp;<strong>${streakBonus.label}</strong>`;
     if (weeklyBonus) msg += ` 🦒✨ <strong>주 5일 달성! 레벨업 + 키 0.5cm 성장!</strong>`;
+    // 퀴즈 바로가기 버튼 추가
+    msg += `&nbsp;&nbsp;<button onclick="switchTab('quiz');closeAlert();" style="background:#f59e0b;color:#1c1917;border-radius:8px;padding:2px 10px;font-weight:900;font-size:11px;border:none;cursor:pointer;">📚 퀴즈 풀기!</button>`;
     showNotification(msg);
 
     if('speechSynthesis' in window){
-      let txt = "빵빠레! 오늘 성경 읽기 완료! 전원 300달란트!";
+      let txt = `빵빠레! 오늘 성경 읽기 완료! 전원 ${rewardConfig.readComplete}달란트!`;
+      if (streak >= 3) txt += ` ${streak}일 연속 완독 중!`;
+      if (streakBonus) txt += ` ${streak}일 연속 달성 보너스!`;
       if(weeklyBonus) txt += " 주 5일 완독 달성! 온 가족 레벨업과 키 성장 축하합니다!";
       const sp=new SpeechSynthesisUtterance(txt); sp.lang='ko-KR'; sp.pitch=1.2;
       window.speechSynthesis.speak(sp);
@@ -3639,6 +4547,111 @@
     await saveData();
     showNotification('💰 보상 수치 저장 완료!');
   }
+
+  // ============================================================
+  // 🔗 공유 기능
+  // ============================================================
+  function openShareModal() {
+    const url = window.location.href;
+    document.getElementById('share-url-text').textContent = url;
+    document.getElementById('share-modal').classList.remove('hidden');
+
+    // QR 코드 생성
+    generateQRCode(url);
+
+    // 네이티브 공유 지원 여부
+    const nativeBtn = document.getElementById('native-share-btn');
+    if (!navigator.share) {
+      nativeBtn.classList.add('hidden');
+    } else {
+      nativeBtn.classList.remove('hidden');
+    }
+  }
+
+  function closeShareModal() {
+    document.getElementById('share-modal').classList.add('hidden');
+  }
+
+  async function copyShareUrl() {
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      const btn = document.getElementById('copy-url-btn');
+      btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>완료!</span>';
+      btn.classList.replace('bg-emerald-500','bg-green-400');
+      setTimeout(() => {
+        btn.innerHTML = '<i class="fa-solid fa-copy"></i> <span>복사</span>';
+        btn.classList.replace('bg-green-400','bg-emerald-500');
+      }, 2000);
+      showNotification('✅ 링크 복사 완료! 카카오톡에 붙여넣기 하세요 📋');
+    } catch(e) {
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showNotification('✅ 링크 복사 완료!');
+    }
+  }
+
+  async function nativeShare() {
+    if (!navigator.share) return;
+    try {
+      await navigator.share({
+        title: '온,기,주 팸 성경통독 대모험 🌳',
+        text: '우리 가족 성경통독 앱이에요! 함께 읽어요 📖',
+        url: window.location.href
+      });
+    } catch(e) {
+      if (e.name !== 'AbortError') showNotification('공유 실패: ' + e.message);
+    }
+  }
+
+  function downloadQR() {
+    const canvas = document.getElementById('share-qr-canvas');
+    if (!canvas) return;
+    const link = document.createElement('a');
+    link.download = '성경통독앱_QR.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showNotification('📥 QR 코드 이미지가 저장되었어요!');
+  }
+
+  // 🔲 QR 코드 생성 (외부 라이브러리 없이 Google Charts API 사용)
+  function generateQRCode(url) {
+    const canvas = document.getElementById('share-qr-canvas');
+    const ctx = canvas.getContext('2d');
+    const size = 160;
+    canvas.width = size;
+    canvas.height = size;
+
+    // Google Charts QR API로 이미지 생성
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}&bgcolor=ffffff&color=1e293b&margin=10`;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      ctx.clearRect(0, 0, size, size);
+      ctx.drawImage(img, 0, 0, size, size);
+    };
+    img.onerror = () => {
+      // API 실패시 안내 텍스트
+      ctx.fillStyle = '#f8fafc';
+      ctx.fillRect(0, 0, size, size);
+      ctx.fillStyle = '#64748b';
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('QR 생성 실패', size/2, size/2 - 10);
+      ctx.fillText('(인터넷 확인)', size/2, size/2 + 10);
+    };
+    img.src = qrUrl;
+  }
+
+  // 공유 모달 외부 클릭 닫기
+  document.getElementById('share-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeShareModal();
+  });
 
   // ============================================================
   // 초기화

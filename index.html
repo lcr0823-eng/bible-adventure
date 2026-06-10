@@ -258,7 +258,7 @@
   </header>
 
   <!-- ===== 🔗 공유 모달 ===== -->
-  <div id="share-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+<div id="share-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border-4 border-emerald-300">
       <div class="text-center mb-4">
         <div class="text-4xl mb-1">🔗</div>
@@ -287,9 +287,9 @@
 
       <!-- 공유 버튼들 -->
       <div class="grid grid-cols-2 gap-2 mb-3">
-        <button onclick="nativeShare()" id="native-share-btn"
-          class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-share"></i> 공유하기
+        <button onclick="copyShareUrl()"
+          class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-2 px-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-copy"></i> 링크 복사
         </button>
         <button onclick="downloadQR()"
           class="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
@@ -297,14 +297,42 @@
         </button>
       </div>
 
-      <!-- 카카오/기타 안내 -->
-      <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-3 mb-3 text-xs text-yellow-800 text-center">
-        💡 <strong>Tip:</strong> URL을 복사해서 카카오톡 가족 채팅방에 붙여넣으면 돼요!
+      <!-- 안내 -->
+      <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-3 mb-3 text-xs text-yellow-800">
+        <div class="font-black mb-1">📲 공유 방법</div>
+        <div>① <strong>링크 복사</strong> → 카카오톡 채팅방에 붙여넣기</div>
+        <div>② <strong>QR 저장</strong> → 이미지를 카톡으로 전송</div>
+        <div class="mt-1 text-slate-400 text-[10px]">※ 로컬 파일은 같은 PC/네트워크에서만 접속 가능해요</div>
       </div>
 
       <button onclick="closeShareModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 rounded-2xl text-sm transition">
         닫기
       </button>
+    </div>
+  </div>
+
+  <!-- ===== 🎵 YouTube 방송 토스트 알림 ===== -->
+  <div id="youtube-player-modal" class="hidden fixed bottom-20 right-4 z-50" style="width:300px;">
+    <div class="bg-slate-900 rounded-2xl shadow-2xl border-2 border-amber-400 overflow-hidden">
+      <div class="bg-amber-500 px-3 py-2 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-lg animate-bounce">🔔</span>
+          <span class="text-white font-black text-sm">5분전 방송!</span>
+        </div>
+        <button onclick="closeYoutubePlayer()"
+          class="text-white hover:text-red-200 text-xs bg-white/20 hover:bg-white/30 rounded-lg px-2 py-1 transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="bg-slate-800 px-4 py-4 text-center space-y-3">
+        <div class="text-3xl animate-bounce">🎵</div>
+        <div class="text-white font-bold text-sm">말씀 읽을 시간! 🔁</div>
+        <div class="text-slate-400 text-xs">노래가 반복 재생되고 있어요</div>
+        <button onclick="closeYoutubePlayer()"
+          class="w-full bg-red-500 hover:bg-red-400 text-white font-bold py-2 rounded-xl text-sm transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-stop"></i> 재생 멈추기
+        </button>
+      </div>
     </div>
   </div>
 
@@ -480,6 +508,25 @@
         </button>
       </div>
 
+      <!-- 🎵 5분전 방송 음악 설정 -->
+      <div class="bg-slate-800 rounded-2xl p-5 mb-4">
+        <h3 class="text-amber-400 font-black mb-2 text-lg">🎵 5분전 방송 음악</h3>
+        <p class="text-slate-400 text-xs mb-3">YouTube 링크를 붙여넣으면 5분전 방송 버튼에서 재생돼요!</p>
+        <div class="space-y-2">
+          <input type="url" id="alert-youtube-url" placeholder="https://www.youtube.com/watch?v=..."
+            class="w-full bg-slate-700 text-white border border-slate-600 rounded-xl px-3 py-2 text-sm placeholder:text-slate-500">
+          <div class="text-xs text-slate-500">💡 추천: YouTube에서 "성경암송 찬양" 검색 후 링크 복사</div>
+          <div class="flex gap-2">
+            <button onclick="saveAlertYoutubeUrl()" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded-xl text-sm">저장</button>
+            <button onclick="testAlertMusic()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-xl text-sm">▶ 테스트</button>
+          </div>
+          <button onclick="window.open('https://www.youtube.com/results?search_query=성경암송+찬양+5분','_blank')"
+            class="w-full bg-slate-600 hover:bg-slate-500 text-slate-200 font-bold py-2 rounded-xl text-xs">
+            🔍 YouTube에서 성경암송 찬양 검색
+          </button>
+        </div>
+      </div>
+
       <!-- 💰 보상 수치 조정 -->
       <div class="bg-slate-800 rounded-2xl p-5 mb-4">
         <h3 class="text-green-400 font-black mb-4 text-lg">💰 보상 수치 조정</h3>
@@ -571,6 +618,9 @@
       </button>
       <button onclick="switchTab('prayer')"  id="tab-prayer"  class="tab-btn flex-1 flex flex-col items-center py-2 px-1 transition border-b-4 border-transparent text-slate-400">
         <span class="text-2xl leading-none">🙏</span><span class="text-[12px] font-bold mt-0.5">기도</span>
+      </button>
+      <button onclick="switchTab('memory')"  id="tab-memory"  class="tab-btn flex-1 flex flex-col items-center py-2 px-1 transition border-b-4 border-transparent text-slate-400">
+        <span class="text-2xl leading-none">⭐</span><span class="text-[12px] font-bold mt-0.5">암송</span>
       </button>
       <button onclick="switchTab('all')"     id="tab-all"     class="tab-btn flex-1 flex flex-col items-center py-2 px-1 transition border-b-4 border-transparent text-slate-400">
         <span class="text-2xl leading-none">📋</span><span class="text-[12px] font-bold mt-0.5">전체</span>
@@ -842,8 +892,160 @@
       </div>
     </div>
 
+    <!-- ===== ⭐ 탭: 암송 ===== -->
+    <div id="tab-panel-memory" class="hidden pt-4 border-t-4 border-dashed border-yellow-300 mt-4">
+
+      <!-- 암송 헤더 -->
+      <div class="bg-gradient-to-r from-yellow-400 to-orange-400 rounded-3xl p-5 mb-4 text-center shadow-xl">
+        <div class="text-4xl mb-1">🎵</div>
+        <h2 class="text-2xl title-font text-white drop-shadow">말씀 노래 챈트!</h2>
+        <p class="text-yellow-100 text-sm mt-1">재생 누르면 노래처럼 외워봐요! 🎤</p>
+        <div id="memory-total-dalant" class="mt-2 inline-block bg-white/30 rounded-full px-4 py-1 text-white font-black text-sm">오늘 획득: 0 달란트</div>
+      </div>
+
+      <!-- 말씀 선택 목록 -->
+      <div id="memory-verse-list" class="space-y-3 mb-4"></div>
+
+      <!-- ===== 🎤 노래 챈트 플레이어 화면 ===== -->
+      <div id="memory-chant-screen" class="hidden">
+
+        <!-- 상단 바 -->
+        <div class="flex items-center justify-between mb-3">
+          <button onclick="exitChant()" class="flex items-center gap-2 bg-white rounded-2xl px-3 py-2 shadow text-slate-500 hover:text-slate-700 text-sm font-bold">
+            <i class="fa-solid fa-arrow-left"></i> 목록
+          </button>
+          <div id="chant-verse-ref" class="font-black text-orange-600 text-sm"></div>
+          <div id="chant-round-badge" class="bg-blue-500 text-white text-xs font-black px-3 py-1.5 rounded-full"></div>
+        </div>
+
+        <!-- 마스코트 + 배경 카라오케 메인 -->
+        <div id="chant-stage" class="rounded-3xl p-5 shadow-2xl mb-4 text-center relative overflow-hidden" style="min-height:280px; background:linear-gradient(135deg,#1e1b4b,#312e81,#4c1d95);">
+          <!-- 별 배경 파티클 -->
+          <div id="chant-stars" class="absolute inset-0 pointer-events-none"></div>
+
+          <!-- 마스코트 -->
+          <div id="chant-mascot" class="text-6xl mb-2 transition-all duration-300" style="display:inline-block;">🎵</div>
+
+          <!-- 모드 라벨 -->
+          <div id="chant-mode-label" class="text-yellow-300 font-black text-sm mb-3 tracking-wide"></div>
+
+          <!-- 가사 전체 (카라오케 스타일) -->
+          <div id="chant-lyrics-display" class="relative z-10 px-2">
+            <!-- JS로 span 단위 렌더 -->
+          </div>
+
+          <!-- 박자 표시 -->
+          <div id="chant-beat-dots" class="flex justify-center gap-2 mt-4"></div>
+        </div>
+
+        <!-- 진행 바 -->
+        <div class="bg-white rounded-2xl p-3 shadow mb-3">
+          <div class="flex justify-between text-xs text-slate-400 mb-1 font-bold">
+            <span id="chant-progress-label">준비 중...</span>
+            <span id="chant-progress-num"></span>
+          </div>
+          <div class="bg-slate-100 rounded-full h-3 overflow-hidden">
+            <div id="chant-progress-bar" class="h-3 rounded-full transition-all duration-500 bg-gradient-to-r from-yellow-400 to-orange-400" style="width:0%"></div>
+          </div>
+        </div>
+
+        <!-- 컨트롤 버튼 -->
+        <div id="chant-controls" class="space-y-3">
+          <!-- 재생/일시정지 -->
+          <button onclick="toggleChantPlay()" id="chant-play-btn"
+            class="w-full text-white font-black text-2xl py-5 rounded-3xl shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3"
+            style="background:linear-gradient(135deg,#f59e0b,#ef4444);">
+            <i class="fa-solid fa-play" id="chant-play-icon"></i>
+            <span id="chant-play-label">▶ 시작!</span>
+          </button>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="chantSpeedDown()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 rounded-2xl text-sm transition">🐢 느리게</button>
+            <button onclick="chantSpeedUp()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 rounded-2xl text-sm transition">🐇 빠르게</button>
+          </div>
+        </div>
+
+        <!-- 완료 화면 -->
+        <div id="chant-complete-area" class="hidden text-center py-4">
+          <div class="text-6xl mb-3" style="animation:bounce 0.6s infinite alternate">🎉</div>
+          <div class="text-2xl font-black text-emerald-700 mb-1" id="chant-complete-msg"></div>
+          <div class="text-slate-500 text-sm mb-5" id="chant-round-msg"></div>
+          <button onclick="claimChantReward()"
+            class="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-black text-xl py-5 rounded-3xl shadow-xl active:scale-95 transition mb-3">
+            🪙 달란트 받기!
+          </button>
+          <button onclick="replayChant()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 rounded-2xl text-sm transition">
+            🔄 한 번 더!
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
     <!-- ===== 🙏 탭: 기도 ===== -->
     <div id="tab-panel-prayer" class="hidden pt-4 border-t-4 border-dashed border-purple-200 mt-4">
+
+      <!-- 🎵 기도 음악 플레이어 -->
+      <div class="rounded-3xl p-5 mb-4 shadow-xl border-4 border-purple-300"
+        style="background:linear-gradient(135deg,#3b1f6e,#5b2d8e,#2d1b4e)">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-2xl">🎵</span>
+          <div>
+            <div class="text-white font-black text-sm">기도 음악</div>
+            <div class="text-purple-200 text-xs">유튜브 창에서 재생돼요</div>
+          </div>
+        </div>
+
+        <!-- 곡 선택 버튼들 -->
+        <div class="grid grid-cols-1 gap-2">
+          <button onclick="openPrayerMusic('CwzOpGh0gu0','골방기도 1시간 기도 BGM')"
+            class="bg-white/10 hover:bg-white/25 border border-purple-400/50 text-white text-sm font-bold py-3 px-4 rounded-2xl transition active:scale-95 text-left flex items-center gap-3">
+            <span class="text-xl">🕊️</span>
+            <div>
+              <div class="font-black">골방기도 BGM</div>
+              <div class="text-purple-300 text-xs font-normal">말씀노트 · 잔잔한 기도음악 1시간</div>
+            </div>
+            <span class="ml-auto text-purple-300">▶</span>
+          </button>
+          <button onclick="openPrayerMusic('apbKZigp4hs','찬송가 피아노 기도음악 1시간')"
+            class="bg-white/10 hover:bg-white/25 border border-purple-400/50 text-white text-sm font-bold py-3 px-4 rounded-2xl transition active:scale-95 text-left flex items-center gap-3">
+            <span class="text-xl">🎹</span>
+            <div>
+              <div class="font-black">찬송가 피아노</div>
+              <div class="text-purple-300 text-xs font-normal">광고 없음 · 1시간 연속</div>
+            </div>
+            <span class="ml-auto text-purple-300">▶</span>
+          </button>
+          <button onclick="openPrayerMusic('ou3yFSqiJck','Thank you Lord 잔잔한 피아노 찬양')"
+            class="bg-white/10 hover:bg-white/25 border border-purple-400/50 text-white text-sm font-bold py-3 px-4 rounded-2xl transition active:scale-95 text-left flex items-center gap-3">
+            <span class="text-xl">🌿</span>
+            <div>
+              <div class="font-black">Thank you Lord</div>
+              <div class="text-purple-300 text-xs font-normal">깊은 기도와 묵상 · 피아노 1시간</div>
+            </div>
+            <span class="ml-auto text-purple-300">▶</span>
+          </button>
+          <button onclick="openPrayerMusic('ProSW58_Rf4','바이올린 피아노 찬송가 기도음악 1시간')"
+            class="bg-white/10 hover:bg-white/25 border border-purple-400/50 text-white text-sm font-bold py-3 px-4 rounded-2xl transition active:scale-95 text-left flex items-center gap-3">
+            <span class="text-xl">🎻</span>
+            <div>
+              <div class="font-black">바이올린 & 피아노</div>
+              <div class="text-purple-300 text-xs font-normal">찬송가 기도음악 · 1시간</div>
+            </div>
+            <span class="ml-auto text-purple-300">▶</span>
+          </button>
+        </div>
+
+        <!-- 재생 중 표시 -->
+        <div id="prayer-now-playing" class="hidden mt-3 bg-white/10 rounded-2xl px-4 py-2.5 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-base animate-bounce">🎵</span>
+            <span id="prayer-now-title" class="text-white text-xs font-bold"></span>
+          </div>
+          <button onclick="closePrayerYT()" class="text-purple-300 hover:text-white text-xs bg-white/10 px-3 py-1 rounded-xl transition">⏹ 닫기</button>
+        </div>
+      </div>
+
       <div class="bg-white rounded-3xl p-6 shadow-xl border-4 border-purple-200">
         <h2 class="text-xl title-font text-purple-800 mb-4 flex items-center justify-between">
           <span>🙏 가족 기도제목</span>
@@ -2823,7 +3025,7 @@
   // ============================================================
   // 탭 전환
   // ============================================================
-  const TAB_NAMES = ['home','reading','quiz','store','prayer'];
+  const TAB_NAMES = ['home','reading','quiz','store','prayer','memory'];
   function switchTab(name) {
     const isAll = name === 'all';
 
@@ -2850,6 +3052,10 @@
     if (isAll || name === 'reading') { renderBibleMap(); renderWeeklyStamps(); }
     if (isAll || name === 'quiz') { loadTodayQuiz(); }
     if (isAll || name === 'store') { renderStoreList(); }
+    // 기도 탭 벗어나면 기도음악 정지
+    if (name !== 'prayer' && name !== 'all') {
+      if (typeof stopPrayerMusic === 'function' && _pmPlaying) stopPrayerMusic();
+    }
     sessionStorage.setItem('activeTab', name);
   }
 
@@ -3323,27 +3529,59 @@
   // ============================================================
   let alertAudio = null;
 
+  function getAlertYoutubeUrl() {
+    return localStorage.getItem('alert_youtube_url') || '';
+  }
+
+  function extractYoutubeId(url) {
+    if (!url) return null;
+    // youtu.be/ID 형식
+    const short = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+    if (short) return short[1];
+    // youtube.com/watch?v=ID 형식
+    const watch = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+    if (watch) return watch[1];
+    // youtube.com/embed/ID 형식
+    const embed = url.match(/embed\/([a-zA-Z0-9_-]{11})/);
+    if (embed) return embed[1];
+    return null;
+  }
+
   function triggerFiveMinuteAlert() {
-    // MP3 파일이 삽입된 경우 재생, 없으면 기본 TTS/효과음 사용
-    if (typeof ALERT_AUDIO_SRC !== 'undefined' && ALERT_AUDIO_SRC) {
-      // 이미 재생 중이면 정지
-      if (alertAudio) { alertAudio.pause(); alertAudio.currentTime = 0; }
-      alertAudio = new Audio(ALERT_AUDIO_SRC);
-      alertAudio.play().catch(e => console.warn('오디오 재생 실패:', e));
-      showNotification("🎵 5분전 방송 음악이 재생됩니다!");
+    // ✅ 1순위: 로컬 MP3 파일 반복 재생
+    if (alertAudio) { alertAudio.pause(); alertAudio.currentTime = 0; alertAudio = null; }
+    alertAudio = new Audio('말씀_읽을_시간.mp3');
+    alertAudio.loop = true;
+    alertAudio.volume = 1.0;
+    alertAudio.play().then(() => {
+      showMusicToast();
+      showNotification("🎵 말씀 읽을 시간! 반복 재생 중 🔔");
+    }).catch(e => {
+      console.warn('MP3 재생 실패, 유튜브/TTS로 대체:', e);
+      _fallbackAlert();
+    });
+  }
+
+  function _fallbackAlert() {
+    // YouTube URL이 설정된 경우 플로팅 플레이어로 재생
+    const ytUrl = getAlertYoutubeUrl();
+    const ytId = extractYoutubeId(ytUrl);
+    if (ytId) {
+      openYoutubePlayer(ytId);
+      playAlertChime();
+      showNotification("🔔 5분 전 방송! 성경암송 찬양을 들어요 🎵");
       return;
     }
-
-    // MP3 없을 때 기본 효과음 + TTS
-    const audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    [[523.25,0],[659.25,0.15],[783.99,0.3],[1046.5,0.45]].forEach(([f,d])=>{
-      const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-      o.connect(g); g.connect(audioCtx.destination);
-      o.frequency.value=f; o.type='sine';
-      g.gain.setValueAtTime(0.3, audioCtx.currentTime+d);
-      g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+d+0.5);
-      o.start(audioCtx.currentTime+d); o.stop(audioCtx.currentTime+d+0.6);
-    });
+    // MP3 base64 삽입된 경우
+    if (typeof ALERT_AUDIO_SRC !== 'undefined' && ALERT_AUDIO_SRC) {
+      alertAudio = new Audio(ALERT_AUDIO_SRC);
+      alertAudio.loop = true;
+      alertAudio.play().catch(e => console.warn('오디오 재생 실패:', e));
+      showMusicToast();
+      return;
+    }
+    // 기본: 효과음 + TTS
+    playAlertChime();
     showNotification("📢 성경 읽기 5분 전 안내 방송!");
     setTimeout(()=>{
       if('speechSynthesis' in window){
@@ -3352,6 +3590,94 @@
         window.speechSynthesis.speak(m);
       }
     }, 700);
+  }
+
+  function showMusicToast() {
+    document.getElementById('youtube-player-modal').classList.remove('hidden');
+  }
+
+  function playAlertChime() {
+    try {
+      const audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+      [[523.25,0],[659.25,0.15],[783.99,0.3],[1046.5,0.45]].forEach(([f,d])=>{
+        const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+        o.connect(g); g.connect(audioCtx.destination);
+        o.frequency.value=f; o.type='sine';
+        g.gain.setValueAtTime(0.3, audioCtx.currentTime+d);
+        g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+d+0.5);
+        o.start(audioCtx.currentTime+d); o.stop(audioCtx.currentTime+d+0.6);
+      });
+    } catch(e) {}
+  }
+
+  let _ytPopupWindow = null;
+  let _ytCurrentUrl = '';
+
+  function openYoutubePlayer(videoId) {
+    // 팝업 창으로 YouTube 직접 열기 (embed 제한 우회)
+    const url = `https://www.youtube.com/watch?v=${videoId}`;
+    _ytCurrentUrl = url;
+
+    // 기존 팝업이 열려있으면 재사용
+    if (_ytPopupWindow && !_ytPopupWindow.closed) {
+      _ytPopupWindow.location.href = url;
+      _ytPopupWindow.focus();
+    } else {
+      const w = 480, h = 320;
+      const left = window.screen.width - w - 20;
+      const top = window.screen.height - h - 60;
+      _ytPopupWindow = window.open(url, 'yt_player',
+        `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=no`);
+    }
+
+    // 토스트 알림 표시
+    document.getElementById('youtube-player-modal').classList.remove('hidden');
+  }
+
+  function reopenYoutubeWindow() {
+    if (_ytCurrentUrl) {
+      const w = 480, h = 320;
+      const left = window.screen.width - w - 20;
+      const top = window.screen.height - h - 60;
+      _ytPopupWindow = window.open(_ytCurrentUrl, 'yt_player',
+        `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=no`);
+      if (_ytPopupWindow) _ytPopupWindow.focus();
+    }
+  }
+
+  function closeYoutubePlayer() {
+    document.getElementById('youtube-player-modal').classList.add('hidden');
+    // MP3 재생 중이면 멈추기
+    if (alertAudio) { alertAudio.pause(); alertAudio.currentTime = 0; alertAudio = null; }
+  }
+
+  function saveAlertYoutubeUrl() {
+    const url = document.getElementById('alert-youtube-url').value.trim();
+    const id = extractYoutubeId(url);
+    if (url && !id) {
+      showNotification('❌ 올바른 YouTube 링크를 입력해 주세요!');
+      return;
+    }
+    localStorage.setItem('alert_youtube_url', url);
+    showNotification(url ? '✅ 유튜브 음악 저장 완료! 5분전 방송 버튼을 눌러보세요 🎵' : '✅ 설정 초기화 완료 (기본 TTS 사용)');
+  }
+
+  function testAlertMusic() {
+    const url = document.getElementById('alert-youtube-url').value.trim();
+    const id = extractYoutubeId(url);
+    if (!id) {
+      showNotification('❌ 먼저 YouTube 링크를 입력하고 저장해 주세요!');
+      return;
+    }
+    openYoutubePlayer(id);
+    showNotification('▶ 테스트 재생 중... 🎵');
+  }
+
+  // 관리자 패널 열릴 때 저장된 URL 불러오기
+  function loadAlertUrlToAdmin() {
+    const saved = getAlertYoutubeUrl();
+    const input = document.getElementById('alert-youtube-url');
+    if (input) input.value = saved;
   }
 
   // ============================================================
@@ -3620,6 +3946,40 @@
   }
 
   // ============================================================
+  // ============================================================
+  // 🎵 기도 음악 플레이어 (YouTube 팝업)
+  // ============================================================
+  let _prayerYTPopup = null;
+
+  function openPrayerMusic(videoId, title) {
+    const url = 'https://www.youtube.com/watch?v=' + videoId;
+    if (_prayerYTPopup && !_prayerYTPopup.closed) {
+      _prayerYTPopup.location.href = url;
+      _prayerYTPopup.focus();
+    } else {
+      const w = 480, h = 320;
+      const left = Math.max(0, window.screen.width - w - 20);
+      const top  = Math.max(0, window.screen.height - h - 80);
+      _prayerYTPopup = window.open(url, 'prayer_music',
+        'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top + ',resizable=yes');
+    }
+    // 재생 중 표시
+    const bar = document.getElementById('prayer-now-playing');
+    const ttl = document.getElementById('prayer-now-title');
+    if (bar) bar.classList.remove('hidden');
+    if (ttl) ttl.textContent = title;
+    showNotification('🎵 기도음악 재생 중!');
+  }
+
+  function closePrayerYT() {
+    if (_prayerYTPopup && !_prayerYTPopup.closed) _prayerYTPopup.close();
+    _prayerYTPopup = null;
+    const bar = document.getElementById('prayer-now-playing');
+    if (bar) bar.classList.add('hidden');
+  }
+
+  function stopPrayerMusic() { closePrayerYT(); }
+
   // 🙏 가족 기도제목
   // ============================================================
   let prayerData = {}; // { "2024-06-04": "기도제목 내용..." }
@@ -3879,6 +4239,7 @@
     renderAdminStoreList();
     renderRewardConfig();
     initAdminActionUI();
+    loadAlertUrlToAdmin();
     const notifInput = document.getElementById('admin-notif-time');
     if (notifInput) notifInput.value = notifTime;
   }
@@ -4555,58 +4916,38 @@
     const url = window.location.href;
     document.getElementById('share-url-text').textContent = url;
     document.getElementById('share-modal').classList.remove('hidden');
-
-    // QR 코드 생성
     generateQRCode(url);
-
-    // 네이티브 공유 지원 여부
-    const nativeBtn = document.getElementById('native-share-btn');
-    if (!navigator.share) {
-      nativeBtn.classList.add('hidden');
-    } else {
-      nativeBtn.classList.remove('hidden');
-    }
   }
 
   function closeShareModal() {
     document.getElementById('share-modal').classList.add('hidden');
   }
 
-  async function copyShareUrl() {
+  function copyShareUrl() {
     const url = window.location.href;
+    // execCommand 방식 (file:// 에서도 안정적)
+    const ta = document.createElement('textarea');
+    ta.value = url;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
     try {
-      await navigator.clipboard.writeText(url);
-      const btn = document.getElementById('copy-url-btn');
-      btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>완료!</span>';
-      btn.classList.replace('bg-emerald-500','bg-green-400');
-      setTimeout(() => {
-        btn.innerHTML = '<i class="fa-solid fa-copy"></i> <span>복사</span>';
-        btn.classList.replace('bg-green-400','bg-emerald-500');
-      }, 2000);
-      showNotification('✅ 링크 복사 완료! 카카오톡에 붙여넣기 하세요 📋');
-    } catch(e) {
-      // fallback
-      const ta = document.createElement('textarea');
-      ta.value = url;
-      document.body.appendChild(ta);
-      ta.select();
       document.execCommand('copy');
-      document.body.removeChild(ta);
-      showNotification('✅ 링크 복사 완료!');
-    }
-  }
-
-  async function nativeShare() {
-    if (!navigator.share) return;
-    try {
-      await navigator.share({
-        title: '온,기,주 팸 성경통독 대모험 🌳',
-        text: '우리 가족 성경통독 앱이에요! 함께 읽어요 📖',
-        url: window.location.href
+      showNotification('✅ 링크 복사 완료! 카카오톡에 붙여넣기 하세요 📋');
+      // 버튼 피드백
+      document.querySelectorAll('#share-modal button').forEach(b => {
+        if (b.textContent.includes('링크 복사') || b.textContent.includes('복사')) {
+          const orig = b.innerHTML;
+          b.innerHTML = '<i class="fa-solid fa-check"></i> 복사됨!';
+          b.classList.add('bg-green-400'); b.classList.remove('bg-emerald-500');
+          setTimeout(() => { b.innerHTML = orig; b.classList.remove('bg-green-400'); b.classList.add('bg-emerald-500'); }, 2000);
+        }
       });
     } catch(e) {
-      if (e.name !== 'AbortError') showNotification('공유 실패: ' + e.message);
+      showNotification('❌ 복사 실패 — URL을 직접 선택해서 복사해주세요');
     }
+    document.body.removeChild(ta);
   }
 
   function downloadQR() {
@@ -4652,6 +4993,697 @@
   document.getElementById('share-modal').addEventListener('click', function(e) {
     if (e.target === this) closeShareModal();
   });
+
+  // ============================================================
+  // 🎵 암송 노래 챈트 시스템 (카라오케 스타일)
+  // ============================================================
+
+  const MEMORY_VERSES = [
+    {
+      id: 'v1', ref: '요한복음 3:16', emoji: '❤️', color: '#ef4444',
+      short: '하나님이 세상을 이처럼 사랑하사',
+      full: '하나님이 세상을 이처럼 사랑하사 독생자를 주셨으니 이는 그를 믿는 자마다 멸망하지 않고 영생을 얻게 하려 하심이라',
+      chunks: ['하나님이', '세상을 이처럼', '사랑하사', '독생자를 주셨으니', '그를 믿는 자마다', '영생을 얻게 하려 하심이라'],
+      dalant: 100,
+    },
+    {
+      id: 'v2', ref: '빌립보서 4:13', emoji: '💪', color: '#3b82f6',
+      short: '내게 능력 주시는 자 안에서',
+      full: '내게 능력 주시는 자 안에서 내가 모든 것을 할 수 있느니라',
+      chunks: ['내게', '능력 주시는 자', '안에서', '내가 모든 것을', '할 수 있느니라'],
+      dalant: 80,
+    },
+    {
+      id: 'v3', ref: '시편 23:1', emoji: '🐑', color: '#22c55e',
+      short: '여호와는 나의 목자시니',
+      full: '여호와는 나의 목자시니 내게 부족함이 없으리로다',
+      chunks: ['여호와는', '나의 목자시니', '내게', '부족함이', '없으리로다'],
+      dalant: 60,
+    },
+    {
+      id: 'v4', ref: '잠언 3:5-6', emoji: '🌟', color: '#f59e0b',
+      short: '너는 마음을 다하여 여호와를 신뢰하고',
+      full: '너는 마음을 다하여 여호와를 신뢰하고 네 명철을 의지하지 말라 범사에 그를 인정하라 그리하면 네 길을 지도하시리라',
+      chunks: ['너는 마음을 다하여', '여호와를 신뢰하고', '네 명철을 의지하지 말라', '범사에 그를 인정하라', '그리하면 네 길을 지도하시리라'],
+      dalant: 120,
+    },
+    {
+      id: 'v5', ref: '마태복음 6:33', emoji: '👑', color: '#a855f7',
+      short: '먼저 그의 나라와 그의 의를',
+      full: '너희는 먼저 그의 나라와 그의 의를 구하라 그리하면 이 모든 것을 너희에게 더하시리라',
+      chunks: ['너희는 먼저', '그의 나라와', '그의 의를 구하라', '그리하면', '이 모든 것을 너희에게 더하시리라'],
+      dalant: 90,
+    },
+    {
+      id: 'v6', ref: '요한복음 14:6', emoji: '🛤️', color: '#06b6d4',
+      short: '내가 곧 길이요 진리요 생명이니',
+      full: '예수께서 이르시되 내가 곧 길이요 진리요 생명이니 나로 말미암지 않고는 아버지께로 올 자가 없느니라',
+      chunks: ['내가 곧', '길이요', '진리요', '생명이니', '나로 말미암지 않고는', '아버지께로 올 자가 없느니라'],
+      dalant: 100,
+    },
+    {
+      id: 'v7', ref: '이사야 41:10', emoji: '🦅', color: '#f97316',
+      short: '두려워하지 말라 내가 너와 함께 함이라',
+      full: '두려워하지 말라 내가 너와 함께 함이라 놀라지 말라 나는 네 하나님이 됨이라 내가 너를 굳세게 하리라 참으로 너를 도와 주리라',
+      chunks: ['두려워하지 말라', '내가 너와 함께 함이라', '놀라지 말라', '나는 네 하나님이 됨이라', '내가 너를 굳세게 하리라', '참으로 너를 도와 주리라'],
+      dalant: 110,
+    },
+    {
+      id: 'v8', ref: '에베소서 6:1', emoji: '👨‍👩‍👧', color: '#84cc16',
+      short: '자녀들아 주 안에서 너희 부모에게 순종하라',
+      full: '자녀들아 주 안에서 너희 부모에게 순종하라 이것이 옳으니라',
+      chunks: ['자녀들아', '주 안에서', '너희 부모에게', '순종하라', '이것이 옳으니라'],
+      dalant: 70,
+    },
+    {
+      id: 'v9', ref: '고린도전서 13:4', emoji: '💛', color: '#eab308',
+      short: '사랑은 오래 참고 사랑은 온유하며',
+      full: '사랑은 오래 참고 사랑은 온유하며 시기하지 아니하며 사랑은 자랑하지 아니하며 교만하지 아니하며',
+      chunks: ['사랑은 오래 참고', '사랑은 온유하며', '시기하지 아니하며', '사랑은 자랑하지 아니하며', '교만하지 아니하며'],
+      dalant: 90,
+    },
+    {
+      id: 'v10', ref: '시편 119:105', emoji: '🕯️', color: '#fbbf24',
+      short: '주의 말씀은 내 발에 등이요',
+      full: '주의 말씀은 내 발에 등이요 내 길에 빛이니이다',
+      chunks: ['주의 말씀은', '내 발에 등이요', '내 길에', '빛이니이다'],
+      dalant: 60,
+    },
+    {
+      id: 'v11', ref: '여호수아 1:9', emoji: '🦁', color: '#dc2626',
+      short: '강하고 담대하라 두려워하지 말며',
+      full: '강하고 담대하라 두려워하지 말며 놀라지 말라 네가 어디로 가든지 네 하나님 여호와가 너와 함께 하느니라',
+      chunks: ['강하고 담대하라', '두려워하지 말며', '놀라지 말라', '네가 어디로 가든지', '네 하나님 여호와가', '너와 함께 하느니라'],
+      dalant: 100,
+    },
+    {
+      id: 'v12', ref: '골로새서 3:23', emoji: '🏃', color: '#7c3aed',
+      short: '무슨 일을 하든지 마음을 다하여',
+      full: '무슨 일을 하든지 마음을 다하여 주께 하듯 하고 사람에게 하듯 하지 말라',
+      chunks: ['무슨 일을 하든지', '마음을 다하여', '주께 하듯 하고', '사람에게 하듯 하지 말라'],
+      dalant: 80,
+    },
+    {
+      id: 'v13', ref: '잠언 1:7', emoji: '📚', color: '#0891b2',
+      short: '여호와를 경외하는 것이 지식의 근본',
+      full: '여호와를 경외하는 것이 지식의 근본이거늘 미련한 자는 지혜와 훈계를 멸시하느니라',
+      chunks: ['여호와를 경외하는 것이', '지식의 근본이거늘', '미련한 자는', '지혜와 훈계를 멸시하느니라'],
+      dalant: 80,
+    },
+    {
+      id: 'v14', ref: '에베소서 4:32', emoji: '🤝', color: '#10b981',
+      short: '서로 친절하게 하며 서로 용서하기를',
+      full: '서로 친절하게 하며 불쌍히 여기며 서로 용서하기를 하나님이 그리스도 안에서 너희를 용서하심과 같이 하라',
+      chunks: ['서로 친절하게 하며', '불쌍히 여기며', '서로 용서하기를', '하나님이 그리스도 안에서', '너희를 용서하심과 같이 하라'],
+      dalant: 90,
+    },
+    {
+      id: 'v15', ref: '시편 46:1', emoji: '🏰', color: '#4f46e5',
+      short: '하나님은 우리의 피난처시요 힘이시니',
+      full: '하나님은 우리의 피난처시요 힘이시니 환난 중에 만날 큰 도움이시라',
+      chunks: ['하나님은', '우리의 피난처시요', '힘이시니', '환난 중에 만날', '큰 도움이시라'],
+      dalant: 70,
+    },
+    {
+      id: 'v16', ref: '요한일서 4:19', emoji: '🌹', color: '#e11d48',
+      short: '우리가 사랑함은 그가 먼저 우리를',
+      full: '우리가 사랑함은 그가 먼저 우리를 사랑하셨음이라',
+      chunks: ['우리가 사랑함은', '그가 먼저', '우리를 사랑하셨음이라'],
+      dalant: 50,
+    },
+    {
+      id: 'v17', ref: '고린도전서 10:31', emoji: '🌈', color: '#f59e0b',
+      short: '무엇을 하든지 다 하나님의 영광을',
+      full: '그런즉 너희가 먹든지 마시든지 무엇을 하든지 다 하나님의 영광을 위하여 하라',
+      chunks: ['너희가 먹든지 마시든지', '무엇을 하든지', '다 하나님의 영광을', '위하여 하라'],
+      dalant: 80,
+    },
+    {
+      id: 'v18', ref: '로마서 8:28', emoji: '✨', color: '#6366f1',
+      short: '하나님을 사랑하는 자에게는 모든 것이',
+      full: '우리가 알거니와 하나님을 사랑하는 자 곧 그의 뜻대로 부르심을 입은 자들에게는 모든 것이 합력하여 선을 이루느니라',
+      chunks: ['하나님을 사랑하는 자', '그의 뜻대로 부르심을 입은 자들에게는', '모든 것이 합력하여', '선을 이루느니라'],
+      dalant: 110,
+    },
+    {
+      id: 'v19', ref: '마태복음 22:37', emoji: '💝', color: '#ec4899',
+      short: '네 마음을 다하고 목숨을 다하여',
+      full: '네 마음을 다하고 목숨을 다하고 뜻을 다하여 주 너의 하나님을 사랑하라',
+      chunks: ['네 마음을 다하고', '목숨을 다하고', '뜻을 다하여', '주 너의 하나님을', '사랑하라'],
+      dalant: 90,
+    },
+    {
+      id: 'v20', ref: '시편 119:11', emoji: '📖', color: '#16a34a',
+      short: '주의 말씀을 내 마음에 두었나이다',
+      full: '내가 주께 범죄하지 아니하려 하여 주의 말씀을 내 마음에 두었나이다',
+      chunks: ['내가 주께', '범죄하지 아니하려 하여', '주의 말씀을', '내 마음에 두었나이다'],
+      dalant: 70,
+    },
+  ];
+
+  // ─── 랩 챈트 엔진 상태 ───
+  let _cv = null;
+  let _ci = 0;          // 현재 청크
+  let _crep = 1;        // 현재 반복 (1~5)
+  let _cPlaying = false;
+  let _cTimer = null;
+  let _cSpeed = 1.0;
+  let _cBeatCtx = null;
+  let _cBeatLoop = null;
+  let _cBeatNextTime = 0;
+  let _cBeatStep = 0;
+  const BEAT_BPM = 92;
+  const TOTAL_REPS = 5;
+
+  // 5번 반복 설정 — 점점 빨라지고 신나게
+  const REP_CFG = [
+    { label:'🎵 1번째 — 들어봐!',   rate:0.82, pitch:1.1, color:'#93c5fd', bg:'linear-gradient(135deg,#1e3a8a,#312e81)', callIn:'자, 시작한다!',      callOut:'나이스!' },
+    { label:'🎤 2번째 — 따라해봐!', rate:0.95, pitch:1.2, color:'#6ee7b7', bg:'linear-gradient(135deg,#064e3b,#065f46)', callIn:'이번엔 같이 해봐!',   callOut:'잘했어! 좋아!' },
+    { label:'💪 3번째 — 더 크게!',  rate:1.1,  pitch:1.2, color:'#fde047', bg:'linear-gradient(135deg,#713f12,#92400e)', callIn:'목소리 더 크게!',    callOut:'오예! 완전 잘해!' },
+    { label:'🔥 4번째 — 빠르게!',   rate:1.3,  pitch:1.3, color:'#fb923c', bg:'linear-gradient(135deg,#7c2d12,#9a3412)', callIn:'빠르게 간다! 고고!', callOut:'미쳤다! 최고야!' },
+    { label:'🚀 5번째 — 풀파워!',   rate:1.55, pitch:1.4, color:'#f87171', bg:'linear-gradient(135deg,#450a0a,#7f1d1d)', callIn:'마지막! 풀파워!',    callOut:'브라보! 완벽해!' },
+  ];
+
+  // 추임새 풀 (구절 사이사이)
+  const ADLIBS = ['uh!','yeah!','go!','좋아!','따라해!','한 번 더!','hey!','come on!','오예!','화이팅!'];
+  const ADLIB_PROB = 0.45; // 45% 확률로 추임새
+
+  // ── 말씀 목록 렌더 (언제든 다시 할 수 있음) ──
+  function renderMemoryVerseList() {
+    const container = document.getElementById('memory-verse-list');
+    if (!container) return;
+    const today = new Date().toISOString().slice(0,10);
+    const rewarded = JSON.parse(localStorage.getItem('memory_done_' + today) || '[]');
+    container.innerHTML = MEMORY_VERSES.map(v => {
+      const gotReward = rewarded.includes(v.id);
+      return `
+        <div onclick="startChant('${v.id}')"
+          class="bg-white rounded-3xl p-4 shadow-lg border-4 flex items-center gap-4 transition cursor-pointer select-none hover:shadow-xl active:scale-95"
+          style="border-color:${v.color}">
+          <div class="text-4xl flex-shrink-0">${v.emoji}</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-black text-slate-700 text-sm">${v.ref}</div>
+            <div class="text-slate-400 text-xs mt-0.5 truncate">"${v.short}"</div>
+            <div class="flex items-center gap-2 mt-1.5">
+              <span class="text-xs font-black px-2 py-0.5 rounded-full" style="background:${v.color}20;color:${v.color}">🪙 +${v.dalant}</span>
+              ${gotReward
+                ? '<span class="text-xs text-emerald-600 font-bold">✅ 오늘 보상완료 (다시 가능!)</span>'
+                : '<span class="text-xs text-slate-400">🎤 5번 반복 랩 챈트</span>'}
+            </div>
+          </div>
+          <div class="text-3xl flex-shrink-0">▶️</div>
+        </div>`;
+    }).join('');
+    const td = parseInt(localStorage.getItem('memory_dalant_' + today) || '0');
+    const el = document.getElementById('memory-total-dalant');
+    if (el) el.textContent = `오늘 획득: ${td} 달란트`;
+  }
+
+  // ── 챈트 시작 ──
+  function startChant(verseId) {
+    _cv = MEMORY_VERSES.find(v => v.id === verseId);
+    if (!_cv) return;
+    _ci = 0; _crep = 1; _cPlaying = false; _cSpeed = 1.0;
+    document.getElementById('memory-verse-list').classList.add('hidden');
+    document.getElementById('memory-chant-screen').classList.remove('hidden');
+    document.getElementById('chant-complete-area').classList.add('hidden');
+    document.getElementById('chant-controls').classList.remove('hidden');
+    document.getElementById('chant-verse-ref').textContent = _cv.ref;
+    _initStars();
+    _renderKaraoke();
+    _updateRoundBadge();
+    _updateProgressBar();
+    _setPlayBtn(false);
+  }
+
+  // ── 랩 가사 렌더 ──
+  function _renderKaraoke() {
+    if (!_cv) return;
+    const cfg = REP_CFG[_crep - 1];
+    const stage = document.getElementById('chant-stage');
+    if (stage) stage.style.background = cfg.bg;
+
+    const modeEl = document.getElementById('chant-mode-label');
+    if (modeEl) { modeEl.textContent = cfg.label; modeEl.style.color = cfg.color; }
+
+    const lyrics = document.getElementById('chant-lyrics-display');
+    const currentChunk = _cv.chunks[_ci];
+    const allChunks = _cv.chunks;
+
+    lyrics.innerHTML = `
+      <div id="rap-main-lyric" class="lyric-new mb-3"
+        style="font-size:2.3rem;font-weight:900;color:${cfg.color};
+          text-shadow:0 0 40px ${cfg.color}bb, 0 2px 12px rgba(0,0,0,0.9);
+          line-height:1.3;word-break:keep-all;min-height:3rem;">
+        ${currentChunk}
+      </div>
+      <div id="rap-adlib-display" style="font-size:1.1rem;font-weight:900;color:rgba(255,255,255,0.7);min-height:1.5rem;margin-bottom:8px;"></div>
+      <div class="flex items-end justify-center gap-1 mb-3" style="height:20px;">
+        ${Array.from({length:9},(_,i)=>`<div style="width:3px;border-radius:2px;background:${cfg.color};opacity:0.6;height:${4+Math.random()*14}px;animation:eq-bar ${0.25+i*0.06}s ease-in-out infinite alternate;animation-delay:${i*0.04}s;"></div>`).join('')}
+      </div>
+      <div class="flex flex-wrap justify-center gap-1.5 px-2">
+        ${allChunks.map((c,i)=>`
+          <span style="
+            font-size:${i===_ci?'0.95rem':'0.7rem'};font-weight:900;
+            color:${i===_ci?cfg.color:i<_ci?'rgba(255,255,255,0.45)':'rgba(255,255,255,0.18)'};
+            background:${i===_ci?cfg.color+'25':'transparent'};
+            border:1.5px solid ${i===_ci?cfg.color:'transparent'};
+            padding:1px 7px;border-radius:20px;transition:all 0.2s;word-break:keep-all;
+            text-decoration:${i<_ci?'line-through':''};
+          ">${c}</span>`).join('')}
+      </div>`;
+
+    const beats = document.getElementById('chant-beat-dots');
+    if (beats) beats.innerHTML = Array.from({length: TOTAL_REPS}, (_,i) =>
+      `<span style="display:inline-block;width:${i<_crep?'16px':'10px'};height:${i===_crep-1?'14px':'10px'};
+        border-radius:${i<_crep?'4px':'50%'};
+        background:${i<_crep?cfg.color:'rgba(255,255,255,0.15)'};
+        transition:all 0.3s;margin:0 2px;
+        box-shadow:${i===_crep-1?`0 0 10px ${cfg.color}`:'none'};"></span>`
+    ).join('');
+
+    const m = document.getElementById('chant-mascot');
+    if (m) {
+      const repEmojis = ['🎵','🎤','💪','🔥','🚀'];
+      m.textContent = _cPlaying ? repEmojis[_crep-1] : repEmojis[_crep-1];
+      m.style.animation = _cPlaying ? `mascot-rap ${60/BEAT_BPM}s ease-in-out infinite` : 'none';
+    }
+  }
+
+  // ── 재생/일시정지 ──
+  function toggleChantPlay() {
+    if (_cPlaying) {
+      _cPlaying = false;
+      _stopTimer();
+      _stopDrumLoop();
+      window.speechSynthesis && window.speechSynthesis.cancel();
+      _setPlayBtn(false);
+      _renderKaraoke();
+    } else {
+      _cPlaying = true;
+      _setPlayBtn(true);
+      _startDrumLoop();
+      _rapCountIn(() => { if (_cPlaying) _playCurrentChunk(); });
+    }
+  }
+
+  // ── 카운트인 "하나 둘 셋 넷" ──
+  function _rapCountIn(onDone) {
+    const beatMs = Math.round(60000 / BEAT_BPM / _cSpeed);
+    const counts = ['하나!','둘!','셋!','넷!'];
+    counts.forEach((c, i) => {
+      setTimeout(() => {
+        if (!_cPlaying) return;
+        const main = document.getElementById('rap-main-lyric');
+        if (main) { main.textContent = c; main.style.color='#fbbf24'; _anim(main); }
+        _speakRap(c, 1.5, 1.2);
+      }, i * beatMs);
+    });
+    setTimeout(onDone, counts.length * beatMs);
+  }
+
+  function _setPlayBtn(playing) {
+    const btn = document.getElementById('chant-play-btn');
+    const icon = document.getElementById('chant-play-icon');
+    const label = document.getElementById('chant-play-label');
+    if (!btn) return;
+    if (playing) {
+      btn.style.background = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
+      icon.className = 'fa-solid fa-pause';
+      label.textContent = '⏸ 멈춤';
+    } else {
+      btn.style.background = 'linear-gradient(135deg,#f59e0b,#ef4444)';
+      icon.className = 'fa-solid fa-play';
+      label.textContent = _ci===0 && _crep===1 ? '▶ 시작!' : '▶ 계속';
+    }
+  }
+
+  // ── 현재 청크 재생 (비트 동기화) ──
+  function _playCurrentChunk() {
+    if (!_cv || !_cPlaying) return;
+    _cancelTTS(); // 새 구절 시작 전 이전 TTS 정리
+    _renderKaraoke();
+    _updateProgressBar();
+
+    const cfg = REP_CFG[_crep - 1];
+    const chunk = _cv.chunks[_ci];
+    const beatMs = Math.round(60000 / BEAT_BPM / _cSpeed);
+
+    // 반복 횟수에 따라 구절당 박자 수 (뒤로 갈수록 빠르게)
+    const beatsPerChunk = _crep <= 2 ? 2 : _crep === 3 ? 2 : 1;
+    // 2번째 반복은 읽고 + 침묵(따라읽기)
+    const silentBeats = _crep === 2 ? 2 : 0;
+    const totalMs = (beatsPerChunk + silentBeats) * beatMs;
+
+    // TTS 발화
+    _speakRap(chunk, cfg.rate, cfg.pitch);
+
+    // 2번째: 침묵구간에 "🎤 따라해봐" 표시
+    if (_crep === 2 && silentBeats > 0) {
+      setTimeout(() => {
+        if (!_cPlaying) return;
+        const main = document.getElementById('rap-main-lyric');
+        if (main) { main.textContent = '🎤 ' + chunk; main.style.color = cfg.color; _anim(main); }
+      }, beatsPerChunk * beatMs);
+    }
+
+    // 추임새: 일정 확률로 다음 청크 직전에 삽입
+    if (Math.random() < ADLIB_PROB && _crep >= 2) {
+      const adlib = ADLIBS[Math.floor(Math.random() * ADLIBS.length)];
+      setTimeout(() => {
+        if (!_cPlaying) return;
+        const ad = document.getElementById('rap-adlib-display');
+        if (ad) { ad.textContent = adlib; setTimeout(()=>{ if(ad) ad.textContent=''; }, beatMs * 0.8); }
+        _speakRap(adlib, 1.6, 1.5);
+      }, Math.max(0, totalMs - beatMs * 0.7));
+    }
+
+    _cTimer = setTimeout(() => { if (_cPlaying) _advanceChunk(); }, totalMs);
+  }
+
+  // ── TTS — 노래하듯 멜로디 pitch ──
+  // 단어마다 pitch를 올렸다 내렸다 → 기계 소리 탈출, 노래 느낌
+  const _MELODY_PATTERNS = [
+    [1.5, 1.8, 1.3, 1.6, 1.2, 1.5, 1.7, 1.4],  // 밝고 경쾌
+    [1.6, 1.3, 1.7, 1.4, 1.8, 1.3, 1.6, 1.5],  // 강조형
+    [1.4, 1.7, 1.5, 1.8, 1.3, 1.6, 1.4, 1.7],  // 물결형
+  ];
+  let _melodyIdx = 0;
+
+  function _speakRap(text, rate, pitch) {
+    if (!('speechSynthesis' in window)) return;
+
+    // 노래에 불필요한 구두점 제거 후 단어 분리
+    const words = text.replace(/[!?.，。]/g, ' ').trim().split(/\s+/).filter(w => w.length > 0);
+    if (words.length === 0) return;
+
+    const pattern = _MELODY_PATTERNS[_melodyIdx % _MELODY_PATTERNS.length];
+    _melodyIdx++;
+
+    // 단어마다 개별 utterance 큐에 쌓기 (cancel 없이 → 자연스럽게 이어짐)
+    words.forEach((word, i) => {
+      const utt = new SpeechSynthesisUtterance(word);
+      utt.lang = 'ko-KR';
+      // rate: 1번째는 좀 더 느리게(노래처럼), 뒤로 갈수록 빠르게
+      utt.rate = Math.min(rate * _cSpeed * 0.88, 1.9);
+      // pitch: 단어마다 멜로디 패턴 적용
+      utt.pitch = Math.min(pitch * pattern[i % pattern.length], 2.0);
+      utt.volume = 1;
+      window.speechSynthesis.speak(utt);
+    });
+  }
+
+  // TTS 취소 (새 구절 시작 전에만 호출)
+  function _cancelTTS() {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  }
+
+  // ── 가사 팝 애니메이션 ──
+  function _anim(el) {
+    el.classList.remove('lyric-new'); void el.offsetWidth; el.classList.add('lyric-new');
+  }
+
+  // ── 다음 청크 진행 ──
+  function _advanceChunk() {
+    if (!_cv) return;
+    const isLastChunk = _ci >= _cv.chunks.length - 1;
+    if (isLastChunk) {
+      if (_crep < TOTAL_REPS) {
+        // 반복 전환: callOut 추임새 + 잠깐 쉬고 다음 반복
+        const prevCfg = REP_CFG[_crep - 1];
+        _crep++;
+        _ci = 0;
+        const nextCfg = REP_CFG[_crep - 1];
+        _updateRoundBadge();
+        playChantChime(false);
+
+        // callOut + callIn 발화
+        _speakRap(prevCfg.callOut, 1.4, 1.4);
+        const beatMs = Math.round(60000 / BEAT_BPM / _cSpeed);
+        setTimeout(() => {
+          if (!_cPlaying) return;
+          _speakRap(nextCfg.callIn, 1.3, 1.2);
+          const main = document.getElementById('rap-main-lyric');
+          if (main) { main.textContent = nextCfg.callIn; main.style.color = nextCfg.color; _anim(main); }
+          _renderKaraoke();
+        }, beatMs * 2);
+        // callIn 후 바로 시작
+        _cTimer = setTimeout(() => { if (_cPlaying) _playCurrentChunk(); }, beatMs * 4);
+      } else {
+        // 5번 모두 완료!
+        _cPlaying = false;
+        _stopTimer();
+        showChantComplete();
+      }
+    } else {
+      _ci++;
+      _playCurrentChunk();
+    }
+  }
+
+  function _stopTimer() {
+    if (_cTimer) { clearTimeout(_cTimer); _cTimer = null; }
+  }
+
+  function _updateRoundBadge() {
+    const badge = document.getElementById('chant-round-badge');
+    const cfg = REP_CFG[_crep - 1];
+    if (badge) { badge.textContent = `${_crep}/${TOTAL_REPS}번`; badge.style.background = cfg.color; badge.style.color = '#1e293b'; }
+    const lbl = document.getElementById('chant-progress-label');
+    if (lbl) lbl.textContent = cfg.label;
+  }
+
+  function _updateProgressBar() {
+    if (!_cv) return;
+    const total = _cv.chunks.length * TOTAL_REPS;
+    const done = (_crep - 1) * _cv.chunks.length + _ci;
+    const pct = Math.round(done / total * 100);
+    const bar = document.getElementById('chant-progress-bar');
+    const num = document.getElementById('chant-progress-num');
+    if (bar) bar.style.width = pct + '%';
+    if (num) num.textContent = `${pct}%`;
+  }
+
+  function chantSpeedDown() { _cSpeed = Math.max(0.6, _cSpeed - 0.15); showNotification(`🐢 속도: ${Math.round(_cSpeed*100)}%`); }
+  function chantSpeedUp()   { _cSpeed = Math.min(1.8, _cSpeed + 0.15); showNotification(`🐇 속도: ${Math.round(_cSpeed*100)}%`); }
+
+  // ── 랩 드럼 비트 엔진 ──
+  function _startDrumLoop() {
+    try {
+      if (!_cBeatCtx) _cBeatCtx = new (window.AudioContext || window.webkitAudioContext)();
+      _cBeatStep = 0;
+      _cBeatNextTime = _cBeatCtx.currentTime + 0.05;
+      // 16스텝 패턴 (1박=4스텝, 4박자)
+      // K=킥, S=스네어, H=하이햇
+      const pattern = {
+        kick:  [1,0,0,0, 0,0,1,0, 1,0,0,0, 0,0,1,0],
+        snare: [0,0,0,0, 1,0,0,0, 0,0,0,0, 1,0,0,0],
+        hihat: [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1],
+        open:  [0,0,0,0, 0,0,0,1, 0,0,0,0, 0,0,0,1],
+      };
+      const stepTime = 60 / BEAT_BPM / 4 / _cSpeed;
+
+      function schedule() {
+        if (!_cPlaying) return;
+        while (_cBeatNextTime < _cBeatCtx.currentTime + 0.1) {
+          const s = _cBeatStep % 16;
+          if (pattern.kick[s])  _drumKick(_cBeatNextTime);
+          if (pattern.snare[s]) _drumSnare(_cBeatNextTime);
+          if (pattern.hihat[s]) _drumHihat(_cBeatNextTime, 0.08);
+          if (pattern.open[s])  _drumHihat(_cBeatNextTime, 0.18);
+          // 1박자(스텝 0,4,8,12)마다 비주얼 펄스
+          if (s % 4 === 0) setTimeout(_beatVisualPulse, (_cBeatNextTime - _cBeatCtx.currentTime) * 1000);
+          _cBeatNextTime += stepTime;
+          _cBeatStep++;
+        }
+        _cBeatLoop = setTimeout(schedule, 20);
+      }
+      schedule();
+    } catch(e) {}
+  }
+
+  function _stopDrumLoop() {
+    if (_cBeatLoop) { clearTimeout(_cBeatLoop); _cBeatLoop = null; }
+  }
+
+  function _drumKick(t) {
+    const ctx = _cBeatCtx;
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.setValueAtTime(150, t);
+    o.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+    g.gain.setValueAtTime(0.8, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    o.start(t); o.stop(t + 0.25);
+  }
+
+  function _drumSnare(t) {
+    const ctx = _cBeatCtx;
+    // 노이즈
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.15, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const filter = ctx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 3000;
+    const g = ctx.createGain();
+    src.connect(filter); filter.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.35, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    src.start(t);
+    // 톤
+    const o = ctx.createOscillator(), g2 = ctx.createGain();
+    o.connect(g2); g2.connect(ctx.destination);
+    o.frequency.value = 200;
+    g2.gain.setValueAtTime(0.25, t);
+    g2.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+    o.start(t); o.stop(t + 0.08);
+  }
+
+  function _drumHihat(t, vol) {
+    const ctx = _cBeatCtx;
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.04, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const filter = ctx.createBiquadFilter(); filter.type = 'highpass'; filter.frequency.value = 8000;
+    const g = ctx.createGain();
+    src.connect(filter); filter.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+    src.start(t);
+  }
+
+  function _beatVisualPulse() {
+    const btn = document.getElementById('chant-play-btn');
+    if (btn) { btn.classList.add('beat-btn'); setTimeout(()=>btn.classList.remove('beat-btn'), 400); }
+    const main = document.getElementById('rap-main-lyric');
+    if (main) { main.classList.add('rap-active'); setTimeout(()=>main.classList.remove('rap-active'), 350); }
+  }
+
+  function _playBeat() { /* 드럼루프로 대체됨 */ }
+
+  // ── 완료 화면 ──
+  function showChantComplete() {
+    _stopDrumLoop();
+    document.getElementById('chant-controls').classList.add('hidden');
+    document.getElementById('chant-complete-area').classList.remove('hidden');
+    document.getElementById('chant-complete-msg').textContent = `🎊 ${_cv.ref} 암송 완성!`;
+    document.getElementById('chant-round-msg').textContent = `5번 반복을 모두 마쳤어요! 완전 최고야! 🔥👏`;
+    playChantChime(true);
+    if (typeof confetti !== 'undefined') {
+      confetti({ particleCount: 150, spread: 80, origin: {y:0.6}, colors:['#fbbf24','#f97316','#22c55e','#60a5fa'] });
+    }
+    const m = document.getElementById('chant-mascot');
+    if (m) { m.textContent = '🎊'; m.style.transform = 'scale(1.5)'; }
+  }
+
+  // ── 달란트 받기 ──
+  function claimChantReward() {
+    if (!_cv) return;
+    const today = new Date().toISOString().slice(0,10);
+    const done = JSON.parse(localStorage.getItem('memory_done_' + today) || '[]');
+    if (done.includes(_cv.id)) {
+      showNotification('오늘은 이미 받았어요! 다른 말씀을 해보세요 😊');
+      exitChant(); return;
+    }
+    const reward = _cv.dalant;
+    if (quickMember) {
+      const m = familyData.find(f => f.name === quickMember.name);
+      if (m) { m.talents += reward; showNotification(`🪙 ${quickMember.name}에게 +${reward} 달란트!`); }
+    } else {
+      familyData.forEach(m => { m.talents += reward; });
+      showNotification(`🪙 전원에게 +${reward} 달란트!`);
+    }
+    done.push(_cv.id);
+    localStorage.setItem('memory_done_' + today, JSON.stringify(done));
+    const prev = parseInt(localStorage.getItem('memory_dalant_' + today) || '0');
+    localStorage.setItem('memory_dalant_' + today, prev + reward);
+    const who = quickMember ? quickMember.name : '가족 전원';
+    addActivityLog(`⭐ ${who}이(가) [${_cv.ref}] 암송 완성! +${reward}달란트`);
+    saveData();
+    exitChant();
+  }
+
+  // ── 다시하기 ──
+  function replayChant() {
+    _ci = 0; _cr = 1; _cPlaying = false;
+    document.getElementById('chant-complete-area').classList.add('hidden');
+    document.getElementById('chant-controls').classList.remove('hidden');
+    _setPlayBtn(false);
+    _updateRoundBadge();
+    _renderKaraoke();
+    _updateProgressBar();
+  }
+
+  // ── 나가기 ──
+  function exitChant() {
+    _cPlaying = false;
+    _stopTimer();
+    _stopDrumLoop();
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    _cv = null;
+    document.getElementById('memory-chant-screen').classList.add('hidden');
+    document.getElementById('memory-verse-list').classList.remove('hidden');
+    renderMemoryVerseList();
+  }
+
+  // ── 완료 효과음 ──
+  function playChantChime(big = false) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const notes = big
+        ? [[523,0],[659,0.18],[784,0.36],[1047,0.55],[784,0.75],[1047,0.95]]
+        : [[523,0],[659,0.18],[784,0.36]];
+      notes.forEach(([f,d]) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = f; o.type = 'sine';
+        g.gain.setValueAtTime(0.3, ctx.currentTime + d);
+        g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + d + 0.5);
+        o.start(ctx.currentTime + d); o.stop(ctx.currentTime + d + 0.6);
+      });
+    } catch(e) {}
+  }
+
+  // ── 별 파티클 배경 ──
+  function _initStars() {
+    const el = document.getElementById('chant-stars');
+    if (!el) return;
+    el.innerHTML = Array.from({length:20}, () => {
+      const x = Math.random()*100, y = Math.random()*100;
+      const s = (Math.random()*0.8+0.3).toFixed(1);
+      const d = (Math.random()*3+1).toFixed(1);
+      return `<span style="position:absolute;left:${x}%;top:${y}%;font-size:${s}rem;opacity:0.3;animation:twinkle ${d}s infinite alternate;">✦</span>`;
+    }).join('');
+    // 별 CSS 추가 (한번만)
+    if (!document.getElementById('chant-star-style')) {
+      const s = document.createElement('style');
+      s.id = 'chant-star-style';
+      s.textContent = `
+        @keyframes twinkle{from{opacity:0.1;transform:scale(0.8)}to{opacity:0.6;transform:scale(1.2)}}
+        @keyframes rap-bounce{0%{transform:scale(1) translateY(0)}30%{transform:scale(1.18) translateY(-8px)}60%{transform:scale(1.05) translateY(-3px)}100%{transform:scale(1) translateY(0)}}
+        @keyframes rap-shake{0%{transform:rotate(-3deg) scale(1.1)}25%{transform:rotate(3deg) scale(1.15)}50%{transform:rotate(-2deg) scale(1.1)}75%{transform:rotate(2deg) scale(1.12)}100%{transform:rotate(0deg) scale(1)}}
+        @keyframes beat-pulse{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(251,146,60,0.7)}50%{transform:scale(1.08);box-shadow:0 0 0 12px rgba(251,146,60,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(251,146,60,0)}}
+        @keyframes lyric-pop{0%{transform:scale(0.7) translateY(20px);opacity:0}60%{transform:scale(1.15) translateY(-4px);opacity:1}100%{transform:scale(1) translateY(0);opacity:1}}
+        @keyframes mascot-rap{0%,100%{transform:rotate(-8deg) scale(1.1)}50%{transform:rotate(8deg) scale(1.2)}}
+        @keyframes eq-bar{0%,100%{height:4px}50%{height:20px}}
+        .rap-active{animation:rap-bounce 0.35s cubic-bezier(.36,.07,.19,.97) both;}
+        .lyric-new{animation:lyric-pop 0.3s cubic-bezier(.36,.07,.19,.97) both;}
+        .beat-btn{animation:beat-pulse 0.4s ease-out;}
+      `;
+      document.head.appendChild(s);
+    }
+  }
+
+  // ── 탭 전환 감지 → 리스트 렌더 ──
+  const _tabObserver = new MutationObserver(() => {
+    const panel = document.getElementById('tab-panel-memory');
+    if (panel && !panel.classList.contains('hidden')) renderMemoryVerseList();
+  });
+  setTimeout(() => {
+    const panel = document.getElementById('tab-panel-memory');
+    if (panel) _tabObserver.observe(panel, { attributeFilter: ['class'] });
+  }, 1000);
 
   // ============================================================
   // 초기화

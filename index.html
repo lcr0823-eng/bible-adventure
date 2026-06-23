@@ -294,6 +294,117 @@
         font-size: 16px !important; /* iOS auto-zoom 방지 */
       }
     }
+
+    /* ===== 🎨 테마 시스템 ===== */
+
+    /* --- 🌙 묵상 테마 (다크) --- */
+    body.theme-dark {
+      background: linear-gradient(135deg, #0a0e1a 0%, #131929 60%, #0a0e1a 100%) !important;
+      color: #e2e8f0;
+    }
+    body.theme-dark header {
+      background: linear-gradient(135deg, #1a1740 0%, #232050 100%) !important;
+      border-bottom: 1px solid rgba(99,102,241,0.3);
+    }
+    body.theme-dark header h1 { color: #c7d2fe !important; }
+    body.theme-dark .bg-white {
+      background: #1e293b !important;
+    }
+    body.theme-dark .bg-white .text-gray-800,
+    body.theme-dark .bg-white .text-gray-700,
+    body.theme-dark .bg-white .text-gray-600,
+    body.theme-dark .bg-white .text-slate-700,
+    body.theme-dark .bg-white .text-slate-800,
+    body.theme-dark .bg-white h2,
+    body.theme-dark .bg-white p,
+    body.theme-dark .bg-white span:not(.emoji-only),
+    body.theme-dark .bg-white label { color: #cbd5e1 !important; }
+    body.theme-dark .bg-white .text-gray-400,
+    body.theme-dark .bg-white .text-gray-500 { color: #64748b !important; }
+    body.theme-dark .text-gray-800,
+    body.theme-dark .text-gray-700,
+    body.theme-dark .text-gray-600 { color: #cbd5e1 !important; }
+    body.theme-dark .text-gray-400,
+    body.theme-dark .text-gray-500 { color: #64748b !important; }
+    body.theme-dark .text-amber-600,
+    body.theme-dark .text-amber-700 { color: #fbbf24 !important; }
+    body.theme-dark .text-amber-800 { color: #fcd34d !important; }
+    body.theme-dark .text-sky-700  { color: #38bdf8 !important; }
+    body.theme-dark .text-sky-800  { color: #7dd3fc !important; }
+    body.theme-dark .text-emerald-700 { color: #34d399 !important; }
+    body.theme-dark .text-purple-700  { color: #c084fc !important; }
+    body.theme-dark .text-rose-700    { color: #fb7185 !important; }
+    body.theme-dark .border-amber-200 { border-color: rgba(251,191,36,0.25) !important; }
+    body.theme-dark .border-sky-200   { border-color: rgba(56,189,248,0.25) !important; }
+    body.theme-dark .border-emerald-200 { border-color: rgba(52,211,153,0.25) !important; }
+    body.theme-dark .border-purple-200  { border-color: rgba(192,132,252,0.25) !important; }
+    body.theme-dark .border-rose-200    { border-color: rgba(251,113,133,0.25) !important; }
+    body.theme-dark .border-slate-200   { border-color: rgba(148,163,184,0.2) !important; }
+    body.theme-dark .border-gray-200    { border-color: rgba(148,163,184,0.15) !important; }
+    body.theme-dark .bg-amber-50  { background: rgba(245,158,11,0.08) !important; }
+    body.theme-dark .bg-sky-50    { background: rgba(14,165,233,0.08) !important; }
+    body.theme-dark .bg-emerald-50 { background: rgba(16,185,129,0.08) !important; }
+    body.theme-dark .bg-purple-50  { background: rgba(168,85,247,0.08) !important; }
+    body.theme-dark .bg-rose-50    { background: rgba(244,63,94,0.08) !important; }
+    body.theme-dark .bg-slate-50   { background: rgba(30,41,59,0.8) !important; }
+    body.theme-dark .bg-gray-50    { background: #1e293b !important; }
+    body.theme-dark .bg-yellow-100 { background: rgba(234,179,8,0.1) !important; }
+    body.theme-dark .bg-amber-100  { background: rgba(245,158,11,0.15) !important; }
+    body.theme-dark .bg-blue-50    { background: rgba(59,130,246,0.08) !important; }
+    body.theme-dark input, body.theme-dark textarea, body.theme-dark select {
+      background: #0f172a !important;
+      color: #e2e8f0 !important;
+      border-color: rgba(100,116,139,0.4) !important;
+    }
+    body.theme-dark .bg-slate-800 { background: #0f172a !important; }
+    body.theme-dark .bg-slate-100 { background: #334155 !important; color: #e2e8f0 !important; }
+    body.theme-dark .shadow-xl, body.theme-dark .shadow-lg {
+      box-shadow: 0 4px 24px rgba(0,0,0,0.6) !important;
+    }
+    body.theme-dark #admin-panel {
+      background: linear-gradient(135deg, #0a0e1a, #131929) !important;
+    }
+
+    /* --- 📜 클래식 성경 테마 --- */
+    body.theme-classic {
+      background: radial-gradient(circle, #f5e6cc 0%, #dfc99a 100%) !important;
+    }
+    body.theme-classic header {
+      background: linear-gradient(135deg, #3d2b1f 0%, #5c3d2e 100%) !important;
+    }
+    body.theme-classic header h1 { color: #f5d9a8 !important; }
+    body.theme-classic .bg-white {
+      background: #fdf5e4 !important;
+    }
+    body.theme-classic .text-sky-700   { color: #5c3d2e !important; }
+    body.theme-classic .text-sky-800   { color: #3d2b1f !important; }
+    body.theme-classic .text-amber-600 { color: #8b5e3c !important; }
+    body.theme-classic .text-amber-700 { color: #7c4a2e !important; }
+    body.theme-classic .text-amber-800 { color: #5c3020 !important; }
+    body.theme-classic .text-emerald-700 { color: #2d6a4f !important; }
+    body.theme-classic .text-purple-700  { color: #6b3a6b !important; }
+    body.theme-classic .border-amber-200 { border-color: #c9a87c !important; }
+    body.theme-classic .border-sky-200   { border-color: #b8956a !important; }
+    body.theme-classic .border-emerald-200 { border-color: #74b49b !important; }
+    body.theme-classic .border-purple-200  { border-color: #b89bc8 !important; }
+    body.theme-classic .bg-amber-50  { background: #f9edda !important; }
+    body.theme-classic .bg-sky-50    { background: #f2e8d8 !important; }
+    body.theme-classic .bg-emerald-50 { background: #e8f5ee !important; }
+    body.theme-classic .bg-purple-50  { background: #f2eaf5 !important; }
+    body.theme-classic .bg-amber-600  { background: #7c4a2e !important; }
+    body.theme-classic .bg-amber-500  { background: #8b5e3c !important; }
+    body.theme-classic .bg-emerald-500 { background: #2d6a4f !important; }
+    body.theme-classic .text-amber-200 { color: #f5d9a8 !important; }
+    body.theme-classic input, body.theme-classic textarea, body.theme-classic select {
+      background: #fdf0d8 !important;
+      border-color: #c9a87c !important;
+    }
+
+    /* --- 테마 전환 버튼 스타일 --- */
+    #theme-toggle-btn {
+      transition: all 0.2s;
+    }
+    #theme-toggle-btn:hover { transform: scale(1.05); }
   </style>
 </head>
 <body class="min-h-screen text-slate-800 pb-12">
@@ -326,6 +437,10 @@
           <i class="fa-solid fa-bell animate-bounce"></i>
           <span class="hidden sm:inline">🔔 5분전 방송!</span>
           <span class="sm:hidden">🔔</span>
+        </button>
+        <button id="theme-toggle-btn" onclick="cycleTheme()" class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-3 rounded-full shadow-md flex items-center space-x-1 transition text-sm border border-white/30" title="테마 변경">
+          <span id="theme-icon">🌈</span>
+          <span class="hidden sm:inline" id="theme-label">가족</span>
         </button>
         <button onclick="openAdminLogin()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 px-3 rounded-full shadow-md flex items-center space-x-1 transition text-sm">
           <i class="fa-solid fa-lock"></i>
@@ -3843,6 +3958,48 @@
   // ============================================================
   // 5분 전 방송
   // ============================================================
+
+  // ===== 🎨 테마 관리 =====
+  const THEMES = [
+    { id: 'family',  cls: '',              icon: '🌈', label: '가족',  headerColor: '#d97706' },
+    { id: 'dark',    cls: 'theme-dark',    icon: '🌙', label: '묵상',  headerColor: '#312e81' },
+    { id: 'classic', cls: 'theme-classic', icon: '📜', label: '성경',  headerColor: '#5c3d2e' },
+  ];
+  let currentThemeIdx = 0;
+
+  function applyTheme(idx) {
+    const body = document.body;
+    // 기존 테마 클래스 제거
+    THEMES.forEach(t => { if (t.cls) body.classList.remove(t.cls); });
+    // 새 테마 적용
+    const t = THEMES[idx];
+    if (t.cls) body.classList.add(t.cls);
+    // 버튼 업데이트
+    const icon = document.getElementById('theme-icon');
+    const lbl  = document.getElementById('theme-label');
+    if (icon) icon.textContent = t.icon;
+    if (lbl)  lbl.textContent  = t.label;
+    // localStorage 저장
+    localStorage.setItem('bible_theme', String(idx));
+    currentThemeIdx = idx;
+  }
+
+  function cycleTheme() {
+    const next = (currentThemeIdx + 1) % THEMES.length;
+    applyTheme(next);
+    const names = ['🌈 가족 테마', '🌙 묵상(다크) 테마', '📜 클래식 성경 테마'];
+    showNotification(names[next] + '로 변경했어요!');
+  }
+
+  function loadSavedTheme() {
+    const saved = localStorage.getItem('bible_theme');
+    if (saved !== null) {
+      const idx = parseInt(saved);
+      if (!isNaN(idx) && idx >= 0 && idx < THEMES.length) {
+        applyTheme(idx);
+      }
+    }
+  }
   let alertAudio = null;
 
   function getAlertYoutubeUrl() {
@@ -7027,7 +7184,7 @@
   // ============================================================
   // 초기화
   // ============================================================
-  window.onload = () => initData();
+  window.onload = () => { loadSavedTheme(); initData(); };
   </script>
 
   <!-- ===== 🧑 성경 인물 모달 ===== -->
